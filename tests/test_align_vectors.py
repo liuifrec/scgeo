@@ -20,7 +20,6 @@ def test_align_vectors_global_ref():
         vec_key="velocity_umap",
         ref_from_shift=True,
         obs_key="align_v_delta",
-        by="cell_type",
     )
 
     assert "align_v_delta" in adata.obs
