@@ -5,3 +5,18 @@ __pycache__/
 build/
 dist/
 *.egg-info/
+
+# Python / pytest
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Data artifacts (common in scverse)
+*.h5ad
+*.loom
+*.h5
+*.zarr
+*.mtx
+*.npz

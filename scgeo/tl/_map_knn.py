@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Optional
+from typing import Any
 
 import numpy as np
 
@@ -27,15 +27,13 @@ def map_knn(
     store_key: str = "scgeo",
 ) -> None:
     """
-    kNN mapping from reference to query with QC metrics.
+    kNN mapping reference->query with QC:
+      label = majority vote
+      confidence = vote fraction
+      entropy = vote entropy
+      OOD flag = mean kNN dist > quantile threshold
 
-    Writes to adata_q.obs:
-      - out_label_key: predicted label
-      - out_conf_key: vote fraction for predicted label
-      - out_ent_key: vote entropy
-      - out_ood_key: boolean, mean kNN distance > threshold
-
-    Also stores metadata in adata_q.uns[store_key]['map_knn'].
+    Writes into adata_q.obs and stores metadata in adata_q.uns[store_key]["map_knn"].
     """
     if label_key not in adata_ref.obs:
         raise KeyError(f"ref.obs key '{label_key}' not found")
@@ -56,34 +54,32 @@ def map_knn(
     except Exception as e:
         raise ImportError("scikit-learn required: pip install scgeo[sklearn]") from e
 
-    nn = NearestNeighbors(n_neighbors=k, algorithm="auto", metric="euclidean")
+    nn = NearestNeighbors(n_neighbors=k, metric="euclidean")
     nn.fit(Xr)
     dists, idx = nn.kneighbors(Xq, return_distance=True)
 
-    # OOD threshold from query mean distances
     mean_d = dists.mean(axis=1)
     thr = float(np.quantile(mean_d, ood_quantile))
 
-    pred = []
-    conf = np.empty(Xq.shape[0], dtype=np.float32)
-    ent = np.empty(Xq.shape[0], dtype=np.float32)
-
-    # Precompute label->int mapping for fast bincount
     uniq = np.unique(y)
     lab2i = {lab: i for i, lab in enumerate(uniq)}
+
+    pred = np.empty(Xq.shape[0], dtype=object)
+    conf = np.empty(Xq.shape[0], dtype=np.float32)
+    ent = np.empty(Xq.shape[0], dtype=np.float32)
 
     for i in range(Xq.shape[0]):
         labs = y[idx[i]]
         counts = np.zeros(len(uniq), dtype=np.int32)
         for lab in labs:
             counts[lab2i[lab]] += 1
+
         j = int(np.argmax(counts))
-        pred_lab = uniq[j]
-        pred.append(pred_lab)
+        pred[i] = uniq[j]
         conf[i] = counts[j] / float(k)
         ent[i] = _vote_entropy(counts)
 
-    adata_q.obs[out_label_key] = np.array(pred, dtype=object)
+    adata_q.obs[out_label_key] = pred
     adata_q.obs[out_conf_key] = conf
     adata_q.obs[out_ent_key] = ent
     adata_q.obs[out_ood_key] = (mean_d > thr)
