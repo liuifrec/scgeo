@@ -22,3 +22,6 @@ dev = ["pytest", "ruff"]
 plot = ["matplotlib"]
 scanpy = ["scanpy"]
 sklearn = ["scikit-learn"]
+
+[tool.setuptools]
+packages = ["scgeo"]
