@@ -8,8 +8,10 @@ from ._wasserstein import wasserstein
 from ._density_overlap import density_overlap
 from ._distribution_test import distribution_test
 from ._paga_composition_stats import paga_composition_stats
+from ._consensus_subspace import consensus_subspace
+
 
 __all__ = [
   "shift", "mixscore", "map_knn", "align_vectors", "velocity_delta_alignment",
-  "projection_disagreement", "wasserstein","density_overlap","distribution_test","paga_composition_stats"
+  "projection_disagreement", "wasserstein","density_overlap","distribution_test","paga_composition_stats","consensus_subspace"
 ]
