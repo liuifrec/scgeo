@@ -14,6 +14,14 @@ from ._report import distribution_report
 from ._alignment_panel import alignment_panel
 from ._ambiguity_panel import ambiguity_panel
 from ._consensus_panel import consensus_subspace_panel
+from ._paga_composition import (
+    paga_composition_volcano,
+    paga_composition_bar,
+    paga_composition_panel,
+)
+from ._mapping_qc import mapping_confidence_umap, ood_cells, mapping_qc_panel
+
+
 
 __all__ = [
     "delta_rank",
@@ -29,4 +37,10 @@ __all__ = [
     "alignment_panel",
     "ambiguity_panel",
     "consensus_subspace_panel",
+    "paga_composition_volcano",
+    "paga_composition_bar",
+    "paga_composition_panel",
+    "mapping_confidence_umap", 
+    "ood_cells", 
+    "mapping_qc_panel",
 ]
