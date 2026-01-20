@@ -63,14 +63,26 @@ def distribution_test(
             return _energy_distance(X0, X1)
         raise ValueError("method must be 'energy' (MVP)")
 
-    def _run(mask1, mask0, sub_obs) -> Dict[str, Any]:
-        obs_stat = stat(mask1, mask0)
+    def _run(X_view: np.ndarray, obs_view, m1_view: np.ndarray, m0_view: np.ndarray) -> Dict[str, Any]:
+        # local stat uses X_view (NOT the full X)
+        def stat_local(mask1, mask0) -> float:
+            X1 = X_view[mask1]
+            X0 = X_view[mask0]
+            if X1.shape[0] < 5 or X0.shape[0] < 5:
+                return np.nan
+            if method == "energy":
+                return _energy_distance(X0, X1)
+            raise ValueError("method must be 'energy' (MVP)")
+
+        obs_stat = stat_local(m1_view, m0_view)
         if np.isnan(obs_stat):
-            return {"stat": np.nan, "p_perm": np.nan, "n1": int(mask1.sum()), "n0": int(mask0.sum())}
+            return {"stat": np.nan, "p_perm": np.nan, "n1": int(m1_view.sum()), "n0": int(m0_view.sum())}
+
+        rs = np.random.RandomState(seed)
 
         if sample_key is None:
-            # naive permutation on cells (not recommended)
-            y = sub_obs[condition_key].astype(str).values
+            # naive permutation within this view (cells)
+            y = obs_view[condition_key].astype(str).to_numpy()
             idx = np.arange(y.size)
             perm_stats = []
             for _ in range(n_perm):
@@ -78,21 +90,19 @@ def distribution_test(
                 y_perm = y[idx]
                 m1p = (y_perm == str(group1))
                 m0p = (y_perm == str(group0))
-                perm_stats.append(stat(m1p, m0p))
+                perm_stats.append(stat_local(m1p, m0p))
         else:
-            if sample_key not in sub_obs:
+            if sample_key not in obs_view:
                 raise KeyError(f"obs key '{sample_key}' not found")
-            samp = sub_obs[sample_key].astype(str).values
-            y = sub_obs[condition_key].astype(str).values
+            samp = obs_view[sample_key].astype(str).to_numpy()
+            y = obs_view[condition_key].astype(str).to_numpy()
 
-            # map sample -> condition (must be consistent; if not, still works but warning-worthy later)
             uniq_s = np.unique(samp)
             s2c = {}
             for s in uniq_s:
                 vals = np.unique(y[samp == s])
                 s2c[s] = vals[0]
 
-            # permute conditions over samples (shuffle sample labels between groups)
             perm_stats = []
             for _ in range(n_perm):
                 perm_s = uniq_s.copy()
@@ -101,37 +111,42 @@ def distribution_test(
                 y_perm = np.array([s2c_perm[s] for s in samp], dtype=object)
                 m1p = (y_perm == str(group1))
                 m0p = (y_perm == str(group0))
-                perm_stats.append(stat(m1p, m0p))
+                perm_stats.append(stat_local(m1p, m0p))
 
-        perm_stats = np.array(perm_stats, dtype=np.float64)
-        # higher stat => more different
-        p = float((1.0 + np.sum(perm_stats >= obs_stat)) / (1.0 + np.sum(~np.isnan(perm_stats))))
+        perm_stats = np.asarray(perm_stats, dtype=float)
+        valid = np.isfinite(perm_stats)
+        p = float((1.0 + np.sum(perm_stats[valid] >= obs_stat)) / (1.0 + np.sum(valid)))
+
         return {
             "stat": float(obs_stat),
             "p_perm": p,
-            "n1": int(mask1.sum()),
-            "n0": int(mask0.sum()),
+            "n1": int(m1_view.sum()),
+            "n0": int(m0_view.sum()),
             "n_perm": int(n_perm),
         }
 
     sub_obs = adata.obs
-
     m1 = _mask_from_obs(adata, condition_key, group1)
     m0 = _mask_from_obs(adata, condition_key, group0)
 
     out: Dict[str, Any] = {
-        "params": dict(rep=rep, condition_key=condition_key, group0=group0, group1=group1, sample_key=sample_key, by=by, method=method, n_perm=n_perm, seed=seed),
-        "global": _run(m1, m0, sub_obs),
+        "params": dict(rep=rep, condition_key=condition_key, group0=group0, group1=group1,
+                    sample_key=sample_key, by=by, method=method, n_perm=n_perm, seed=seed),
+        "global": _run(X, sub_obs, m1, m0),
     }
 
     if by is not None:
         if by not in adata.obs:
             raise KeyError(f"obs key '{by}' not found")
-        mm_all = adata.obs[by].astype(str).values
+        mm_all = adata.obs[by].astype(str).to_numpy()
         out_by = {}
         for level in np.unique(mm_all):
             mm = (mm_all == level)
-            out_by[level] = _run(m1 & mm, m0 & mm, sub_obs.loc[mm])
+            X_view = X[mm]
+            obs_view = sub_obs.loc[mm]
+            m1_view = m1[mm]
+            m0_view = m0[mm]
+            out_by[level] = _run(X_view, obs_view, m1_view, m0_view)
         out["by"] = out_by
 
     adata.uns.setdefault(store_key, {})

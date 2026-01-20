@@ -20,7 +20,9 @@ from ._paga_composition import (
     paga_composition_panel,
 )
 from ._mapping_qc import mapping_confidence_umap, ood_cells, mapping_qc_panel
-
+from ._legend import legend_from_data
+from ._consensus_structure import consensus_structure
+from ._highlight import _get_scanpy_palette, _fallback_palette
 
 
 __all__ = [
@@ -43,4 +45,8 @@ __all__ = [
     "mapping_confidence_umap", 
     "ood_cells", 
     "mapping_qc_panel",
+    "consensus_structure",
+    "legend_from_data",
+    "_get_scanpy_palette",
+    "_fallback_palette",
 ]

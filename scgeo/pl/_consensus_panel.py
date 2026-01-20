@@ -32,7 +32,7 @@ def consensus_subspace_panel(
 
     score_embedding(adata, score_key, basis=basis, ax=axA, title="Consensus subspace score", show=False)
     if topk is not None and topk > 0:
-        highlight_topk_cells(adata, score_key, basis=basis, topk=int(topk), ax=axA, show=False)
+        highlight_topk_cells(adata, score_key, basis=basis, topk=int(topk), add_colorbar=False, ax=axA, show=False)
 
     s = np.asarray(adata.obs[score_key].to_numpy(), dtype=float)
     s = s[np.isfinite(s)]

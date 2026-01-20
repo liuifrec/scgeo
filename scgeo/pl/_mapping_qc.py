@@ -85,29 +85,100 @@ def mapping_qc_panel(
     ood_key: str = "map_ood_score",
     basis: str = "umap",
     show: bool = True,
+    # --- NEW (optional but solves your exact use-case) ---
+    palette_from: str | None = None,        # e.g. "louvain" to reuse adata.uns["louvain_colors"]
+    condition_key: str | None = None,       # e.g. "batch"
+    query_value: str | None = None,         # e.g. "new"
+    show_ref_as_grey: bool = True,
+    return_legend_data: bool = False,
 ):
     for k in (pred_key, conf_key, ood_key):
         if k not in adata.obs:
             raise KeyError(f"{k} not found in adata.obs")
 
-    fig, axes = plt.subplots(1, 3, figsize=(14.2, 4.2))
+    if f"X_{basis}" not in adata.obsm:
+        raise KeyError(f"obsm['X_{basis}'] not found")
 
-    # A) predicted label
+    fig, axes = plt.subplots(1, 3, figsize=(14.2, 4.2), constrained_layout=True)
+
     xy = adata.obsm[f"X_{basis}"]
-    pred = adata.obs[pred_key].astype(str).to_numpy()
-    # simple categorical coloring via integer codes (stable)
-    _, codes = np.unique(pred, return_inverse=True)
-    axes[0].scatter(xy[:, 0], xy[:, 1], c=codes, s=8, alpha=0.9)
+
+    # -------------------------
+    # A) Predicted label (categorical, Scanpy palette, optional query-only)
+    # -------------------------
+    pred = adata.obs[pred_key]
+
+    # decide mask: show only query cells if condition_key/query_value provided
+    mask = np.ones(adata.n_obs, dtype=bool)
+    if condition_key is not None and query_value is not None:
+        if condition_key not in adata.obs:
+            raise KeyError(f"{condition_key} not found in adata.obs")
+        mask = (adata.obs[condition_key].astype(str).to_numpy() == str(query_value))
+
+        # optionally fade ref cells in grey for spatial context
+        if show_ref_as_grey:
+            m_ref = ~mask
+            axes[0].scatter(
+                xy[m_ref, 0], xy[m_ref, 1],
+                s=6, c="lightgrey", alpha=0.35, linewidths=0
+            )
+
+    pred_str = pred.astype(str).to_numpy()
+    pred_q = pred_str[mask]
+
+    # palette: try (1) palette_from, (2) pred_key, (3) fallback
+    pal = None
+    if palette_from is not None:
+        pal = sg.pl._get_scanpy_palette(adata, palette_from)  # uses adata.uns[f"{palette_from}_colors"]
+    if pal is None:
+        pal = sg.pl._get_scanpy_palette(adata, pred_key)      # if someone stored pred_key_colors
+    if pal is None:
+        pal = sg.pl._fallback_palette(pred_q)
+
+    # stable category order: if palette_from categorical exists, follow its categories
+    cats = None
+    if palette_from is not None and palette_from in adata.obs and hasattr(adata.obs[palette_from], "cat"):
+        cats = adata.obs[palette_from].cat.categories.astype(str).tolist()
+
+    uniq = cats if cats is not None else sorted(np.unique(pred_q))
+
+    # build legend data
+    legend_data = []
+    n_q = int(mask.sum())
+    for k in uniq:
+        mk = (pred_q == str(k))
+        if not mk.any():
+            continue
+        color = pal.get(str(k), "k")
+        axes[0].scatter(
+            xy[mask, 0][mk], xy[mask, 1][mk],
+            s=8, c=[color], alpha=0.9, linewidths=0
+        )
+        legend_data.append({
+            "group": str(k),
+            "count": int(mk.sum()),
+            "fraction": float(mk.sum() / max(n_q, 1)),
+            "color": color,
+        })
+
     axes[0].set_title("Predicted label")
     axes[0].set_xlabel(f"{basis.upper()}1")
     axes[0].set_ylabel(f"{basis.upper()}2")
 
+    # -------------------------
     # B) confidence
+    # -------------------------
     sg.pl.score_embedding(adata, conf_key, basis=basis, ax=axes[1], title="Confidence", show=False)
 
+    # -------------------------
     # C) OOD score
+    # -------------------------
     sg.pl.score_embedding(adata, ood_key, basis=basis, ax=axes[2], title="OOD score", show=False)
 
     if show:
         plt.show()
+
+    if return_legend_data:
+        legend_data.sort(key=lambda d: d["fraction"], reverse=True)
+        return fig, axes, legend_data
     return fig, axes
