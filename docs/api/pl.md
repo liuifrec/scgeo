@@ -1,15 +1,13 @@
 # scgeo.pl
 
-> Auto-generated from `api_manifest.json` + `scgeo_io_manifest.json`.
-> If anything here is wrong, fix the manifests or the generator—not the generated files.
-
 ## `scgeo.pl._fallback_palette`
 
 **Signature**  
 `(labels: 'np.ndarray')`
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -22,7 +20,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 Return Scanpy-style palette mapping {category -> color} if available.
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -35,7 +34,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 1×2 panel:
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -48,7 +48,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 1×2 panel:
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -61,7 +62,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 Consensus structure (UMAP only) + legend returned separately.
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -74,7 +76,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 Panel for consensus subspace:
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -87,7 +90,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 Rank groups by delta magnitude (||Δ||) and plot with readable x tick labels.
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -100,7 +104,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 Plot density overlap summaries from ``sg.tl.density_overlap``.
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -113,7 +118,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 Visualize density overlap results from `tl.density_overlap`.
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -126,7 +132,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 2×2 report panel for cross-condition embedding comparison.
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -139,7 +146,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 Plot distribution test summaries from `sg.tl.distribution_test`.
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -152,7 +160,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 Volcano-like plot for distribution/comparison results.
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -165,7 +174,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 Plot embedding density per group (small multiples).
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -178,7 +188,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 Highlight top-k cells by a score on an embedding.
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -191,7 +202,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 Render a tiny legend-only figure from legend_data produced by sg.pl.consensus_structure(...).
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -201,7 +213,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 `(adata, conf_key: 'str' = 'map_confidence', *, basis: 'str' = 'umap', highlight_low_k: 'Optional[int]' = 200, title: 'Optional[str]' = None, show: 'bool' = True)`
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -211,7 +224,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 `(adata, *, pred_key: 'str' = 'map_pred', conf_key: 'str' = 'map_confidence', ood_key: 'str' = 'map_ood_score', basis: 'str' = 'umap', show: 'bool' = True, palette_from: 'str | None' = None, condition_key: 'str | None' = None, query_value: 'str | None' = None, show_ref_as_grey: 'bool' = True, return_legend_data: 'bool' = False)`
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -221,7 +235,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 `(adata, ood_key: 'str' = 'map_ood_score', *, basis: 'str' = 'umap', threshold: 'Optional[float]' = None, show_only_flagged: 'bool' = False, title: 'Optional[str]' = None, show: 'bool' = True)`
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -234,7 +249,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 Bar plot of top_k nodes by evidence + effect.
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -247,7 +263,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 1×2 panel: volcano + top-k bars.
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -260,7 +277,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 Volcano plot: x = signed effect (logOR/beta/effect), y = -log10(q or p).
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -273,7 +291,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 Plot an obs score on an embedding (UMAP/PCA/etc) with minimal dependencies.
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
 
@@ -283,6 +302,7 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 `(adata, score_key: 'str', **kwargs)`
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+
+_No I/O entry in `scgeo_io_manifest.json` for this function._
 
 ---
