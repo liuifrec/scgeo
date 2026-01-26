@@ -1,0 +1,235 @@
+{
+  "scgeo_version": "0.1.0-dev",
+  "tl": {
+    "scgeo.tl.consensus_subspace": {
+      "ok": true,
+      "note": "",
+      "signature": "(adata: 'AnnData', rep: 'str' = 'X_pca', condition_key: 'str' = 'condition', group0: 'str | None' = None, group1: 'str | None' = None, sample_key: 'str | None' = None, n_components: 'int' = 2, obs_key_prefix: 'str' = 'cs', store_key: 'str' = 'consensus_subspace', min_cells: 'int' = 20, center: 'bool' = False) -> 'None'",
+      "writes": {
+        "obs_cols_added": [
+          "cs_score"
+        ],
+        "obs_cols_removed": [],
+        "obsm_keys_added": [
+          "X_cs"
+        ],
+        "obsm_keys_removed": [],
+        "layers_keys_added": [],
+        "layers_keys_removed": [],
+        "uns_keys_added": [
+          "scgeo"
+        ],
+        "uns_keys_removed": []
+      }
+    },
+    "scgeo.tl.density_overlap": {
+      "ok": true,
+      "note": "",
+      "signature": "(adata, rep: 'str' = 'X_umap', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, *, by: 'Optional[str]' = None, k: 'int' = 30, eval_on: 'str' = 'union', store_key: 'str' = 'scgeo') -> 'None'",
+      "writes": {
+        "obs_cols_added": [],
+        "obs_cols_removed": [],
+        "obsm_keys_added": [],
+        "obsm_keys_removed": [],
+        "layers_keys_added": [],
+        "layers_keys_removed": [],
+        "uns_keys_added": [
+          "scgeo"
+        ],
+        "uns_keys_removed": []
+      }
+    },
+    "scgeo.tl.distribution_test": {
+      "ok": true,
+      "note": "",
+      "signature": "(adata, rep: 'str' = 'X_pca', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, *, sample_key: 'Optional[str]' = None, by: 'Optional[str]' = None, method: 'str' = 'energy', n_perm: 'int' = 500, seed: 'int' = 0, store_key: 'str' = 'scgeo') -> 'None'",
+      "writes": {
+        "obs_cols_added": [],
+        "obs_cols_removed": [],
+        "obsm_keys_added": [],
+        "obsm_keys_removed": [],
+        "layers_keys_added": [],
+        "layers_keys_removed": [],
+        "uns_keys_added": [
+          "scgeo"
+        ],
+        "uns_keys_removed": []
+      }
+    },
+    "scgeo.tl.mixscore": {
+      "ok": true,
+      "note": "",
+      "signature": "(adata, label_key: 'str' = 'batch', rep: 'str' = 'X_pca', k: 'int' = 50, use_connectivities: 'bool' = True, connectivities_key: 'str' = 'connectivities', obs_key: 'str' = 'scgeo_mixscore', store_key: 'str' = 'scgeo') -> 'None'",
+      "writes": {
+        "obs_cols_added": [
+          "scgeo_mixscore"
+        ],
+        "obs_cols_removed": [],
+        "obsm_keys_added": [],
+        "obsm_keys_removed": [],
+        "layers_keys_added": [],
+        "layers_keys_removed": [],
+        "uns_keys_added": [
+          "scgeo"
+        ],
+        "uns_keys_removed": []
+      }
+    },
+    "scgeo.tl.shift": {
+      "ok": true,
+      "note": "",
+      "signature": "(adata, rep: 'str' = 'X_pca', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, by: 'Optional[str]' = None, sample_key: 'Optional[str]' = None, store_key: 'str' = 'scgeo') -> 'None'",
+      "writes": {
+        "obs_cols_added": [],
+        "obs_cols_removed": [],
+        "obsm_keys_added": [],
+        "obsm_keys_removed": [],
+        "layers_keys_added": [],
+        "layers_keys_removed": [],
+        "uns_keys_added": [
+          "scgeo"
+        ],
+        "uns_keys_removed": []
+      }
+    },
+    "scgeo.tl.wasserstein": {
+      "ok": true,
+      "note": "",
+      "signature": "(adata, rep: 'str' = 'X_pca', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, *, by: 'Optional[str]' = None, n_proj: 'int' = 128, p: 'int' = 2, seed: 'int' = 0, store_key: 'str' = 'scgeo') -> 'None'",
+      "writes": {
+        "obs_cols_added": [],
+        "obs_cols_removed": [],
+        "obsm_keys_added": [],
+        "obsm_keys_removed": [],
+        "layers_keys_added": [],
+        "layers_keys_removed": [],
+        "uns_keys_added": [
+          "scgeo"
+        ],
+        "uns_keys_removed": []
+      }
+    }
+  },
+  "skipped": {
+    "scgeo.tl.align_vectors": {
+      "ok": false,
+      "note": "needs vec_key",
+      "signature": "(adata, vec_key: 'str', ref_vec_key: 'Optional[str]' = None, *, ref_from_shift: 'bool' = False, shift_store_key: 'str' = 'scgeo', shift_kind: 'str' = 'shift', shift_level: 'str' = 'global', shift_index_key: 'Optional[str]' = None, obs_key: 'str' = 'scgeo_align', store_key: 'str' = 'scgeo') -> 'None'",
+      "writes": {
+        "obs_cols_added": [],
+        "obs_cols_removed": [],
+        "obsm_keys_added": [],
+        "obsm_keys_removed": [],
+        "layers_keys_added": [],
+        "layers_keys_removed": [],
+        "uns_keys_added": [],
+        "uns_keys_removed": []
+      }
+    },
+    "scgeo.tl.map_knn": {
+      "ok": false,
+      "note": "mapping funcs need proper ref/pool/graph",
+      "signature": "(adata_ref, adata_q, label_key: 'str' = 'cell_type', rep: 'str' = 'X_pca', k: 'int' = 25, ood_quantile: 'float' = 0.99, out_label_key: 'str' = 'scgeo_label', out_conf_key: 'str' = 'scgeo_confidence', out_ent_key: 'str' = 'scgeo_entropy', out_ood_key: 'str' = 'scgeo_ood', store_key: 'str' = 'scgeo') -> 'None'",
+      "writes": {
+        "obs_cols_added": [],
+        "obs_cols_removed": [],
+        "obsm_keys_added": [],
+        "obsm_keys_removed": [],
+        "layers_keys_added": [],
+        "layers_keys_removed": [],
+        "uns_keys_added": [],
+        "uns_keys_removed": []
+      }
+    },
+    "scgeo.tl.map_query_to_ref": {
+      "ok": false,
+      "note": "mapping funcs need proper ref/pool/graph",
+      "signature": "(adata, *, ref_key: 'str', ref_value: 'str', label_key: 'str', query_key: 'Optional[str]' = None, query_value: 'Optional[str]' = None, graph_key: 'str' = 'connectivities', conf_method: 'str' = 'entropy_margin', ood_method: 'str' = 'connectivity_mass', reject_conf: 'Optional[float]' = None, reject_ood: 'Optional[float]' = None, rep: 'Optional[str]' = None, store_key: 'str' = 'map_query_to_ref', pred_key: 'str' = 'scgeo_pred', conf_key: 'str' = 'scgeo_conf', conf_entropy_key: 'str' = 'scgeo_conf_entropy', conf_margin_key: 'str' = 'scgeo_conf_margin', ood_key: 'str' = 'scgeo_ood', reject_key: 'str' = 'scgeo_reject', return_probs: 'bool' = False, probs_key: 'str' = 'X_map_probs', label_order_key: 'str' = 'map_label_order') -> 'None'",
+      "writes": {
+        "obs_cols_added": [],
+        "obs_cols_removed": [],
+        "obsm_keys_added": [],
+        "obsm_keys_removed": [],
+        "layers_keys_added": [],
+        "layers_keys_removed": [],
+        "uns_keys_added": [],
+        "uns_keys_removed": []
+      }
+    },
+    "scgeo.tl.map_query_to_ref_pool": {
+      "ok": false,
+      "note": "mapping funcs need proper ref/pool/graph",
+      "signature": "(adata, pool: 'ReferencePool', *, rep: 'str', k: 'int' = 30, weight_method: 'str' = 'inv', conf_method: 'str' = 'entropy_margin', ood_method: 'str' = 'distance', reject_conf: 'Optional[float]' = None, reject_ood: 'Optional[float]' = None, store_key: 'str' = 'map_query_to_ref', pred_key: 'str' = 'scgeo_pred', conf_key: 'str' = 'scgeo_conf', conf_entropy_key: 'str' = 'scgeo_conf_entropy', conf_margin_key: 'str' = 'scgeo_conf_margin', ood_key: 'str' = 'scgeo_ood', reject_key: 'str' = 'scgeo_reject', return_probs: 'bool' = False, probs_key: 'str' = 'X_map_probs', label_order_key: 'str' = 'map_label_order') -> 'None'",
+      "writes": {
+        "obs_cols_added": [],
+        "obs_cols_removed": [],
+        "obsm_keys_added": [],
+        "obsm_keys_removed": [],
+        "layers_keys_added": [],
+        "layers_keys_removed": [],
+        "uns_keys_added": [],
+        "uns_keys_removed": []
+      }
+    },
+    "scgeo.tl.map_query_to_ref_pool_census": {
+      "ok": false,
+      "note": "mapping funcs need proper ref/pool/graph",
+      "signature": "(adata_q, *, pool=None, census=None, rep: 'str' = 'X_emb', embedding_name: 'Optional[str]' = None, organism: 'str' = 'homo_sapiens', label_key: 'str' = 'cell_type', obs_columns: 'Optional[Sequence[str]]' = None, k: 'int' = 50, max_refs: 'int' = 200000, dedup: 'bool' = True, index_metric: 'str' = 'euclidean', index_seed: 'int' = 0, census_obs_filter: 'Optional[str]' = None, store_key: 'str' = 'map_query_to_ref', pred_key: 'str' = 'scgeo_pred', conf_key: 'str' = 'scgeo_conf', conf_entropy_key: 'str' = 'scgeo_conf_entropy', conf_margin_key: 'str' = 'scgeo_conf_margin', ood_key: 'str' = 'scgeo_ood', reject_key: 'str' = 'scgeo_reject', conf_method: 'str' = 'entropy_margin', ood_method: 'str' = 'distance', reject_conf: 'Optional[float]' = None, reject_ood: 'Optional[float]' = None, return_probs: 'bool' = False, probs_key: 'str' = 'X_map_probs', label_order_key: 'str' = 'map_label_order') -> 'None'",
+      "writes": {
+        "obs_cols_added": [],
+        "obs_cols_removed": [],
+        "obsm_keys_added": [],
+        "obsm_keys_removed": [],
+        "layers_keys_added": [],
+        "layers_keys_removed": [],
+        "uns_keys_added": [],
+        "uns_keys_removed": []
+      }
+    },
+    "scgeo.tl.paga_composition_stats": {
+      "ok": false,
+      "note": "needs paga / group_key",
+      "signature": "(adata, group_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', *, sample_key: 'Optional[str]' = None, method: 'str' = 'gee', n_boot: 'int' = 1000, seed: 'int' = 0, store_key: 'str' = 'scgeo') -> 'None'",
+      "writes": {
+        "obs_cols_added": [],
+        "obs_cols_removed": [],
+        "obsm_keys_added": [],
+        "obsm_keys_removed": [],
+        "layers_keys_added": [],
+        "layers_keys_removed": [],
+        "uns_keys_added": [],
+        "uns_keys_removed": []
+      }
+    },
+    "scgeo.tl.projection_disagreement": {
+      "ok": false,
+      "note": "needs sources",
+      "signature": "(adata, sources: 'Sequence[Dict[str, Any]]', obs_key: 'str' = 'scgeo_disagree', store_key: 'str' = 'scgeo') -> 'None'",
+      "writes": {
+        "obs_cols_added": [],
+        "obs_cols_removed": [],
+        "obsm_keys_added": [],
+        "obsm_keys_removed": [],
+        "layers_keys_added": [],
+        "layers_keys_removed": [],
+        "uns_keys_added": [],
+        "uns_keys_removed": []
+      }
+    },
+    "scgeo.tl.velocity_delta_alignment": {
+      "ok": false,
+      "note": "needs velocity vectors",
+      "signature": "(adata, *, velocity_key: 'Optional[str]' = None, rep_for_shift: 'str' = 'X_umap', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, by: 'Optional[str]' = None, sample_key: 'Optional[str]' = None, shift_level: 'str' = 'global', shift_index_key: 'Optional[str]' = None, obs_key: 'str' = 'scgeo_vel_delta_align', store_key: 'str' = 'scgeo') -> 'None'",
+      "writes": {
+        "obs_cols_added": [],
+        "obs_cols_removed": [],
+        "obsm_keys_added": [],
+        "obsm_keys_removed": [],
+        "layers_keys_added": [],
+        "layers_keys_removed": [],
+        "uns_keys_added": [],
+        "uns_keys_removed": []
+      }
+    }
+  }
+}

@@ -25,7 +25,10 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 Compute consensus subspace directions from multiple delta vectors (sample-aware if sample_key is given).
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+**Writes**
+- `obs_cols.cs_score` (unknown) — auto-detected
+- `obsm_keys.X_cs` (unknown) — auto-detected
+- `uns_keys.scgeo` (unknown) — auto-detected
 
 ---
 
@@ -38,7 +41,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 Compute density overlap between two conditions on an embedding using kNN density estimates.
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+**Writes**
+- `uns_keys.scgeo` (unknown) — auto-detected
 
 ---
 
@@ -51,7 +55,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 Distribution difference test with sample-aware permutation.
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+**Writes**
+- `uns_keys.scgeo` (unknown) — auto-detected
 
 ---
 
@@ -116,7 +121,9 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 kNN label mixing score in [0,1]:
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+**Writes**
+- `obs_cols.scgeo_mixscore` (unknown) — auto-detected
+- `uns_keys.scgeo` (unknown) — auto-detected
 
 ---
 
@@ -155,7 +162,8 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 Compute mean shift vector Δ = μ1 - μ0 in representation space.
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+**Writes**
+- `uns_keys.scgeo` (unknown) — auto-detected
 
 ---
 
@@ -181,6 +189,7 @@ _No I/O entries found in `scgeo_io_manifest.json`._
 Compute (sliced) Wasserstein distance between two conditions in embedding space.
 
 ### I/O contract
-_No I/O entries found in `scgeo_io_manifest.json`._
+**Writes**
+- `uns_keys.scgeo` (unknown) — auto-detected
 
 ---
