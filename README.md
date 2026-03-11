@@ -7,7 +7,6 @@
 <p align="center">
 Geometry-aware analysis of single-cell representations
 </p>
-# ScGeo
 
 ⚠️ **Pre-alpha. APIs may change.**
 
