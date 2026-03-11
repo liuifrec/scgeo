@@ -1,3 +1,12 @@
+<p align="center">
+  <img src="docs/assets/ScGeo_logo.png" width="420">
+</p>
+
+<h1 align="center">ScGeo</h1>
+
+<p align="center">
+Geometry-aware analysis of single-cell representations
+</p>
 # ScGeo
 
 ⚠️ **Pre-alpha. APIs may change.**
