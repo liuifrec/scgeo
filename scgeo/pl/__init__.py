@@ -4,7 +4,13 @@ from ._highlight import highlight_topk_cells
 from ._volcano import distribution_test_volcano
 from ._density import embedding_density
 from ._distribution_test import distribution_test
-
+from ._paga_shift_map import paga_shift_map
+from ._ood_landscape import ood_landscape
+from ._velocity_shift_alignment import velocity_shift_alignment
+from ._composition_drift import composition_drift
+from ._robustness_matrix import robustness_matrix
+from ._gallery import gallery_overview
+from ._recovery_compass import recovery_compass
 # Summary plot (global/by with level=...)
 from ._density_overlap import density_overlap
 
@@ -49,4 +55,11 @@ __all__ = [
     "legend_from_data",
     "_get_scanpy_palette",
     "_fallback_palette",
+    "paga_shift_map",
+    "ood_landscape",
+    "velocity_shift_alignment",
+    "composition_drift",
+    "robustness_matrix",
+    "gallery_overview",
+    "recovery_compass",
 ]
