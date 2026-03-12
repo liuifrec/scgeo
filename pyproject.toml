@@ -15,6 +15,7 @@ dependencies = [
     "numpy",
     "pandas",
     "anndata",
+    "plotly"
 ]
 
 [project.optional-dependencies]

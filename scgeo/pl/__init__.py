@@ -11,6 +11,8 @@ from ._composition_drift import composition_drift
 from ._robustness_matrix import robustness_matrix
 from ._gallery import gallery_overview
 from ._recovery_compass import recovery_compass
+from ._state_flow_sankey import state_flow_sankey
+from ._state_flow_alluvial import state_flow_alluvial
 # Summary plot (global/by with level=...)
 from ._density_overlap import density_overlap
 
@@ -62,4 +64,6 @@ __all__ = [
     "robustness_matrix",
     "gallery_overview",
     "recovery_compass",
+    "state_flow_sankey",
+    "state_flow_alluvial",
 ]
