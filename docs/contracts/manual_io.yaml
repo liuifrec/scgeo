@@ -1,0 +1,160 @@
+# Manual IO contracts for functions that cannot be auto-probed reliably.
+# Rules:
+# - paths use AnnData conventions: obs[col], obsm[key], layers[key], uns[key], obsp[key], varm[key]
+# - store_key is written literally when it is a fixed key; otherwise use placeholders like uns[store_key]
+# - add "requires" when the function needs specific precomputed state (neighbors, PCA, velocity, etc.)
+# - add "notes" for any gotchas
+
+scgeo.tl.align_vectors:
+  requires:
+    - obsm[X_*] embedding exists (2D or dD)
+    - obsm[vec_key] exists (same n_obs, same dim as embedding space if used)
+  reads:
+    - obsm[rep]         # e.g. X_pca / X_umap / X_scanorama
+    - obsm[vec_key]     # e.g. velocity vectors or Δ vectors
+    - obs[group_key]    # optional, for stratified alignment
+  writes:
+    - uns[store_key]    # alignment metrics + per-group summaries
+  notes:
+    - "Used as a geometric consistency check; does not alter adata.X or neighbors."
+
+scgeo.tl.velocity_delta_alignment:
+  requires:
+    - scVelo computed velocities (typical: adata.layers['spliced','unspliced'] + adata.layers['velocity'] OR adata.obsm['velocity_*'])
+    - group labels to define Δ (state transitions)
+  reads:
+    - obsm[rep]           # embedding space where Δ is computed
+    - obs[group_key]      # defines source/target states
+    - layers[velocity] OR obsm[velocity]  # depends on implementation
+  writes:
+    - obs[score_key]      # per-cell alignment score (if implemented that way)
+    - uns[store_key]      # global + group summaries
+  notes:
+    - "Alignment is between local velocity vectors and global Δ direction; interpret sign."
+
+scgeo.tl.projection_disagreement:
+  requires:
+    - at least 2 embeddings / reps available
+  reads:
+    - obsm[rep_a]
+    - obsm[rep_b]
+    - obs[group_key]      # optional
+  writes:
+    - obs[score_key]      # disagreement score per cell (if stored in obs)
+    - uns[store_key]      # config + summary stats
+  notes:
+    - "Detects cells whose neighborhood geometry differs between representations."
+
+scgeo.tl.consensus_subspace:
+  requires:
+    - multiple reps or multiple models to compare
+  reads:
+    - obsm[rep_*]         # e.g., X_pca_raw, X_scanorama, X_model1...
+    - obs[group_key]      # optional
+  writes:
+    - obsm[consensus_rep] # e.g., X_consensus
+    - uns[store_key]
+  notes:
+    - "Defines a shared subspace; intended for representation agreement analysis."
+
+scgeo.tl.paga_composition_stats:
+  requires:
+    - scanpy neighbors computed
+    - scanpy paga computed (sc.tl.paga)
+    - obs[groups] exists
+  reads:
+    - uns[paga]
+    - obs[groups]
+    - obs[condition_key]
+  writes:
+    - uns[store_key]      # node/edge composition statistics
+  notes:
+    - "Used for composition shifts on graph abstraction; not a batch-correction method."
+
+scgeo.tl.map_knn:
+  requires:
+    - neighbors graph available OR reference/query embeddings provided
+  reads:
+    - obsm[rep]
+    - obsp[connectivities]   # if using precomputed graph
+    - obs[ref_label_key]     # labels in reference set
+  writes:
+    - obs[pred_label]
+    - obs[confidence]
+    - uns[store_key]
+  notes:
+    - "Mapping primitive; downstream QC expects these columns."
+
+scgeo.tl.map_query_to_ref:
+  requires:
+    - reference AnnData or reference embedding + labels
+  reads:
+    - obsm[rep] (query)
+    - ref.obsm[rep] (reference)
+    - ref.obs[label_key]
+  writes:
+    - obs[pred_label]
+    - obs[confidence]
+    - obs[margin]
+    - uns[store_key]
+  notes:
+    - "Core reference mapping; plots: mapping_confidence_umap, ood_cells."
+
+scgeo.tl.map_query_to_ref_pool:
+  requires:
+    - ReferencePool object / pool index
+  reads:
+    - obsm[rep]
+    - pool embeddings + labels (external to AnnData)
+  writes:
+    - obs[pred_label]
+    - obs[confidence]
+    - obs[margin]
+    - uns[store_key]
+  notes:
+    - "No concatenation; pool-based mapping."
+
+scgeo.tl.map_query_to_ref_pool_census:
+  requires:
+    - cellxgene Census connectivity available
+  reads:
+    - obsm[rep]
+    - uns[census_query_params]   # if you store it
+  writes:
+    - obs[pred_label]
+    - obs[confidence]
+    - obs[margin]
+    - uns[store_key]
+  notes:
+    - "External dependency (Census). Keep query params in uns for reproducibility."
+
+# Plotters (read-only, but still must have contracts)
+
+scgeo.pl.score_embedding:
+  requires:
+    - obsm[X_{basis}] exists (2D)
+    - obs[score_key] exists
+  reads:
+    - obsm[X_{basis}]
+    - obs[score_key]
+  writes: []
+  notes:
+    - "Pure visualization; no AnnData mutation."
+
+scgeo.pl.density_overlap:
+  requires:
+    - uns[store_key] produced by tl.density_overlap
+  reads:
+    - uns[store_key]
+  writes: []
+  notes:
+    - "Read-only plot; accepts store_key only (no title kwarg)."
+
+scgeo.pl.highlight_topk_cells:
+  requires:
+    - obs[score_key] exists
+    - embedding exists
+  reads:
+    - obs[score_key]
+    - obsm[rep]
+  writes: []
