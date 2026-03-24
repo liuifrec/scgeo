@@ -31,7 +31,7 @@ from ._mapping_qc import mapping_confidence_umap, ood_cells, mapping_qc_panel
 from ._legend import legend_from_data
 from ._consensus_structure import consensus_structure
 from ._highlight import _get_scanpy_palette, _fallback_palette
-
+from ._paga_scgeo import paga_scgeo
 
 __all__ = [
     "delta_rank",
@@ -66,4 +66,5 @@ __all__ = [
     "recovery_compass",
     "state_flow_sankey",
     "state_flow_alluvial",
+    "paga_scgeo",
 ]

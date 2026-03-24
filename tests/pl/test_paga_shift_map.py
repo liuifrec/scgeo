@@ -57,7 +57,7 @@ def _toy_adata():
 def test_paga_shift_map_smoke_return_data():
     adata = _toy_adata()
 
-    fig, ax, cent, edges = paga_shift_map(
+    fig, ax, out = paga_shift_map(
         adata,
         node_key="node",
         condition_key="timepoint",
@@ -70,7 +70,9 @@ def test_paga_shift_map_smoke_return_data():
         return_data=True,
         show=False,
     )
-
+    cent = out["centroids"]
+    edges = out["edges"]
+    
     assert fig is not None
     assert ax is not None
     assert isinstance(cent, pd.DataFrame)
@@ -87,7 +89,7 @@ def test_paga_shift_map_smoke_return_data():
 def test_paga_shift_map_threshold_filters_edges():
     adata = _toy_adata()
 
-    _, _, _, edges = paga_shift_map(
+    _, _, out = paga_shift_map(
         adata,
         node_key="node",
         condition_key="timepoint",
@@ -99,7 +101,7 @@ def test_paga_shift_map_threshold_filters_edges():
         return_data=True,
         show=False,
     )
-
+    edges = out["edges"]
     assert len(edges) == 1
     assert edges[0][0] == "A"
     assert edges[0][1] == "B"
@@ -126,7 +128,7 @@ def test_paga_shift_map_min_cells_masks_arrows():
     keep = ~((adata.obs["node"] == "C") & (adata.obs["timepoint"] == "D21") & (adata.obs_names == "cell_11"))
     adata = adata[keep].copy()
 
-    fig, ax, cent, edges = paga_shift_map(
+    fig, ax, out = paga_shift_map(
         adata,
         node_key="node",
         condition_key="timepoint",
@@ -138,6 +140,8 @@ def test_paga_shift_map_min_cells_masks_arrows():
         return_data=True,
         show=False,
     )
+    cent = out["centroids"]
+    edges = out["edges"]
 
     cent_idx = cent.set_index("node")
     assert bool(cent_idx.loc["C", "present0"]) is True
