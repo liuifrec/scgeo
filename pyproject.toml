@@ -15,7 +15,10 @@ dependencies = [
     "numpy",
     "pandas",
     "anndata",
-    "plotly"
+    "plotly",
+    "cellxgene-census",
+    "tiledbsoma", 
+    "pyarrow",
 ]
 
 [project.optional-dependencies]

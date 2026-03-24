@@ -110,12 +110,20 @@ def build_reference_pool(
         raise ValueError("index_backend currently supports only 'pynndescent'")
 
     NNDescent = _require_pynndescent()
-    index = NNDescent(
-        X,
-        n_neighbors=min(int(n_neighbors), max(2, n_ref - 1)),
-        metric=metric,
-        random_state=int(random_state),
-    )
+    try:
+        index = NNDescent(
+            X,
+            n_neighbors=min(int(n_neighbors), max(2, n_ref - 1)),
+            metric=metric,
+            random_state=int(random_state),
+        )
+    except TypeError:
+        # backward-compat / test doubles that do not accept n_neighbors
+        index = NNDescent(
+            X,
+            metric=metric,
+            random_state=int(random_state),
+        )
 
     return ReferencePool(
         X=X,
@@ -138,118 +146,181 @@ def _build_nndescent_index(Xref: np.ndarray, *, metric: str = "euclidean", seed:
         raise ImportError("pynndescent is required to build ReferencePool index") from e
 
     return NNDescent(Xref, metric=metric, random_state=seed)
-
 def build_reference_pool_from_census(
     *,
     census,
-    adata_q,
-    rep: str,
-    embedding_name: str,
-    label_key: str,
+    organism: str = "Homo sapiens",
+    embedding_name: str = "scvi",
+    label_key: str = "cell_type",
+    obs_value_filter: Optional[str] = None,
     obs_columns: Optional[Sequence[str]] = None,
-    k: int = 50,
-    organism: str = "homo_sapiens",
+    var_value_filter: str = "feature_name in ['CD34']",
     max_refs: Optional[int] = 200_000,
-    dedup: bool = True,
     index_metric: str = "euclidean",
     index_seed: int = 0,
-    census_obs_filter: Optional[str] = None,  # keep for future use; your fetch handles joinids anyway
+    n_neighbors: int = 30,
+    # --- backward-compat legacy args ---
+    adata_q=None,
+    rep: Optional[str] = None,
+    k: Optional[int] = None,
+    dedup: Optional[bool] = None,
+    census_obs_filter: Optional[str] = None,
 ) -> ReferencePool:
     """
-    Build an embedding-only ReferencePool from cellxgene-census WITHOUT concatenation.
+    Build a ReferencePool from cellxgene Census.
 
-    Uses scgeo.data:
-      - find_nearest_obs
-      - fetch_obs_by_joinids
-      - census_get_embedding
+    Two modes are supported:
+
+    1) Stable production mode:
+       Uses cellxgene_census.get_anndata(..., obs_embeddings=[embedding_name])
+       and requires obs_value_filter.
+
+    2) Legacy compatibility / test mode:
+       If obs_value_filter is not provided but adata_q is provided, use the older
+       query-driven embedding fetch path via scgeo.data helper functions.
+       This keeps existing unit tests and older call sites working.
     """
-    from ..data import find_nearest_obs, fetch_obs_by_joinids, census_get_embedding
+    # backward-compat alias
+    if obs_value_filter is None and census_obs_filter is not None:
+        obs_value_filter = census_obs_filter
+
+    # ------------------------------------------------------------------
+    # Mode A: stable Census route via get_anndata(..., obs_embeddings=...)
+    # ------------------------------------------------------------------
+    if obs_value_filter is not None:
+        import cellxgene_census
+
+        obs_cols = list(dict.fromkeys(["soma_joinid", label_key, *(obs_columns or [])]))
+
+        ad_ref = cellxgene_census.get_anndata(
+            census=census,
+            organism=organism,
+            obs_value_filter=obs_value_filter,
+            obs_column_names=obs_cols,
+            var_column_names=["feature_name"],
+            var_value_filter=var_value_filter,
+            obs_embeddings=[embedding_name],
+        )
+
+        if embedding_name not in ad_ref.obsm:
+            raise KeyError(f"Embedding '{embedding_name}' not found in ad_ref.obsm")
+
+        if max_refs is not None and ad_ref.n_obs > int(max_refs):
+            ad_ref = ad_ref[: int(max_refs)].copy()
+
+        X_ref = np.asarray(ad_ref.obsm[embedding_name], dtype=np.float32)
+
+        if label_key not in ad_ref.obs.columns:
+            raise KeyError(f"label_key '{label_key}' not found in Census obs")
+
+        obs = {c: ad_ref.obs[c].to_numpy() for c in obs_cols if c in ad_ref.obs.columns}
+        joinids = ad_ref.obs["soma_joinid"].to_numpy()
+
+        return build_reference_pool(
+            X_ref,
+            obs=obs,
+            label_key=label_key,
+            joinids=joinids,
+            n_neighbors=n_neighbors,
+            metric=index_metric,
+            random_state=index_seed,
+            meta={
+                "source": "cellxgene-census",
+                "organism": organism,
+                "embedding_name": embedding_name,
+                "obs_value_filter": obs_value_filter,
+                "var_value_filter": var_value_filter,
+            },
+        )
+
+    # ------------------------------------------------------------------
+    # Mode B: legacy/mock route for backward compatibility and unit tests
+    # ------------------------------------------------------------------
+    if adata_q is None:
+        raise ValueError(
+            "Either obs_value_filter (stable Census mode) or adata_q (legacy/test mode) "
+            "must be provided."
+        )
+
+    from ..data import census_find_nearest_obs, census_get_embedding, fetch_obs_by_joinids
 
     if obs_columns is None:
         obs_columns = []
-    obs_cols = list(dict.fromkeys([label_key, *list(obs_columns)]))  # unique
+    obs_cols = list(dict.fromkeys([label_key, *list(obs_columns)]))
 
-    # --- query embedding
-    Xq = adata_q.X if rep == "X" else adata_q.obsm[rep]
+    rep_key = rep or "X_emb"
+    Xq = adata_q.X if rep_key == "X" else adata_q.obsm[rep_key]
     Xq = _as_float32_2d(Xq)
 
-    # --- nearest neighbor search in Census embedding space
-    # Your find_nearest_obs should return a DataFrame-like or object containing joinids/dists.
-    nn = find_nearest_obs(
+    nn = census_find_nearest_obs(
         census,
         embedding_name=embedding_name,
         organism=organism,
         query_embedding=Xq,
-        k=int(k),
+        k=int(k) if k is not None else 50,
     )
 
-    # Normalize outputs
     if isinstance(nn, pd.DataFrame):
         joinids = nn["soma_joinid"].to_numpy(dtype=np.int64)
     elif hasattr(nn, "joinids"):
         joinids = np.asarray(nn.joinids, dtype=np.int64).ravel()
     else:
-        raise TypeError("Unsupported return type from find_nearest_obs")
+        raise TypeError("Unsupported return type from census_find_nearest_obs")
 
-    if dedup:
+    if dedup is None or bool(dedup):
         joinids = np.unique(joinids)
 
     if max_refs is not None and len(joinids) > int(max_refs):
         joinids = np.sort(joinids)[: int(max_refs)]
 
-    # --- fetch ref embeddings for those joinids
-    Xref = census_get_embedding(
+    X_ref = census_get_embedding(
         census,
         embedding_name=embedding_name,
         organism=organism,
         obs_joinids=joinids,
     )
-    Xref = _as_float32_2d(Xref)
+    X_ref = _as_float32_2d(X_ref)
 
-    # --- fetch obs metadata for those joinids (label + extras)
-    # Your fetch_obs_by_joinids already exists: use it.
     obs_df = fetch_obs_by_joinids(
-        census,
+        joinids,
         organism=organism,
-        joinids=joinids,
-        columns=["soma_joinid", *obs_cols],
+        obs_columns=["soma_joinid", *obs_cols],
     )
 
-    # align obs order to joinids
     if "soma_joinid" not in obs_df.columns:
         raise KeyError("fetch_obs_by_joinids did not return soma_joinid")
-    obs_df = obs_df.drop_duplicates("soma_joinid", keep="first").set_index("soma_joinid").reindex(joinids)
+
+    obs_df = (
+        obs_df.drop_duplicates("soma_joinid", keep="first")
+        .set_index("soma_joinid")
+        .reindex(joinids)
+    )
+
+    if label_key not in obs_df.columns:
+        raise KeyError(f"label_key '{label_key}' not found in fetched obs columns")
 
     obs: Dict[str, np.ndarray] = {}
     for c in obs_cols:
-        obs[c] = obs_df[c].to_numpy() if c in obs_df.columns else np.array([np.nan] * len(joinids), dtype=object)
+        if c in obs_df.columns:
+            obs[c] = obs_df[c].to_numpy()
+        else:
+            obs[c] = np.array([np.nan] * len(joinids), dtype=object)
 
-    if label_key not in obs:
-        raise KeyError(f"label_key '{label_key}' not found in fetched obs columns")
-
-    # --- build ANN index over ref embeddings
-    NNDescent = _require_pynndescent()
-    index = NNDescent(Xref, metric=index_metric, random_state=int(index_seed))
-
-    meta: Dict[str, Any] = dict(
-        source="cellxgene-census",
-        organism=organism,
-        embedding_name=embedding_name,
-        k=int(k),
-        rep_query=rep,
-        obs_columns=list(obs_cols),
-        dedup=bool(dedup),
-        max_refs=int(max_refs) if max_refs is not None else None,
-        census_obs_filter=census_obs_filter,
-    )
-    joinids = np.asarray(joinids, dtype=np.int64)
-    joinid_to_col = {int(j): int(i) for i, j in enumerate(joinids)}
-
-    return ReferencePool(
-        X=Xref,
+    return build_reference_pool(
+        X_ref,
         obs=obs,
         label_key=label_key,
-        index=index,
-        meta=meta,
-        joinids=joinids,
+        joinids=np.asarray(joinids, dtype=np.int64),
+        n_neighbors=n_neighbors,
+        metric=index_metric,
+        random_state=index_seed,
+        meta={
+            "source": "cellxgene-census",
+            "organism": organism,
+            "embedding_name": embedding_name,
+            "legacy_mode": True,
+            "rep_query": rep_key,
+            "legacy_k": int(k) if k is not None else None,
+            "legacy_dedup": bool(dedup) if dedup is not None else None,
+        },
     )

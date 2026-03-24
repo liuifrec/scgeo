@@ -6,18 +6,21 @@ from typing import Optional, Sequence
 def map_query_to_ref_pool_census(
     adata_q,
     *,
-    pool=None,  # optional prebuilt ReferencePool (preferred for tests / advanced users)
+    pool=None,
     census=None,
     rep: str = "X_emb",
-    embedding_name: Optional[str] = None,
-    organism: str = "homo_sapiens",
+    embedding_name: str = "scvi",
+    organism: str = "Homo sapiens",
     label_key: str = "cell_type",
+    obs_value_filter: Optional[str] = None,
     obs_columns: Optional[Sequence[str]] = None,
-    k: int = 50,
     max_refs: int = 200_000,
-    dedup: bool = True,
     index_metric: str = "euclidean",
     index_seed: int = 0,
+    n_neighbors: int = 30,
+    # --- backward-compat legacy args ---
+    k: Optional[int] = None,
+    dedup: Optional[bool] = None,
     census_obs_filter: Optional[str] = None,
     # pass-through to map_query_to_ref_pool
     store_key: str = "map_query_to_ref",
@@ -35,15 +38,10 @@ def map_query_to_ref_pool_census(
     probs_key: str = "X_map_probs",
     label_order_key: str = "map_label_order",
 ) -> None:
-    """
-    Phase B canonical spell:
-      Census -> ReferencePool -> map_query_to_ref_pool()
-
-    Two modes:
-      1) pool provided: purely local, no census needed.
-      2) pool None: build from census using pp.build_reference_pool_from_census.
-    """
     from ._map_query_to_ref_pool import map_query_to_ref_pool
+
+    if obs_value_filter is None and census_obs_filter is not None:
+        obs_value_filter = census_obs_filter
 
     if pool is None:
         if census is None:
@@ -55,21 +53,23 @@ def map_query_to_ref_pool_census(
 
         pool = build_reference_pool_from_census(
             census=census,
-            adata_q=adata_q,
-            rep=rep,
+            organism=organism,
             embedding_name=embedding_name,
             label_key=label_key,
+            obs_value_filter=obs_value_filter,
             obs_columns=obs_columns,
-            k=int(k),
-            organism=str(organism),
             max_refs=int(max_refs) if max_refs is not None else None,
-            dedup=bool(dedup),
             index_metric=str(index_metric),
             index_seed=int(index_seed),
+            n_neighbors=int(n_neighbors),
+            # legacy args forwarded for compatibility/tests
+            adata_q=adata_q,
+            rep=rep,
+            k=k,
+            dedup=dedup,
             census_obs_filter=census_obs_filter,
         )
 
-    # Delegate to the proven mapping function
     map_query_to_ref_pool(
         adata_q,
         pool=pool,

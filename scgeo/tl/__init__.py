@@ -13,9 +13,13 @@ from ._map_query_to_ref import map_query_to_ref
 from ._map_query_to_ref_pool import map_query_to_ref_pool
 from ._map_query_to_ref_pool_census import map_query_to_ref_pool_census
 from ._analyze_shift import analyze_shift
+from ._velocity_shift_alignment import velocity_shift_alignment
+from ._alignment_driver_genes import alignment_driver_genes
 
 __all__ = [
   "shift", "mixscore", "map_knn", "align_vectors", "velocity_delta_alignment",
   "projection_disagreement", "wasserstein","density_overlap","distribution_test",
-  "paga_composition_stats","consensus_subspace","map_query_to_ref","map_query_to_ref_pool","map_query_to_ref_pool_census","analyze_shift",
+  "paga_composition_stats","consensus_subspace","map_query_to_ref","map_query_to_ref_pool",
+  "map_query_to_ref_pool_census","analyze_shift","velocity_shift_alignment",
+  "alignment_driver_genes",
 ]
