@@ -21,3 +21,7 @@ __pycache__/
 *.zarr
 *.mtx
 *.npz
+data/
+*.h5ad
+*.loom
+.ipynb_checkpoints/

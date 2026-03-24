@@ -34,3 +34,9 @@ ScGeo complements Scanpy, scVelo, CellRank, and scFates by making
 - cross-modality (scRNA / spatial / bulk) analysis
 
 # scgeo
+## Core Features (v0.2)
+
+- Geometry-aware reference mapping (Census / local)
+- Velocity–embedding alignment metrics
+- Driver gene identification via geometric shift
+- OOD detection in embedding space
