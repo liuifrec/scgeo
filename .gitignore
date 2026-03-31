@@ -25,3 +25,11 @@ data/
 *.h5ad
 *.loom
 .ipynb_checkpoints/
+
+# notebooks / data artifacts
+*.h5ad
+*.loom
+*.h5mu
+*.pkl
+*.npz
+.ipynb_checkpoints/
