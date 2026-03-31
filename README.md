@@ -8,10 +8,22 @@
 Geometry-aware analysis of single-cell representations
 </p>
 
-⚠️ **Pre-alpha. APIs may change.**
+# ScGeo
+
+ScGeo is a geometry-aware framework for single-cell transcriptomics that quantifies embedding structure and links it to dynamical inference.
 
 ScGeo is a scverse-style toolkit for **geometric analysis of single-cell representations**
 across conditions, batches, trajectories, and modalities.
+
+It provides tools to measure perturbation-driven state transitions in low-dimensional embeddings through:
+- geometric displacement (Δ-shift)
+- local neighborhood mixing (mixscore)
+- distributional divergence
+- velocity–geometry alignment
+
+ScGeo enables systematic analysis of embedding-level dynamics beyond RNA velocity.
+
+
 
 ## Core questions ScGeo answers
 
@@ -25,6 +37,13 @@ across conditions, batches, trajectories, and modalities.
 
 ScGeo complements Scanpy, scVelo, CellRank, and scFates by making
 **representation geometry explicit and measurable**.
+
+## Core functions
+
+- `scgeo.tl.shift` — geometric displacement between conditions
+- `scgeo.tl.mixscore` — local neighborhood mixing
+- `scgeo.tl.distribution_test` — embedding-level divergence
+- `scgeo.tl.velocity_delta_alignment` — geometry–velocity consistency
 
 ## Planned scope
 - QC-aware atlas mapping & annotation
@@ -40,3 +59,12 @@ ScGeo complements Scanpy, scVelo, CellRank, and scFates by making
 - Velocity–embedding alignment metrics
 - Driver gene identification via geometric shift
 - OOD detection in embedding space
+
+## Manuscript
+
+ScGeo is introduced and validated in:
+
+"ScGeo reveals non-canonical trajectories beyond RNA velocity in radiation-induced hematopoietic recovery"
+
+All analysis workflows and figure-generation notebooks are available in:
+https://github.com/liuifrec/scgeo-notebooks
