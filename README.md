@@ -68,3 +68,28 @@ ScGeo is introduced and validated in:
 
 All analysis workflows and figure-generation notebooks are available in:
 https://github.com/liuifrec/scgeo-notebooks
+
+
+## Manifest layers (reproducible contracts)
+
+ScGeo tracks public and I/O contracts across three aligned JSON manifests:
+
+- `api_manifest.json`: exported public API (`scgeo.tl` and `scgeo.pl`)
+- `scgeo_io_raw.json`: raw write-diff observations for TL functions
+- `scgeo_io_manifest.json`: normalized TL I/O contract
+
+Rebuild all manifests in one step:
+
+```bash
+PYTHONPATH=. python scripts/rebuild_manifests.py
+```
+
+Validate the alignment/importability checks:
+
+```bash
+PYTHONPATH=. python scripts/validate_manifests.py
+```
+
+Public API docs generated from these manifests are available at:
+
+- `docs/api_reference.md`
