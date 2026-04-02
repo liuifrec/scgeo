@@ -20,6 +20,8 @@ It enables:
 
 Importantly, ScGeo reveals structured biological dynamics and non-canonical trajectories that are not fully captured by RNA velocity alone.
 
+ScGeo provides a quantitative framework to detect, compare, and interpret perturbation-induced state transitions directly in embedding space.
+
 ## Installation
 
 ```bash
@@ -28,53 +30,6 @@ cd scgeo
 pip install -e .
 ```
 
-## Core questions ScGeo answers
-
-| Question                                  | Geometric tool              |
-|-------------------------------------------|-----------------------------|
-| How different are two conditions overall? | Wasserstein distance        |
-| How much do populations overlap?          | Bhattacharyya / kNN mixing  |
-| Are two responses aligned?                | cosine(Δ₁, Δ₂)              |
-| Which cells drive the difference?         | consensus subspace          |
-| Where are ambiguous cells?                | projection disagreement     |
-
-ScGeo complements Scanpy, scVelo, CellRank, and scFates by making
-**representation geometry explicit and measurable**.
-
-## Core functions
-
-- `scgeo.tl.shift` — geometric displacement between conditions
-- `scgeo.tl.mixscore` — local neighborhood mixing
-- `scgeo.tl.distribution_test` — embedding-level divergence
-- `scgeo.tl.velocity_shift_alignment` — geometry–velocity consistency
-
-## Planned scope
-- QC-aware atlas mapping & annotation
-- cellxgene reference pool integration
-- batch correction benchmarking
-- trajectory / velocity / fate geometry
-- cross-modality (scRNA / spatial / bulk) analysis
-
-# scgeo
-## Core Features (v0.2)
-
-- Geometry-aware reference mapping (Census / local)
-- Velocity–embedding alignment metrics
-- Driver gene identification via geometric shift
-- OOD detection in embedding space
-
-
-## Mapping to manuscript concepts
-
-| Manuscript concept | API |
-|-------------------|-----|
-| Geometric displacement (Δ) | scgeo.tl.shift |
-| Local mixing | scgeo.tl.mixscore |
-| Distribution divergence | scgeo.tl.distribution_test |
-| Geometry–velocity alignment | scgeo.tl.velocity_shift_alignment |
-| OOD detection | scgeo.tl.ood_cells |
-| Composition drift | scgeo.pl.composition_drift |
-| Recovery trajectory visualization | scgeo.pl.recovery_compass |
 ## Minimal example
 
 ```python
@@ -91,6 +46,55 @@ sg.tl.velocity_shift_alignment(adata)
 # visualize
 sg.pl.recovery_compass(adata)
 ```
+
+
+## Core questions ScGeo answers
+
+| Question                                  | Geometric tool              |
+|-------------------------------------------|-----------------------------|
+| How different are two conditions overall? | Wasserstein distance        |
+| How much do populations overlap?          | Bhattacharyya / kNN mixing  |
+| Are two responses aligned?                | cosine(Δ₁, Δ₂)              |
+| Which cells drive the difference?         | consensus subspace          |
+| Where are ambiguous cells?                | projection disagreement     |
+
+ScGeo complements Scanpy, scVelo, CellRank, and scFates by making
+**representation geometry explicit and measurable**.
+
+## Mapping to manuscript concepts
+
+| Manuscript concept | API |
+|-------------------|-----|
+| Geometric displacement (Δ) | scgeo.tl.shift |
+| Local mixing | scgeo.tl.mixscore |
+| Distribution divergence | scgeo.tl.distribution_test |
+| Geometry–velocity alignment | scgeo.tl.velocity_shift_alignment |
+| OOD detection | scgeo.tl.ood_cells |
+| Composition drift | scgeo.pl.composition_drift |
+| Recovery trajectory visualization | scgeo.pl.recovery_compass |
+
+## Core functions
+
+- `scgeo.tl.shift` — geometric displacement between conditions
+- `scgeo.tl.mixscore` — local neighborhood mixing
+- `scgeo.tl.distribution_test` — embedding-level divergence
+- `scgeo.tl.velocity_shift_alignment` — geometry–velocity consistency
+
+
+
+## Core Features (v0.2)
+
+- Geometry-aware reference mapping (Census / local)
+- Velocity–embedding alignment metrics
+- Driver gene identification via geometric shift
+- OOD detection in embedding space
+
+## Extended capabilities (ongoing development)
+- QC-aware atlas mapping & annotation
+- cellxgene reference pool integration
+- batch correction benchmarking
+- trajectory / velocity / fate geometry
+- cross-modality (scRNA / spatial / bulk) analysis
 
 ## Manuscript
 
