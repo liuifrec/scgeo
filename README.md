@@ -26,6 +26,7 @@ Importantly, ScGeo reveals structured biological dynamics and non-canonical traj
 git clone https://github.com/liuifrec/scgeo.git
 cd scgeo
 pip install -e .
+```
 
 ## Core questions ScGeo answers
 
