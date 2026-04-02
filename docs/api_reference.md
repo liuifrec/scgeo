@@ -2,6 +2,10 @@
 
 This document is generated from `api_manifest.json` and `scgeo_io_manifest.json` to reflect the current public API only.
 
+It is the canonical API documentation source in this repository.
+
+Supplemental manual notes for functions that cannot be auto-probed live in `docs/contracts/manual_io.yaml`.
+
 ## Uncertain entries
 
 Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipped` (normalized I/O could not be fully observed).
