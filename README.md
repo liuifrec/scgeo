@@ -89,3 +89,7 @@ Validate the alignment/importability checks:
 ```bash
 PYTHONPATH=. python scripts/validate_manifests.py
 ```
+
+Public API docs generated from these manifests are available at:
+
+- `docs/api_reference.md`
