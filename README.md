@@ -8,22 +8,24 @@
 Geometry-aware analysis of single-cell representations
 </p>
 
-# ScGeo
 
-ScGeo is a geometry-aware framework for single-cell transcriptomics that quantifies embedding structure and links it to dynamical inference.
+ScGeo is a geometry-aware framework for single-cell analysis that treats low-dimensional embeddings as quantitative representations of cellular state space.
 
-ScGeo is a scverse-style toolkit for **geometric analysis of single-cell representations**
-across conditions, batches, trajectories, and modalities.
+It enables:
 
-It provides tools to measure perturbation-driven state transitions in low-dimensional embeddings through:
-- geometric displacement (Δ-shift)
-- local neighborhood mixing (mixscore)
-- distributional divergence
-- velocity–geometry alignment
+- measurement of perturbation-driven state transitions (Δ-shift)
+- evaluation of integration via local mixing structure
+- detection of global redistribution (distributional divergence)
+- alignment of embedding geometry with RNA velocity and fate inference
 
-ScGeo enables systematic analysis of embedding-level dynamics beyond RNA velocity.
+Importantly, ScGeo reveals structured biological dynamics and non-canonical trajectories that are not fully captured by RNA velocity alone.
 
+## Installation
 
+```bash
+git clone https://github.com/liuifrec/scgeo.git
+cd scgeo
+pip install -e .
 
 ## Core questions ScGeo answers
 
@@ -43,7 +45,7 @@ ScGeo complements Scanpy, scVelo, CellRank, and scFates by making
 - `scgeo.tl.shift` — geometric displacement between conditions
 - `scgeo.tl.mixscore` — local neighborhood mixing
 - `scgeo.tl.distribution_test` — embedding-level divergence
-- `scgeo.tl.velocity_delta_alignment` — geometry–velocity consistency
+- `scgeo.tl.velocity_shift_alignment` — geometry–velocity consistency
 
 ## Planned scope
 - QC-aware atlas mapping & annotation
@@ -60,6 +62,35 @@ ScGeo complements Scanpy, scVelo, CellRank, and scFates by making
 - Driver gene identification via geometric shift
 - OOD detection in embedding space
 
+
+## Mapping to manuscript concepts
+
+| Manuscript concept | API |
+|-------------------|-----|
+| Geometric displacement (Δ) | scgeo.tl.shift |
+| Local mixing | scgeo.tl.mixscore |
+| Distribution divergence | scgeo.tl.distribution_test |
+| Geometry–velocity alignment | scgeo.tl.velocity_shift_alignment |
+| OOD detection | scgeo.tl.ood_cells |
+| Composition drift | scgeo.pl.composition_drift |
+| Recovery trajectory visualization | scgeo.pl.recovery_compass |
+## Minimal example
+
+```python
+import scgeo as sg
+
+# compute geometry
+sg.tl.shift(adata)
+sg.tl.mixscore(adata)
+sg.tl.distribution_test(adata)
+
+# analyze dynamics
+sg.tl.velocity_shift_alignment(adata)
+
+# visualize
+sg.pl.recovery_compass(adata)
+```
+
 ## Manuscript
 
 ScGeo is introduced and validated in:
@@ -69,6 +100,13 @@ ScGeo is introduced and validated in:
 All analysis workflows and figure-generation notebooks are available in:
 https://github.com/liuifrec/scgeo-notebooks
 
+
+## Citation
+
+If you use ScGeo, please cite:
+
+Liu Y-C, Yoshida K.  
+*ScGeo reveals non-canonical trajectories beyond RNA velocity in radiation-induced hematopoietic recovery.*
 
 ## Manifest layers (reproducible contracts)
 

@@ -2,8 +2,33 @@
 
 This file is the **source of truth** for what ScGeo is building and what is already done.
 Keep it short, but keep it accurate.
+## ScGeo conceptual layers (aligned with manuscript)
 
-## Current status (as of this repo snapshot)
+### 1. Geometry core (embedding as measurable object)
+- Δ-shift (scgeo.tl.shift)
+- mixscore (scgeo.tl.mixscore)
+- distribution divergence (scgeo.tl.distribution_test)
+
+### 2. Perturbation geometry
+- composition drift
+- OOD detection
+- embedding redistribution
+
+### 3. Geometry–dynamics coupling
+- velocity_shift_alignment
+- CellRank integration (future/partial)
+
+### 4. Biological interpretation layer
+- driver genes
+- pathway enrichment
+- discordant vs canonical states
+
+### 5. Visualization layer
+- recovery_compass
+- state_flow
+- robustness_matrix
+
+## Implementation roadmap (secondary)
 
 **✅ Core package is working + tested.**
 - scverse-style layout: `scgeo/{tl,pl,get,data,pp,bench}`
