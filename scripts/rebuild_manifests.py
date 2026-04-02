@@ -28,12 +28,12 @@ def _write_json(path: Path, obj: Any) -> None:
         json.dump(obj, f, indent=2)
 
 
-def _public_callables(module_name: str, keep: set[str]) -> List[Dict[str, str]]:
+def _public_callables(module_name: str) -> List[Dict[str, str]]:
     mod = importlib.import_module(module_name)
     rows: List[Dict[str, str]] = []
     for name in getattr(mod, "__all__", []):
         fq_name = f"{module_name}.{name}"
-        if name.startswith("_") or fq_name not in keep:
+        if name.startswith("_"):
             continue
         fn = getattr(mod, name, None)
         if fn is None or not callable(fn):
@@ -157,13 +157,10 @@ def rebuild() -> None:
     api_prev = _load_json(API_PATH)
     api_tl_prev = {entry["name"]: entry for entry in api_prev.get("tl", [])}
     api_pl_prev = {entry["name"]: entry for entry in api_prev.get("pl", [])}
-    api_tl_keep = set(api_tl_prev)
-    api_pl_keep = set(api_pl_prev)
-
     api_manifest = {
         "scgeo_version": getattr(sg, "__version__", None),
-        "tl": _public_callables("scgeo.tl", api_tl_keep),
-        "pl": _public_callables("scgeo.pl", api_pl_keep),
+        "tl": _public_callables("scgeo.tl"),
+        "pl": _public_callables("scgeo.pl"),
     }
     for section, prev_map in (("tl", api_tl_prev), ("pl", api_pl_prev)):
         for row in api_manifest[section]:

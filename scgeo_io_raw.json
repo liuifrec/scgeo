@@ -126,6 +126,36 @@
         "uns_keys_removed": []
       }
     },
+    "scgeo.tl.alignment_driver_genes": {
+      "ok": false,
+      "note": "TypeError: alignment_driver_genes() missing 1 required keyword-only argument: 'alignment_key'",
+      "signature": "(adata, *, alignment_key: 'str', group1: 'str' = 'discordant', group2: 'str' = 'aligned', subset_key: 'Optional[str]' = None, subset_values: 'Optional[Sequence[str]]' = None, layer: 'Optional[str]' = None, method: 'str' = 'wilcoxon', pts: 'bool' = True, min_cells: 'int' = 20, key_added: 'str' = 'alignment_driver_genes') -> 'pd.DataFrame'",
+      "writes": {
+        "obs_cols_added": [],
+        "obs_cols_removed": [],
+        "obsm_keys_added": [],
+        "obsm_keys_removed": [],
+        "layers_keys_added": [],
+        "layers_keys_removed": [],
+        "uns_keys_added": [],
+        "uns_keys_removed": []
+      }
+    },
+    "scgeo.tl.analyze_shift": {
+      "ok": false,
+      "note": "TypeError: analyze_shift() missing 4 required keyword-only arguments: 'node_key', 'condition_key', 'group0', and 'group1'",
+      "signature": "(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', velocity_basis: 'Optional[str]' = None, ood_key: 'Optional[str]' = None, ood_groupby: 'Optional[str]' = None, robustness: 'Optional[pd.DataFrame]' = None, min_cells: 'int' = 10, store_key: 'str' = 'shift', overwrite: 'bool' = True)",
+      "writes": {
+        "obs_cols_added": [],
+        "obs_cols_removed": [],
+        "obsm_keys_added": [],
+        "obsm_keys_removed": [],
+        "layers_keys_added": [],
+        "layers_keys_removed": [],
+        "uns_keys_added": [],
+        "uns_keys_removed": []
+      }
+    },
     "scgeo.tl.map_knn": {
       "ok": false,
       "note": "mapping funcs need proper ref/pool/graph",
@@ -220,6 +250,21 @@
       "ok": false,
       "note": "needs velocity vectors",
       "signature": "(adata, *, velocity_key: 'Optional[str]' = None, rep_for_shift: 'str' = 'X_umap', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, by: 'Optional[str]' = None, sample_key: 'Optional[str]' = None, shift_level: 'str' = 'global', shift_index_key: 'Optional[str]' = None, obs_key: 'str' = 'scgeo_vel_delta_align', store_key: 'str' = 'scgeo') -> 'None'",
+      "writes": {
+        "obs_cols_added": [],
+        "obs_cols_removed": [],
+        "obsm_keys_added": [],
+        "obsm_keys_removed": [],
+        "layers_keys_added": [],
+        "layers_keys_removed": [],
+        "uns_keys_added": [],
+        "uns_keys_removed": []
+      }
+    },
+    "scgeo.tl.velocity_shift_alignment": {
+      "ok": false,
+      "note": "TypeError: velocity_shift_alignment() missing 4 required keyword-only arguments: 'node_key', 'condition_key', 'group0', and 'group1'",
+      "signature": "(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', velocity_basis: 'Optional[str]' = None, min_cells: 'int' = 15, agg: 'str' = 'mean', alignment_pos_thr: 'float' = 0.3, alignment_neg_thr: 'float' = -0.3, key_added: 'Optional[str]' = 'velocity_shift_alignment', propagate_to_obs: 'bool' = False) -> 'pd.DataFrame'",
       "writes": {
         "obs_cols_added": [],
         "obs_cols_removed": [],

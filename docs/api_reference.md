@@ -20,6 +20,22 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
 - Uncertain: **yes**
 - Normalized I/O: **uncertain** — entry is listed under `skipped` in `scgeo_io_manifest.json` (needs domain-specific inputs).
 
+### `scgeo.tl.alignment_driver_genes`
+
+- Full name: `scgeo.tl.alignment_driver_genes`
+- Signature: `(adata, *, alignment_key: 'str', group1: 'str' = 'discordant', group2: 'str' = 'aligned', subset_key: 'Optional[str]' = None, subset_values: 'Optional[Sequence[str]]' = None, layer: 'Optional[str]' = None, method: 'str' = 'wilcoxon', pts: 'bool' = True, min_cells: 'int' = 20, key_added: 'str' = 'alignment_driver_genes') -> 'pd.DataFrame'`
+- Description: Identify genes associated with alignment or discordance between geometric shift
+- Uncertain: **yes**
+- Normalized I/O: **uncertain** — entry is listed under `skipped` in `scgeo_io_manifest.json` (needs domain-specific inputs).
+
+### `scgeo.tl.analyze_shift`
+
+- Full name: `scgeo.tl.analyze_shift`
+- Signature: `(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', velocity_basis: 'Optional[str]' = None, ood_key: 'Optional[str]' = None, ood_groupby: 'Optional[str]' = None, robustness: 'Optional[pd.DataFrame]' = None, min_cells: 'int' = 10, store_key: 'str' = 'shift', overwrite: 'bool' = True)`
+- Description: High-level ScGeo analysis orchestrator.
+- Uncertain: **yes**
+- Normalized I/O: **uncertain** — entry is listed under `skipped` in `scgeo_io_manifest.json` (needs domain-specific inputs).
+
 ### `scgeo.tl.consensus_subspace`
 
 - Full name: `scgeo.tl.consensus_subspace`
@@ -35,7 +51,7 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
 - Description: Compute density overlap between two conditions on an embedding using kNN density estimates.
 - Uncertain: no
 - Normalized I/O:
-  - obs columns: added [none], touched [`batch`, `cluster`, `condition`], removed [none]
+  - obs cols: added [none], touched [`batch`, `cluster`, `condition`], removed [none]
   - obsm keys: added [none], touched [`X_pca`, `X_umap`], removed [none]
   - layers keys: added [none], touched [none], removed [none]
   - uns keys: added [`dens_test`], touched [none], removed [none]
@@ -47,7 +63,7 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
 - Description: Distribution difference test with sample-aware permutation.
 - Uncertain: no
 - Normalized I/O:
-  - obs columns: added [none], touched [`batch`, `cluster`, `condition`], removed [none]
+  - obs cols: added [none], touched [`batch`, `cluster`, `condition`], removed [none]
   - obsm keys: added [none], touched [`X_pca`, `X_umap`], removed [none]
   - layers keys: added [none], touched [none], removed [none]
   - uns keys: added [`dist_test`], touched [none], removed [none]
@@ -91,7 +107,7 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
 - Description: kNN label mixing score in [0,1]:
 - Uncertain: no
 - Normalized I/O:
-  - obs columns: added [`scgeo_mixscore`], touched [`batch`, `cluster`, `condition`], removed [none]
+  - obs cols: added [`scgeo_mixscore`], touched [`batch`, `cluster`, `condition`], removed [none]
   - obsm keys: added [none], touched [`X_pca`, `X_umap`], removed [none]
   - layers keys: added [none], touched [none], removed [none]
   - uns keys: added [`mix_test`], touched [none], removed [none]
@@ -119,7 +135,7 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
 - Description: Compute mean shift vector Δ = μ1 - μ0 in representation space.
 - Uncertain: no
 - Normalized I/O:
-  - obs columns: added [none], touched [`batch`, `cluster`, `condition`], removed [none]
+  - obs cols: added [none], touched [`batch`, `cluster`, `condition`], removed [none]
   - obsm keys: added [none], touched [`X_pca`, `X_umap`], removed [none]
   - layers keys: added [none], touched [none], removed [none]
   - uns keys: added [`shift_test`], touched [none], removed [none]
@@ -132,6 +148,14 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
 - Uncertain: **yes**
 - Normalized I/O: **uncertain** — entry is listed under `skipped` in `scgeo_io_manifest.json` (needs domain-specific inputs).
 
+### `scgeo.tl.velocity_shift_alignment`
+
+- Full name: `scgeo.tl.velocity_shift_alignment`
+- Signature: `(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', velocity_basis: 'Optional[str]' = None, min_cells: 'int' = 15, agg: 'str' = 'mean', alignment_pos_thr: 'float' = 0.3, alignment_neg_thr: 'float' = -0.3, key_added: 'Optional[str]' = 'velocity_shift_alignment', propagate_to_obs: 'bool' = False) -> 'pd.DataFrame'`
+- Description: Compute node-wise alignment between observed geometric shift and mean velocity.
+- Uncertain: **yes**
+- Normalized I/O: **uncertain** — entry is listed under `skipped` in `scgeo_io_manifest.json` (needs domain-specific inputs).
+
 ### `scgeo.tl.wasserstein`
 
 - Full name: `scgeo.tl.wasserstein`
@@ -139,7 +163,7 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
 - Description: Compute (sliced) Wasserstein distance between two conditions in embedding space.
 - Uncertain: no
 - Normalized I/O:
-  - obs columns: added [none], touched [`batch`, `cluster`, `condition`], removed [none]
+  - obs cols: added [none], touched [`batch`, `cluster`, `condition`], removed [none]
   - obsm keys: added [none], touched [`X_pca`, `X_umap`], removed [none]
   - layers keys: added [none], touched [none], removed [none]
   - uns keys: added [`dist_test`], touched [none], removed [none]
@@ -159,6 +183,14 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
 - Full name: `scgeo.pl.ambiguity_panel`
 - Signature: `(adata, score_key: 'str', *, basis: 'str' = 'umap', topk: 'Optional[int]' = 200, cmap: 'str' = 'inferno', figsize=(11, 5), title: 'Optional[str]' = None, show: 'bool' = True)`
 - Description: 1×2 panel:
+- Uncertain: no
+- Normalized I/O: not available in `scgeo_io_manifest.json` (this manifest currently covers `scgeo.tl` only).
+
+### `scgeo.pl.composition_drift`
+
+- Full name: `scgeo.pl.composition_drift`
+- Signature: `(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', agg: 'str' = 'mean', bg_size: 'float' = 6.0, bg_alpha: 'float' = 0.1, centroid_size: 'float' = 320.0, centroid_scale_by_n: 'bool' = True, centroid_edgecolor: 'str' = 'white', centroid_lw: 'float' = 1.0, drift_cmap: 'str' = 'coolwarm', drift_vmax: 'Optional[float]' = None, bar_alpha: 'float' = 0.9, top_n: 'Optional[int]' = None, sort_by: 'str' = 'abs_delta_frac', palette: 'Optional[dict[str, Any]]' = None, title: 'Optional[str]' = None, figsize: 'tuple[float, float]' = (14.0, 5.2), return_data: 'bool' = False, show: 'bool' = True)`
+- Description: Plot a 3-panel composition drift report:
 - Uncertain: no
 - Normalized I/O: not available in `scgeo_io_manifest.json` (this manifest currently covers `scgeo.tl` only).
 
@@ -234,6 +266,14 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
 - Uncertain: no
 - Normalized I/O: not available in `scgeo_io_manifest.json` (this manifest currently covers `scgeo.tl` only).
 
+### `scgeo.pl.gallery_overview`
+
+- Full name: `scgeo.pl.gallery_overview`
+- Signature: `(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', paga_key: 'str' = 'paga', ood_key: 'str' = 'scgeo_ood', velocity_basis: 'Optional[str]' = None, figsize: 'tuple[float, float]' = (16.0, 12.0), title: 'Optional[str]' = None, show: 'bool' = True)`
+- Description: Render a 2x2 overview gallery of core ScGeo plots:
+- Uncertain: no
+- Normalized I/O: not available in `scgeo_io_manifest.json` (this manifest currently covers `scgeo.tl` only).
+
 ### `scgeo.pl.highlight_topk_cells`
 
 - Full name: `scgeo.pl.highlight_topk_cells`
@@ -274,6 +314,14 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
 - Uncertain: no
 - Normalized I/O: not available in `scgeo_io_manifest.json` (this manifest currently covers `scgeo.tl` only).
 
+### `scgeo.pl.ood_landscape`
+
+- Full name: `scgeo.pl.ood_landscape`
+- Signature: `(adata, *, ood_key: 'str' = 'scgeo_ood', basis: 'str' = 'umap', threshold: 'Optional[float]' = None, show_only_flagged: 'bool' = False, flagged_outline: 'bool' = True, flagged_size: 'float' = 28.0, flagged_lw: 'float' = 0.8, bg_size: 'float' = 6.0, bg_alpha: 'float' = 0.12, score_size: 'float' = 10.0, score_alpha: 'float' = 0.85, cmap: 'str' = 'magma', contour: 'bool' = True, contour_quantile: 'float' = 0.95, contour_levels: 'int' = 1, contour_color: 'str' = 'cyan', contour_lw: 'float' = 1.6, contour_alpha: 'float' = 0.95, contour_gridsize: 'int' = 150, groupby: 'Optional[str]' = None, top_n_groups: 'int' = 10, summary_kind: 'str' = 'flagged_frac', figsize: 'tuple[float, float]' = (10.5, 5.2), title: 'Optional[str]' = None, ax=None, return_data: 'bool' = False, show: 'bool' = True)`
+- Description: Plot a continuous OOD landscape on an embedding, with optional contour and
+- Uncertain: no
+- Normalized I/O: not available in `scgeo_io_manifest.json` (this manifest currently covers `scgeo.tl` only).
+
 ### `scgeo.pl.paga_composition_bar`
 
 - Full name: `scgeo.pl.paga_composition_bar`
@@ -298,6 +346,38 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
 - Uncertain: no
 - Normalized I/O: not available in `scgeo_io_manifest.json` (this manifest currently covers `scgeo.tl` only).
 
+### `scgeo.pl.paga_scgeo`
+
+- Full name: `scgeo.pl.paga_scgeo`
+- Signature: `(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', paga_key: 'str' = 'paga', pie_key: 'Optional[str]' = 'timepoint', velocity_basis: 'Optional[str]' = 'umap', show_velocity: 'bool' = True, node_color_mode: 'str' = 'delta', highlight_nodes: 'Optional[list[str]]' = None, **kwargs)`
+- Description: ScGeo-style PAGA summary:
+- Uncertain: no
+- Normalized I/O: not available in `scgeo_io_manifest.json` (this manifest currently covers `scgeo.tl` only).
+
+### `scgeo.pl.paga_shift_map`
+
+- Full name: `scgeo.pl.paga_shift_map`
+- Signature: `(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', paga_key: 'str' = 'paga', min_cells: 'int' = 15, connectivity_threshold: 'float' = 0.05, agg: 'str' = 'mean', background_size: 'float' = 6.0, background_alpha: 'float' = 0.15, node_size: 'float' = 220.0, node_scale_by_n: 'bool' = True, edge_lw: 'float' = 2.0, edge_alpha: 'float' = 0.55, arrow_width: 'float' = 0.008, arrow_alpha: 'float' = 0.95, arrow_scale: 'float' = 1.0, label: 'bool' = True, label_top_n: 'Optional[int]' = None, label_fontsize: 'int' = 8, palette: 'Optional[dict[str, Any]]' = None, pie_key: 'Optional[str]' = None, pie_categories: 'Optional[list[str]]' = None, pie_palette: 'Optional[dict[str, Any]]' = None, pie_size_scale: 'float' = 1.0, velocity_basis: 'Optional[str]' = None, show_velocity: 'bool' = False, velocity_color: 'str' = 'cyan', velocity_scale: 'float' = 50.0, velocity_alpha: 'float' = 0.95, node_color_mode: 'str' = 'palette', alignment_df: 'Optional[pd.DataFrame]' = None, alignment_key: 'str' = 'alignment_cosine', delta_key: 'str' = 'delta_frac', constant_node_color: 'str' = 'gold', highlight_nodes: 'Optional[list[str]]' = None, highlight_edgecolor: 'str' = 'black', highlight_lw: 'float' = 2.0, ax=None, figsize: 'tuple[float, float]' = (8.0, 7.0), title: 'Optional[str]' = None, return_data: 'bool' = False, show: 'bool' = True)`
+- Description: Overlay a PAGA graph anchored on group0 centroids in embedding space,
+- Uncertain: no
+- Normalized I/O: not available in `scgeo_io_manifest.json` (this manifest currently covers `scgeo.tl` only).
+
+### `scgeo.pl.recovery_compass`
+
+- Full name: `scgeo.pl.recovery_compass`
+- Signature: `(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', paga_key: 'str' = 'paga', velocity_basis: 'Optional[str]' = None, ood_key: 'Optional[str]' = None, min_cells: 'int' = 15, connectivity_threshold: 'float' = 0.05, node_size_mode: 'str' = 'group1_n', node_size_scale: 'float' = 380.0, fill_color_mode: 'str' = 'alignment', fill_cmap: 'str' = 'coolwarm', fill_vmin: 'float' = -1.0, fill_vmax: 'float' = 1.0, ring_mode: 'str' = 'ood_frac', ring_color: 'str' = 'gold', ring_max_lw: 'float' = 4.0, arrow_color_mode: 'str' = 'shift', arrow_color: 'str' = 'black', arrow_cmap: 'str' = 'magma', arrow_scale: 'float' = 1.0, arrow_width: 'float' = 0.008, edge_alpha: 'float' = 0.45, edge_lw: 'float' = 2.0, bg_size: 'float' = 5.0, bg_alpha: 'float' = 0.08, label: 'bool' = True, label_top_n: 'Optional[int]' = 12, label_fontsize: 'int' = 8, legend: 'bool' = True, title: 'Optional[str]' = None, figsize: 'tuple[float, float]' = (9.5, 8.0), ax=None, return_data: 'bool' = False, show: 'bool' = True)`
+- Description: Signature ScGeo synthesis plot combining:
+- Uncertain: no
+- Normalized I/O: not available in `scgeo_io_manifest.json` (this manifest currently covers `scgeo.tl` only).
+
+### `scgeo.pl.robustness_matrix`
+
+- Full name: `scgeo.pl.robustness_matrix`
+- Signature: `(data: 'pd.DataFrame', *, row_key: 'str' = 'feature', col_key: 'str' = 'setting', value_key: 'str' = 'value', annot_key: 'Optional[str]' = None, row_order: 'Optional[Sequence[str]]' = None, col_order: 'Optional[Sequence[str]]' = None, sort_rows_by: 'Optional[str]' = None, ascending: 'bool' = False, summary: 'Optional[str]' = 'mean', pass_threshold: 'Optional[float]' = None, cmap: 'str' = 'viridis', vmin: 'Optional[float]' = None, vmax: 'Optional[float]' = None, center: 'Optional[float]' = None, show_values: 'bool' = True, value_fmt: 'str' = '.2f', annot_fontsize: 'int' = 8, na_color: 'str' = '#d9d9d9', grid_lw: 'float' = 0.8, grid_color: 'str' = 'white', cbar_label: 'Optional[str]' = None, summary_label: 'Optional[str]' = None, figsize: 'tuple[float, float]' = (10.0, 6.0), title: 'Optional[str]' = None, return_data: 'bool' = False, show: 'bool' = True)`
+- Description: Plot a robustness heatmap with optional row-summary side bar.
+- Uncertain: no
+- Normalized I/O: not available in `scgeo_io_manifest.json` (this manifest currently covers `scgeo.tl` only).
+
 ### `scgeo.pl.score_embedding`
 
 - Full name: `scgeo.pl.score_embedding`
@@ -314,3 +394,26 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
 - Uncertain: no
 - Normalized I/O: not available in `scgeo_io_manifest.json` (this manifest currently covers `scgeo.tl` only).
 
+### `scgeo.pl.state_flow_alluvial`
+
+- Full name: `scgeo.pl.state_flow_alluvial`
+- Signature: `(adata, *, columns: 'Sequence[str]', min_count: 'int' = 1, drop_na: 'bool' = False, normalize: 'bool' = False, sort_categories: 'bool' = False, color_by: 'str' = 'target', alpha: 'float' = 0.7, column_gap: 'float' = 1.8, category_gap: 'float' = 0.02, ribbon_curve: 'float' = 0.35, figsize: 'tuple[float, float]' = (11, 6), title: 'Optional[str]' = None, palette: 'Optional[dict[str, tuple[float, float, float, float]]]' = None, ax=None, return_data: 'bool' = False, show: 'bool' = True)`
+- Description: Draw an alluvial / ribbon plot for ordered categorical columns in `adata.obs`.
+- Uncertain: no
+- Normalized I/O: not available in `scgeo_io_manifest.json` (this manifest currently covers `scgeo.tl` only).
+
+### `scgeo.pl.state_flow_sankey`
+
+- Full name: `scgeo.pl.state_flow_sankey`
+- Signature: `(adata, *, columns: 'Sequence[str]', min_count: 'int' = 1, drop_na: 'bool' = False, title: 'Optional[str]' = None, pad: 'int' = 18, thickness: 'int' = 18, width: 'int' = 1000, height: 'int' = 550, arrangement: 'str' = 'snap', node_color: 'str' = 'rgba(120,120,120,0.85)', link_color: 'str' = 'rgba(120,120,120,0.28)', return_data: 'bool' = False, show: 'bool' = True)`
+- Description: Plot a categorical state-flow Sankey diagram from columns in `adata.obs`.
+- Uncertain: no
+- Normalized I/O: not available in `scgeo_io_manifest.json` (this manifest currently covers `scgeo.tl` only).
+
+### `scgeo.pl.velocity_shift_alignment`
+
+- Full name: `scgeo.pl.velocity_shift_alignment`
+- Signature: `(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', velocity_basis: 'Optional[str]' = None, min_cells: 'int' = 15, agg: 'str' = 'mean', bg_size: 'float' = 6.0, bg_alpha: 'float' = 0.1, node_size: 'float' = 180.0, shift_scale: 'float' = 1.0, velocity_scale: 'float' = 50.0, shift_color: 'str' = 'black', velocity_color: 'str' = 'cyan', shift_alpha: 'float' = 0.95, velocity_alpha: 'float' = 0.95, arrow_width: 'float' = 0.006, show_shift_arrow: 'bool' = True, show_velocity_arrow: 'bool' = True, color_by_alignment: 'bool' = True, alignment_cmap: 'str' = 'coolwarm', alignment_pos_thr: 'float' = 0.3, alignment_neg_thr: 'float' = -0.3, palette: 'Optional[dict[str, Any]]' = None, label: 'bool' = True, label_top_n: 'Optional[int]' = None, label_mode: 'str' = 'shift', label_fontsize: 'int' = 8, title: 'Optional[str]' = None, ax=None, figsize: 'tuple[float, float]' = (8.2, 7.0), return_data: 'bool' = False, show: 'bool' = True)`
+- Description: Plot node-wise observed shift vectors and mean velocity vectors on the same embedding.
+- Uncertain: no
+- Normalized I/O: not available in `scgeo_io_manifest.json` (this manifest currently covers `scgeo.tl` only).
