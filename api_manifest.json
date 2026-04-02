@@ -74,16 +74,6 @@
   ],
   "pl": [
     {
-      "name": "scgeo.pl._fallback_palette",
-      "signature": "(labels: 'np.ndarray')",
-      "doc": ""
-    },
-    {
-      "name": "scgeo.pl._get_scanpy_palette",
-      "signature": "(adata, groupby: 'str')",
-      "doc": "Return Scanpy-style palette mapping {category -> color} if available."
-    },
-    {
       "name": "scgeo.pl.alignment_panel",
       "signature": "(adata, score_key: 'str', *, basis: 'str' = 'umap', topk: 'Optional[int]' = 200, cmap: 'str' = 'viridis', figsize=(11, 5), title: 'Optional[str]' = None, show: 'bool' = True)",
       "doc": "1\u00d72 panel:"
