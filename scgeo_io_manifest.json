@@ -219,6 +219,74 @@
         }
       }
     },
+    "scgeo.tl.alignment_driver_genes": {
+      "signature": "(adata, *, alignment_key: 'str', group1: 'str' = 'discordant', group2: 'str' = 'aligned', subset_key: 'Optional[str]' = None, subset_values: 'Optional[Sequence[str]]' = None, layer: 'Optional[str]' = None, method: 'str' = 'wilcoxon', pts: 'bool' = True, min_cells: 'int' = 20, key_added: 'str' = 'alignment_driver_genes') -> 'pd.DataFrame'",
+      "ok": false,
+      "note": "needs domain-specific inputs",
+      "writes": {
+        "obs_cols": {
+          "added": [],
+          "removed": [],
+          "touched": [
+            "batch",
+            "cluster",
+            "condition"
+          ]
+        },
+        "obsm_keys": {
+          "added": [],
+          "removed": [],
+          "touched": [
+            "X_pca",
+            "X_umap"
+          ]
+        },
+        "layers_keys": {
+          "added": [],
+          "removed": [],
+          "touched": []
+        },
+        "uns_keys": {
+          "added": [],
+          "removed": [],
+          "touched": []
+        }
+      }
+    },
+    "scgeo.tl.analyze_shift": {
+      "signature": "(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', velocity_basis: 'Optional[str]' = None, ood_key: 'Optional[str]' = None, ood_groupby: 'Optional[str]' = None, robustness: 'Optional[pd.DataFrame]' = None, min_cells: 'int' = 10, store_key: 'str' = 'shift', overwrite: 'bool' = True)",
+      "ok": false,
+      "note": "needs domain-specific inputs",
+      "writes": {
+        "obs_cols": {
+          "added": [],
+          "removed": [],
+          "touched": [
+            "batch",
+            "cluster",
+            "condition"
+          ]
+        },
+        "obsm_keys": {
+          "added": [],
+          "removed": [],
+          "touched": [
+            "X_pca",
+            "X_umap"
+          ]
+        },
+        "layers_keys": {
+          "added": [],
+          "removed": [],
+          "touched": []
+        },
+        "uns_keys": {
+          "added": [],
+          "removed": [],
+          "touched": []
+        }
+      }
+    },
     "scgeo.tl.consensus_subspace": {
       "signature": "(adata: 'AnnData', rep: 'str' = 'X_pca', condition_key: 'str' = 'condition', group0: 'str | None' = None, group1: 'str | None' = None, sample_key: 'str | None' = None, n_components: 'int' = 2, obs_key_prefix: 'str' = 'cs', store_key: 'str' = 'consensus_subspace', min_cells: 'int' = 20, center: 'bool' = False) -> 'None'",
       "ok": false,
@@ -459,6 +527,40 @@
     },
     "scgeo.tl.velocity_delta_alignment": {
       "signature": "(adata, *, velocity_key: 'Optional[str]' = None, rep_for_shift: 'str' = 'X_umap', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, by: 'Optional[str]' = None, sample_key: 'Optional[str]' = None, shift_level: 'str' = 'global', shift_index_key: 'Optional[str]' = None, obs_key: 'str' = 'scgeo_vel_delta_align', store_key: 'str' = 'scgeo') -> 'None'",
+      "ok": false,
+      "note": "needs domain-specific inputs",
+      "writes": {
+        "obs_cols": {
+          "added": [],
+          "removed": [],
+          "touched": [
+            "batch",
+            "cluster",
+            "condition"
+          ]
+        },
+        "obsm_keys": {
+          "added": [],
+          "removed": [],
+          "touched": [
+            "X_pca",
+            "X_umap"
+          ]
+        },
+        "layers_keys": {
+          "added": [],
+          "removed": [],
+          "touched": []
+        },
+        "uns_keys": {
+          "added": [],
+          "removed": [],
+          "touched": []
+        }
+      }
+    },
+    "scgeo.tl.velocity_shift_alignment": {
+      "signature": "(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', velocity_basis: 'Optional[str]' = None, min_cells: 'int' = 15, agg: 'str' = 'mean', alignment_pos_thr: 'float' = 0.3, alignment_neg_thr: 'float' = -0.3, key_added: 'Optional[str]' = 'velocity_shift_alignment', propagate_to_obs: 'bool' = False) -> 'pd.DataFrame'",
       "ok": false,
       "note": "needs domain-specific inputs",
       "writes": {
