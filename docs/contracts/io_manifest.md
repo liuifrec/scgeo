@@ -4,4 +4,4 @@
 
 This previously generated split contract page was removed to avoid divergence.
 
-For functions that cannot be auto-probed reliably, keep and maintain manual notes in [`manual_io.yaml`](./manual_io.yaml).
+Manual contract supplements are no longer maintained; uncertain entries are tracked directly in `docs/api_reference.md`.

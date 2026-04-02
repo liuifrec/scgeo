@@ -4,7 +4,7 @@ This document is generated from `api_manifest.json` and `scgeo_io_manifest.json`
 
 It is the canonical API documentation source in this repository.
 
-Supplemental manual notes for functions that cannot be auto-probed live in `docs/contracts/manual_io.yaml`.
+Manual contract supplements are no longer maintained; uncertain entries are tracked directly in this document.
 
 ## Uncertain entries
 
