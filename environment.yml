@@ -1,0 +1,19 @@
+name: scgeo
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.12
+  - pip
+  - numpy
+  - pandas
+  - scipy
+  - anndata
+  - scanpy
+  - scikit-learn
+  - matplotlib
+  - plotly
+  - cellxgene-census
+  - tiledbsoma-py
+  - pyarrow
+  - pynndescent

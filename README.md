@@ -27,6 +27,8 @@ ScGeo provides a quantitative framework to detect, compare, and interpret pertur
 ```bash
 git clone https://github.com/liuifrec/scgeo.git
 cd scgeo
+conda env create -f environment.yml
+conda activate scgeo
 pip install -e .
 ```
 
