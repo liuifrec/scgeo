@@ -1,6 +1,7 @@
 import anndata as ad
 import numpy as np
 import pandas as pd
+import pytest
 
 
 def _orthogonal_rotation():
@@ -220,3 +221,94 @@ def test_representation_stability_sample_bootstrap_and_fixed_seed():
     ]
     pd.testing.assert_frame_equal(out1["per_rep_state"][cols], out2["per_rep_state"][cols])
     pd.testing.assert_frame_equal(out1["consensus_state"], out2["consensus_state"])
+
+
+def test_representation_stability_consensus_rule_defaults_unchanged():
+    import scgeo as sg
+
+    adata1 = _make_synthetic_adata()
+    adata2 = adata1.copy()
+    kwargs = dict(
+        reps=["X_base", "X_rot", "X_scaled", "X_5d"],
+        node_key="state",
+        condition_key="condition",
+        group0="A",
+        group1="B",
+        center="mean",
+        n_boot=0,
+        velocity_keys={"X_base": "V_base", "X_rot": "V_rot", "X_scaled": "V_scaled", "X_5d": "V_5d"},
+        min_cells=20,
+        seed=6,
+    )
+    out_default = sg.tl.representation_stability(adata1, **kwargs)
+    out_empty_override = sg.tl.representation_stability(adata2, consensus_rules={}, **kwargs)
+
+    pd.testing.assert_frame_equal(out_default["consensus_state"], out_empty_override["consensus_state"])
+    assert out_default["params"]["consensus_label_rules"] == out_empty_override["params"]["consensus_label_rules"]
+
+
+def test_representation_stability_partial_consensus_rule_override():
+    import scgeo as sg
+
+    adata = _make_synthetic_adata()
+    out = sg.tl.representation_stability(
+        adata,
+        reps=["X_base", "X_rot", "X_scaled", "X_5d", "X_distorted"],
+        node_key="state",
+        condition_key="condition",
+        group0="A",
+        group1="B",
+        center="mean",
+        n_boot=0,
+        velocity_keys={
+            "X_base": "V_base",
+            "X_rot": "V_rot",
+            "X_scaled": "V_scaled",
+            "X_5d": "V_5d",
+            "X_distorted": None,
+        },
+        min_cells=20,
+        consensus_rules={"max_leave_one_rep_magnitude_relative_deviation": 100.0},
+        seed=7,
+    )
+
+    rules = out["params"]["consensus_label_rules"]
+    assert rules["max_leave_one_rep_magnitude_relative_deviation"] == 100.0
+    labels = out["consensus_state"].set_index("node")["consensus_label"].to_dict()
+    assert labels["distorted"] == "stable_aligned"
+
+
+def test_representation_stability_invalid_consensus_rule_name():
+    import scgeo as sg
+
+    adata = _make_synthetic_adata()
+    with pytest.raises(ValueError, match="Unknown consensus rule"):
+        sg.tl.representation_stability(
+            adata,
+            reps=["X_base", "X_rot"],
+            node_key="state",
+            condition_key="condition",
+            group0="A",
+            group1="B",
+            center="mean",
+            n_boot=0,
+            consensus_rules={"opaque_score_weight": 1.0},
+        )
+
+
+def test_representation_stability_invalid_consensus_threshold_value():
+    import scgeo as sg
+
+    adata = _make_synthetic_adata()
+    with pytest.raises(ValueError, match="must be <= 1.0"):
+        sg.tl.representation_stability(
+            adata,
+            reps=["X_base", "X_rot"],
+            node_key="state",
+            condition_key="condition",
+            group0="A",
+            group1="B",
+            center="mean",
+            n_boot=0,
+            consensus_rules={"class_fraction_threshold": 1.5},
+        )

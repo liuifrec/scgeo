@@ -73,6 +73,42 @@
         }
       }
     },
+    "scgeo.tl.local_geometry_stability": {
+      "signature": "(adata, *, reps, node_key=None, sample_key=None, k_values=(15, 30, 50), metric='euclidean', pair_mode='all', reference_rep=None, n_boot=500, max_exact_cells=3000, stratify_key=None, store_per_cell=False, seed=0, store_key='local_geometry_stability')",
+      "ok": true,
+      "note": "",
+      "writes": {
+        "obs_cols": {
+          "added": [],
+          "removed": [],
+          "touched": [
+            "batch",
+            "cluster",
+            "condition"
+          ]
+        },
+        "obsm_keys": {
+          "added": [],
+          "removed": [],
+          "touched": [
+            "X_pca",
+            "X_umap"
+          ]
+        },
+        "layers_keys": {
+          "added": [],
+          "removed": [],
+          "touched": []
+        },
+        "uns_keys": {
+          "added": [
+            "scgeo"
+          ],
+          "removed": [],
+          "touched": []
+        }
+      }
+    },
     "scgeo.tl.mixscore": {
       "signature": "(adata, label_key: 'str' = 'batch', rep: 'str' = 'X_pca', k: 'int' = 50, use_connectivities: 'bool' = True, connectivities_key: 'str' = 'connectivities', obs_key: 'str' = 'scgeo_mixscore', store_key: 'str' = 'scgeo') -> 'None'",
       "ok": true,
@@ -112,7 +148,7 @@
       }
     },
     "scgeo.tl.representation_stability": {
-      "signature": "(adata, *, reps, node_key, condition_key, group0, group1, sample_key=None, center: 'str' = 'geometric_median', trim_fraction: 'float' = 0.1, n_boot: 'int' = 500, velocity_keys=None, alignment_pos_thr: 'float' = 0.3, alignment_neg_thr: 'float' = -0.3, min_cells: 'int' = 20, seed: 'int' = 0, store_key: 'str' = 'representation_stability')",
+      "signature": "(adata, *, reps, node_key, condition_key, group0, group1, sample_key=None, center: 'str' = 'geometric_median', trim_fraction: 'float' = 0.1, n_boot: 'int' = 500, velocity_keys=None, alignment_pos_thr: 'float' = 0.3, alignment_neg_thr: 'float' = -0.3, min_cells: 'int' = 20, consensus_rules=None, seed: 'int' = 0, store_key: 'str' = 'representation_stability')",
       "ok": true,
       "note": "",
       "writes": {

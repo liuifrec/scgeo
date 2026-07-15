@@ -51,6 +51,17 @@ _CONSENSUS_LABEL_RULES: Dict[str, Any] = {
         "or no velocity evidence for a non-neutral shifted state when velocity_keys is provided"
     ),
 }
+_CONSENSUS_NUMERIC_RULE_RANGES: Dict[str, tuple[float | None, float | None, bool]] = {
+    "min_usable_representations": (1, None, True),
+    "min_usable_fraction": (0.0, 1.0, False),
+    "min_samples_per_condition": (1, None, True),
+    "min_pairwise_spearman": (-1.0, 1.0, False),
+    "max_rank_std": (0.0, None, False),
+    "max_leave_one_rep_magnitude_relative_deviation": (0.0, None, False),
+    "max_leave_one_rep_class_switch_fraction": (0.0, 1.0, False),
+    "class_fraction_threshold": (0.0, 1.0, False),
+    "neutral_normalized_magnitude_max": (0.0, None, False),
+}
 
 
 def _as_sequence_of_reps(reps: Sequence[str]) -> list[str]:
@@ -62,6 +73,37 @@ def _as_sequence_of_reps(reps: Sequence[str]) -> list[str]:
     if len(set(out)) != len(out):
         raise ValueError("reps contains duplicate representation keys")
     return out
+
+
+def _resolve_consensus_rules(consensus_rules: Optional[Mapping[str, Any]]) -> Dict[str, Any]:
+    resolved = dict(_CONSENSUS_LABEL_RULES)
+    if consensus_rules is None:
+        return resolved
+    if not isinstance(consensus_rules, Mapping):
+        raise TypeError("consensus_rules must be a mapping or None")
+
+    for key, value in consensus_rules.items():
+        if key not in _CONSENSUS_NUMERIC_RULE_RANGES:
+            allowed = ", ".join(sorted(_CONSENSUS_NUMERIC_RULE_RANGES))
+            raise ValueError(f"Unknown consensus rule {key!r}. Configurable rules are: {allowed}")
+
+        lo, hi, integer = _CONSENSUS_NUMERIC_RULE_RANGES[key]
+        if isinstance(value, bool) or not np.isscalar(value):
+            raise ValueError(f"Consensus rule {key!r} must be numeric")
+        numeric = float(value)
+        if not np.isfinite(numeric):
+            raise ValueError(f"Consensus rule {key!r} must be finite")
+        if lo is not None and numeric < lo:
+            raise ValueError(f"Consensus rule {key!r} must be >= {lo}")
+        if hi is not None and numeric > hi:
+            raise ValueError(f"Consensus rule {key!r} must be <= {hi}")
+        if integer:
+            if not float(numeric).is_integer():
+                raise ValueError(f"Consensus rule {key!r} must be an integer")
+            resolved[key] = int(numeric)
+        else:
+            resolved[key] = numeric
+    return resolved
 
 
 def _as_str_values(values: pd.Series) -> np.ndarray:
@@ -448,6 +490,7 @@ def representation_stability(
     alignment_pos_thr: float = 0.3,
     alignment_neg_thr: float = -0.3,
     min_cells: int = 20,
+    consensus_rules=None,
     seed: int = 0,
     store_key: str = "representation_stability",
 ):
@@ -485,7 +528,7 @@ def representation_stability(
         "pooled_robust_scale",
         sample_key,
     )
-    rules = dict(_CONSENSUS_LABEL_RULES)
+    rules = _resolve_consensus_rules(consensus_rules)
     min_samples_per_condition = int(rules["min_samples_per_condition"])
 
     node_values = _as_str_values(adata.obs[node_key])
@@ -659,6 +702,7 @@ def representation_stability(
             "alignment_pos_thr": float(alignment_pos_thr),
             "alignment_neg_thr": float(alignment_neg_thr),
             "min_cells": int(min_cells),
+            "consensus_rules": None if consensus_rules is None else dict(consensus_rules),
             "seed": int(seed),
             "store_key": store_key,
             "consensus_label_rules": rules,

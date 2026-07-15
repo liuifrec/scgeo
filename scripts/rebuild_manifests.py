@@ -16,6 +16,15 @@ ROOT = Path(__file__).resolve().parents[1]
 API_PATH = ROOT / "api_manifest.json"
 RAW_PATH = ROOT / "scgeo_io_raw.json"
 CLEAN_PATH = ROOT / "scgeo_io_manifest.json"
+REFRESH_SIGNATURES = {
+    "scgeo.tl.representation_stability",
+    "scgeo.get.state_report",
+    "scgeo.pl.local_distortion_map",
+    "scgeo.pl.perturbation_report",
+    "scgeo.pl.state_evidence_panel",
+    "scgeo.pl.representation_stability_heatmap",
+    "scgeo.pl.consensus_state_map",
+}
 
 
 def _load_json(path: Path) -> Any:
@@ -94,6 +103,16 @@ def _call_policy_raw(fn, adata: ad.AnnData) -> Tuple[bool, str]:
                 group1="B",
                 min_cells=2,
                 n_boot=5,
+                seed=0,
+            )
+        elif name == "local_geometry_stability":
+            fn(
+                adata,
+                reps=["X_pca", "X_umap"],
+                node_key="cell_type",
+                k_values=(3,),
+                n_boot=3,
+                max_exact_cells=40,
                 seed=0,
             )
         elif name in {"shift", "mixscore", "density_overlap", "distribution_test", "wasserstein"}:
@@ -178,6 +197,17 @@ def _call_policy_clean(fn, adata: ad.AnnData) -> Tuple[bool, str]:
                 seed=0,
                 store_key="representation_stability_test",
             )
+        elif name == "local_geometry_stability":
+            fn(
+                adata,
+                reps=["X_pca", "X_umap"],
+                node_key="cluster",
+                k_values=(3,),
+                n_boot=3,
+                max_exact_cells=40,
+                seed=0,
+                store_key="local_geometry_stability_test",
+            )
         elif name == "mixscore":
             fn(adata, label_key="batch", rep="X_umap", store_key="mix_test")
         elif name == "density_overlap":
@@ -195,15 +225,17 @@ def rebuild() -> None:
     api_prev = _load_json(API_PATH)
     api_tl_prev = {entry["name"]: entry for entry in api_prev.get("tl", [])}
     api_pl_prev = {entry["name"]: entry for entry in api_prev.get("pl", [])}
+    api_get_prev = {entry["name"]: entry for entry in api_prev.get("get", [])}
     api_manifest = {
         "scgeo_version": getattr(sg, "__version__", None),
         "tl": _public_callables("scgeo.tl"),
         "pl": _public_callables("scgeo.pl"),
+        "get": _public_callables("scgeo.get"),
     }
-    for section, prev_map in (("tl", api_tl_prev), ("pl", api_pl_prev)):
+    for section, prev_map in (("tl", api_tl_prev), ("pl", api_pl_prev), ("get", api_get_prev)):
         for row in api_manifest[section]:
             prev = prev_map.get(row["name"])
-            if prev is not None:
+            if prev is not None and row["name"] not in REFRESH_SIGNATURES:
                 row["signature"] = prev.get("signature", row["signature"])
                 row["doc"] = prev.get("doc", row["doc"])
     _write_json(API_PATH, api_manifest)
@@ -222,10 +254,11 @@ def rebuild() -> None:
         after = _snapshot_raw(adata)
         fq = f"scgeo.tl.{name}"
         prev_entry = raw_prev_map.get(fq, {})
+        signature = str(inspect.signature(fn)) if fq in REFRESH_SIGNATURES else prev_entry.get("signature", str(inspect.signature(fn)))
         entry = {
             "ok": ok,
             "note": note,
-            "signature": prev_entry.get("signature", str(inspect.signature(fn))),
+            "signature": signature,
             "writes": _diff_raw(before, after),
         }
         if ok:
@@ -253,8 +286,9 @@ def rebuild() -> None:
         after = _snapshot_clean(adata)
         fq = f"scgeo.tl.{name}"
         prev_entry = clean_prev_map.get(fq, {})
+        signature = str(inspect.signature(fn)) if fq in REFRESH_SIGNATURES else prev_entry.get("signature", str(inspect.signature(fn)))
         entry = {
-            "signature": prev_entry.get("signature", str(inspect.signature(fn))),
+            "signature": signature,
             "ok": ok,
             "note": note,
             "writes": _diff_clean(before, after),

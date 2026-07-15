@@ -32,6 +32,13 @@ from ._legend import legend_from_data
 from ._consensus_structure import consensus_structure
 from ._highlight import _get_scanpy_palette, _fallback_palette
 from ._paga_scgeo import paga_scgeo
+from ._perturbation_report import (
+    consensus_state_map,
+    local_distortion_map,
+    perturbation_report,
+    representation_stability_heatmap,
+    state_evidence_panel,
+)
 
 __all__ = [
     "delta_rank",
@@ -67,4 +74,9 @@ __all__ = [
     "state_flow_sankey",
     "state_flow_alluvial",
     "paga_scgeo",
+    "state_evidence_panel",
+    "representation_stability_heatmap",
+    "consensus_state_map",
+    "perturbation_report",
+    "local_distortion_map",
 ]

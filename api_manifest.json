@@ -32,6 +32,11 @@
       "doc": "Distribution difference test with sample-aware permutation."
     },
     {
+      "name": "scgeo.tl.local_geometry_stability",
+      "signature": "(adata, *, reps, node_key=None, sample_key=None, k_values=(15, 30, 50), metric='euclidean', pair_mode='all', reference_rep=None, n_boot=500, max_exact_cells=3000, stratify_key=None, store_per_cell=False, seed=0, store_key='local_geometry_stability')",
+      "doc": "Quantify local-geometry preservation across latent representations."
+    },
+    {
       "name": "scgeo.tl.map_knn",
       "signature": "(adata_ref, adata_q, label_key: 'str' = 'cell_type', rep: 'str' = 'X_pca', k: 'int' = 25, ood_quantile: 'float' = 0.99, out_label_key: 'str' = 'scgeo_label', out_conf_key: 'str' = 'scgeo_confidence', out_ent_key: 'str' = 'scgeo_entropy', out_ood_key: 'str' = 'scgeo_ood', store_key: 'str' = 'scgeo') -> 'None'",
       "doc": "kNN mapping reference->query with QC:"
@@ -68,7 +73,7 @@
     },
     {
       "name": "scgeo.tl.representation_stability",
-      "signature": "(adata, *, reps, node_key, condition_key, group0, group1, sample_key=None, center: 'str' = 'geometric_median', trim_fraction: 'float' = 0.1, n_boot: 'int' = 500, velocity_keys=None, alignment_pos_thr: 'float' = 0.3, alignment_neg_thr: 'float' = -0.3, min_cells: 'int' = 20, seed: 'int' = 0, store_key: 'str' = 'representation_stability')",
+      "signature": "(adata, *, reps, node_key, condition_key, group0, group1, sample_key=None, center: 'str' = 'geometric_median', trim_fraction: 'float' = 0.1, n_boot: 'int' = 500, velocity_keys=None, alignment_pos_thr: 'float' = 0.3, alignment_neg_thr: 'float' = -0.3, min_cells: 'int' = 20, consensus_rules=None, seed: 'int' = 0, store_key: 'str' = 'representation_stability')",
       "doc": "Assess whether state-level perturbation geometry is stable across representations."
     },
     {
@@ -112,6 +117,11 @@
       "name": "scgeo.pl.composition_drift",
       "signature": "(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', agg: 'str' = 'mean', bg_size: 'float' = 6.0, bg_alpha: 'float' = 0.1, centroid_size: 'float' = 320.0, centroid_scale_by_n: 'bool' = True, centroid_edgecolor: 'str' = 'white', centroid_lw: 'float' = 1.0, drift_cmap: 'str' = 'coolwarm', drift_vmax: 'Optional[float]' = None, bar_alpha: 'float' = 0.9, top_n: 'Optional[int]' = None, sort_by: 'str' = 'abs_delta_frac', palette: 'Optional[dict[str, Any]]' = None, title: 'Optional[str]' = None, figsize: 'tuple[float, float]' = (14.0, 5.2), return_data: 'bool' = False, show: 'bool' = True)",
       "doc": "Plot a 3-panel composition drift report:"
+    },
+    {
+      "name": "scgeo.pl.consensus_state_map",
+      "signature": "(adata, *, node_key, basis: 'str' = 'umap', store_key: 'str' = 'representation_stability', label_states: 'bool' = True, title=None, show: 'bool' = True)",
+      "doc": "Plot state-level consensus labels on a display embedding."
     },
     {
       "name": "scgeo.pl.consensus_structure",
@@ -174,6 +184,11 @@
       "doc": "Render a tiny legend-only figure from legend_data produced by sg.pl.consensus_structure(...)."
     },
     {
+      "name": "scgeo.pl.local_distortion_map",
+      "signature": "(adata, *, basis: 'str' = 'umap', store_key: 'str' = 'local_geometry_stability', rep_a=None, rep_b=None, metric: 'str' = 'local_shape_distortion', aggregation: 'str' = 'median', node_key=None, title=None, show: 'bool' = True)",
+      "doc": "Plot stored per-cell local distortion values on a display embedding."
+    },
+    {
       "name": "scgeo.pl.mapping_confidence_umap",
       "signature": "(adata, conf_key: 'str' = 'map_confidence', *, basis: 'str' = 'umap', highlight_low_k: 'Optional[int]' = 200, title: 'Optional[str]' = None, show: 'bool' = True)",
       "doc": ""
@@ -219,9 +234,19 @@
       "doc": "Overlay a PAGA graph anchored on group0 centroids in embedding space,"
     },
     {
+      "name": "scgeo.pl.perturbation_report",
+      "signature": "(adata, *, node_key, basis: 'str' = 'umap', report: 'Optional[pd.DataFrame]' = None, save_dir=None, prefix: 'str' = 'scgeo', comparison_label: 'Optional[str]' = None, local_k=None, pair_aggregation: 'str' = 'median', include_worst_case: 'bool' = True, show: 'bool' = True)",
+      "doc": "Create the standard ScGeo perturbation report bundle."
+    },
+    {
       "name": "scgeo.pl.recovery_compass",
       "signature": "(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', paga_key: 'str' = 'paga', velocity_basis: 'Optional[str]' = None, ood_key: 'Optional[str]' = None, min_cells: 'int' = 15, connectivity_threshold: 'float' = 0.05, node_size_mode: 'str' = 'group1_n', node_size_scale: 'float' = 380.0, fill_color_mode: 'str' = 'alignment', fill_cmap: 'str' = 'coolwarm', fill_vmin: 'float' = -1.0, fill_vmax: 'float' = 1.0, ring_mode: 'str' = 'ood_frac', ring_color: 'str' = 'gold', ring_max_lw: 'float' = 4.0, arrow_color_mode: 'str' = 'shift', arrow_color: 'str' = 'black', arrow_cmap: 'str' = 'magma', arrow_scale: 'float' = 1.0, arrow_width: 'float' = 0.008, edge_alpha: 'float' = 0.45, edge_lw: 'float' = 2.0, bg_size: 'float' = 5.0, bg_alpha: 'float' = 0.08, label: 'bool' = True, label_top_n: 'Optional[int]' = 12, label_fontsize: 'int' = 8, legend: 'bool' = True, title: 'Optional[str]' = None, figsize: 'tuple[float, float]' = (9.5, 8.0), ax=None, return_data: 'bool' = False, show: 'bool' = True)",
       "doc": "Signature ScGeo synthesis plot combining:"
+    },
+    {
+      "name": "scgeo.pl.representation_stability_heatmap",
+      "signature": "(adata, *, store_key: 'str' = 'representation_stability', metric: 'str' = 'normalized_delta_norm', annotate_consensus: 'bool' = True, cluster_states: 'bool' = False, cluster_reps: 'bool' = False, figsize=None, title=None, return_data: 'bool' = False, show: 'bool' = True)",
+      "doc": "Plot a state-by-representation heatmap from stored representation stability."
     },
     {
       "name": "scgeo.pl.robustness_matrix",
@@ -239,6 +264,11 @@
       "doc": ""
     },
     {
+      "name": "scgeo.pl.state_evidence_panel",
+      "signature": "(report_or_adata, *, node_key=None, sort_by: 'str' = 'normalized_delta_norm', max_states: 'int' = 25, show_ci: 'bool' = True, show_coverage: 'bool' = True, figsize=None, title=None, return_data: 'bool' = False, show: 'bool' = True)",
+      "doc": "Plot a progressive-disclosure state evidence panel from a ScGeo report."
+    },
+    {
       "name": "scgeo.pl.state_flow_alluvial",
       "signature": "(adata, *, columns: 'Sequence[str]', min_count: 'int' = 1, drop_na: 'bool' = False, normalize: 'bool' = False, sort_categories: 'bool' = False, color_by: 'str' = 'target', alpha: 'float' = 0.7, column_gap: 'float' = 1.8, category_gap: 'float' = 0.02, ribbon_curve: 'float' = 0.35, figsize: 'tuple[float, float]' = (11, 6), title: 'Optional[str]' = None, palette: 'Optional[dict[str, tuple[float, float, float, float]]]' = None, ax=None, return_data: 'bool' = False, show: 'bool' = True)",
       "doc": "Draw an alluvial / ribbon plot for ordered categorical columns in `adata.obs`."
@@ -252,6 +282,48 @@
       "name": "scgeo.pl.velocity_shift_alignment",
       "signature": "(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', velocity_basis: 'Optional[str]' = None, min_cells: 'int' = 15, agg: 'str' = 'mean', bg_size: 'float' = 6.0, bg_alpha: 'float' = 0.1, node_size: 'float' = 180.0, shift_scale: 'float' = 1.0, velocity_scale: 'float' = 50.0, shift_color: 'str' = 'black', velocity_color: 'str' = 'cyan', shift_alpha: 'float' = 0.95, velocity_alpha: 'float' = 0.95, arrow_width: 'float' = 0.006, show_shift_arrow: 'bool' = True, show_velocity_arrow: 'bool' = True, color_by_alignment: 'bool' = True, alignment_cmap: 'str' = 'coolwarm', alignment_pos_thr: 'float' = 0.3, alignment_neg_thr: 'float' = -0.3, palette: 'Optional[dict[str, Any]]' = None, label: 'bool' = True, label_top_n: 'Optional[int]' = None, label_mode: 'str' = 'shift', label_fontsize: 'int' = 8, title: 'Optional[str]' = None, ax=None, figsize: 'tuple[float, float]' = (8.2, 7.0), return_data: 'bool' = False, show: 'bool' = True)",
       "doc": "Plot node-wise observed shift vectors and mean velocity vectors on the same embedding."
+    }
+  ],
+  "get": [
+    {
+      "name": "scgeo.get.get_available_tables",
+      "signature": "(adata, *, store_key: 'str' = 'shift') -> 'list[str]'",
+      "doc": ""
+    },
+    {
+      "name": "scgeo.get.get_composition_table",
+      "signature": "(adata, *, store_key: 'str' = 'shift') -> 'pd.DataFrame'",
+      "doc": ""
+    },
+    {
+      "name": "scgeo.get.get_ood_summary",
+      "signature": "(adata, *, store_key: 'str' = 'shift') -> 'pd.DataFrame'",
+      "doc": ""
+    },
+    {
+      "name": "scgeo.get.get_robustness_table",
+      "signature": "(adata, *, store_key: 'str' = 'shift') -> 'pd.DataFrame'",
+      "doc": ""
+    },
+    {
+      "name": "scgeo.get.get_shift_summary",
+      "signature": "(adata, *, store_key: 'str' = 'shift') -> 'pd.DataFrame'",
+      "doc": ""
+    },
+    {
+      "name": "scgeo.get.get_velocity_alignment_summary",
+      "signature": "(adata, *, store_key: 'str' = 'shift') -> 'pd.DataFrame'",
+      "doc": ""
+    },
+    {
+      "name": "scgeo.get.state_report",
+      "signature": "(adata, *, node_key=None, robust_shift_key: 'str' = 'robust_shift', representation_key: 'str' = 'representation_stability', local_geometry_key: 'str' = 'local_geometry_stability', local_k=None, pair_aggregation: 'str' = 'median', include_worst_case: 'bool' = True, comparison_label: 'Optional[str]' = None, condition_key: 'Optional[str]' = None, group0: 'Any' = None, group1: 'Any' = None, strict: 'bool' = False) -> 'pd.DataFrame'",
+      "doc": "Build a canonical state-level ScGeo report from stored analysis results."
+    },
+    {
+      "name": "scgeo.get.table",
+      "signature": "(adata, store_key: 'str' = 'scgeo', kind: 'str' = 'shift', level: 'str' = 'global') -> 'pd.DataFrame'",
+      "doc": "Return tidy table from adata.uns[store_key][kind]."
     }
   ]
 }

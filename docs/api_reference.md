@@ -10,6 +10,20 @@ Manual contract supplements are no longer maintained; uncertain entries are trac
 
 Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipped` (normalized I/O could not be fully observed).
 
+## scgeo.get
+
+### `scgeo.get.state_report`
+
+- Full name: `scgeo.get.state_report`
+- Signature: `(adata, *, node_key=None, robust_shift_key: 'str' = 'robust_shift', representation_key: 'str' = 'representation_stability', local_geometry_key: 'str' = 'local_geometry_stability', local_k=None, pair_aggregation: 'str' = 'median', include_worst_case: 'bool' = True, comparison_label: 'Optional[str]' = None, condition_key: 'Optional[str]' = None, group0: 'Any' = None, group1: 'Any' = None, strict: 'bool' = False) -> 'pd.DataFrame'`
+- Description: Build a canonical state-level ScGeo report from stored analysis results.
+- Normalized I/O: read-only; consumes existing `adata.uns["scgeo"]` results and returns a pandas DataFrame.
+- Report columns include Effect, Stability, median and spread of displacement rank, multi-k Local geometry summaries, Dynamics, Coverage, rule-based `reason_codes`, and quantitative plain-language `summary`.
+- Local geometry reporting records k values used, valid representation-pair counts, median summaries, worst-case summaries, and across-k variability when available.
+- Metadata in `report.attrs` includes package version, source store keys, comparison identity, representations, k values, sample key, center estimator, bootstrap unit, consensus rules, global diagnostics, representation diagnostics, warnings, and creation timestamp.
+- State-graph summaries are kept as global diagnostics unless a stored analysis provides a genuinely state-specific transition-profile metric.
+- Missing-data behavior: `strict=False` returns available columns with warnings; `strict=True` raises if requested storage objects are absent.
+
 ## scgeo.tl
 
 ### `scgeo.tl.align_vectors`
@@ -67,6 +81,18 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
   - obsm keys: added [none], touched [`X_pca`, `X_umap`], removed [none]
   - layers keys: added [none], touched [none], removed [none]
   - uns keys: added [`dist_test`], touched [none], removed [none]
+
+### `scgeo.tl.local_geometry_stability`
+
+- Full name: `scgeo.tl.local_geometry_stability`
+- Signature: `(adata, *, reps, node_key=None, sample_key=None, k_values=(15, 30, 50), metric='euclidean', pair_mode='all', reference_rep=None, n_boot=500, max_exact_cells=3000, stratify_key=None, store_per_cell=False, seed=0, store_key='local_geometry_stability')`
+- Description: Quantify local-geometry preservation across latent representations.
+- Uncertain: no
+- Normalized I/O:
+  - obs cols: added [none], touched [`batch`, `cluster`, `condition`], removed [none]
+  - obsm keys: added [none], touched [`X_pca`, `X_umap`], removed [none]
+  - layers keys: added [none], touched [none], removed [none]
+  - uns keys: added [`scgeo`], touched [none], removed [none]
 
 ### `scgeo.tl.map_knn`
 
@@ -131,7 +157,7 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
 ### `scgeo.tl.representation_stability`
 
 - Full name: `scgeo.tl.representation_stability`
-- Signature: `(adata, *, reps, node_key, condition_key, group0, group1, sample_key=None, center: 'str' = 'geometric_median', trim_fraction: 'float' = 0.1, n_boot: 'int' = 500, velocity_keys=None, alignment_pos_thr: 'float' = 0.3, alignment_neg_thr: 'float' = -0.3, min_cells: 'int' = 20, seed: 'int' = 0, store_key: 'str' = 'representation_stability')`
+- Signature: `(adata, *, reps, node_key, condition_key, group0, group1, sample_key=None, center: 'str' = 'geometric_median', trim_fraction: 'float' = 0.1, n_boot: 'int' = 500, velocity_keys=None, alignment_pos_thr: 'float' = 0.3, alignment_neg_thr: 'float' = -0.3, min_cells: 'int' = 20, consensus_rules=None, seed: 'int' = 0, store_key: 'str' = 'representation_stability')`
 - Description: Assess whether state-level perturbation geometry is stable across representations.
 - Uncertain: no
 - Normalized I/O:
@@ -193,6 +219,44 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
   - uns keys: added [`dist_test`], touched [none], removed [none]
 
 ## scgeo.pl
+
+### `scgeo.pl.state_evidence_panel`
+
+- Full name: `scgeo.pl.state_evidence_panel`
+- Signature: `(report_or_adata, *, node_key=None, sort_by: 'str' = 'normalized_delta_norm', max_states: 'int' = 25, show_ci: 'bool' = True, show_coverage: 'bool' = True, figsize=None, title=None, return_data: 'bool' = False, show: 'bool' = True)`
+- Description: Plot a progressive-disclosure state evidence panel from a ScGeo report.
+- Normalized I/O: read-only; missing tracks are omitted rather than imputed.
+
+### `scgeo.pl.representation_stability_heatmap`
+
+- Full name: `scgeo.pl.representation_stability_heatmap`
+- Signature: `(adata, *, store_key: 'str' = 'representation_stability', metric: 'str' = 'normalized_delta_norm', annotate_consensus: 'bool' = True, cluster_states: 'bool' = False, cluster_reps: 'bool' = False, figsize=None, title=None, return_data: 'bool' = False, show: 'bool' = True)`
+- Description: Plot a state-by-representation heatmap from stored representation stability.
+- Supported metrics: normalized displacement, displacement rank, alignment cosine, and alignment class.
+- When local-geometry representation diagnostics are available, a diagnostic strip shows neighborhood, distortion, state-graph, and coverage outlier flags; missing values are visually distinct from numerical zero.
+- Normalized I/O: read-only.
+
+### `scgeo.pl.consensus_state_map`
+
+- Full name: `scgeo.pl.consensus_state_map`
+- Signature: `(adata, *, node_key, basis: 'str' = 'umap', store_key: 'str' = 'representation_stability', label_states: 'bool' = True, title=None, show: 'bool' = True)`
+- Description: Plot state-level consensus labels on a display embedding.
+- Normalized I/O: read-only; consensus labels are propagated for plotting only and stored analysis results are not modified.
+
+### `scgeo.pl.perturbation_report`
+
+- Full name: `scgeo.pl.perturbation_report`
+- Signature: `(adata, *, node_key, basis: 'str' = 'umap', report: 'Optional[pd.DataFrame]' = None, save_dir=None, prefix: 'str' = 'scgeo', comparison_label: 'Optional[str]' = None, local_k=None, pair_aggregation: 'str' = 'median', include_worst_case: 'bool' = True, show: 'bool' = True)`
+- Description: Create the standard ScGeo perturbation report bundle.
+- Normalized I/O: read-only except optional export files when `save_dir` is supplied.
+- Export bundle: state report CSV, representation diagnostics CSV, metadata JSON, warnings text, alt-text text, and PNG/SVG figures.
+
+### `scgeo.pl.local_distortion_map`
+
+- Full name: `scgeo.pl.local_distortion_map`
+- Signature: `(adata, *, basis: 'str' = 'umap', store_key: 'str' = 'local_geometry_stability', rep_a=None, rep_b=None, metric: 'str' = 'local_shape_distortion', aggregation: 'str' = 'median', node_key=None, title=None, show: 'bool' = True)`
+- Description: Plot stored per-cell local distortion values on a display embedding.
+- Normalized I/O: read-only; `aggregation="per_cell"` requires `store_per_cell=True`, while `aggregation="state"` maps stored `state_pair_summary` values to cells for display without recomputing statistics.
 
 ### `scgeo.pl.alignment_panel`
 

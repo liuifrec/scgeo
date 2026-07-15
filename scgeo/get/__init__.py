@@ -1,4 +1,5 @@
 from ._table import table
+from ._state_report import state_report
 from ._figure_tables import (
     get_available_tables,
     get_composition_table,
@@ -9,6 +10,7 @@ from ._figure_tables import (
 )
 __all__ = [
     "table",
+    "state_report",
     "get_available_tables",
     "get_composition_table",
     "get_ood_summary",

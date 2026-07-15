@@ -58,11 +58,13 @@ def main() -> None:
     # Only trust __all__ exports as “public API”
     tl = importlib.import_module("scgeo.tl")
     pl = importlib.import_module("scgeo.pl")
+    get = importlib.import_module("scgeo.get")
 
     manifest = {
         "scgeo_version": getattr(scgeo, "__version__", None),
         "tl": module_manifest(tl, "scgeo.tl"),
         "pl": module_manifest(pl, "scgeo.pl"),
+        "get": module_manifest(get, "scgeo.get"),
     }
     print(json.dumps(manifest, indent=2))
 
