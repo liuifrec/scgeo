@@ -1,0 +1,6 @@
+job_id,seed_split,profile,scenario,seed,metric,method,tp,fp,fn,precision,recall,f1,null_state_false_classification_rate
+smoke_null_evaluation_seed1,evaluation,smoke,null,1,shifted_state_detection,shift_mean,0,0,0,,,,0.0
+smoke_null_evaluation_seed1,evaluation,smoke,null,1,shifted_state_detection,robust_mean,0,0,0,,,,0.0
+smoke_null_evaluation_seed1,evaluation,smoke,null,1,shifted_state_detection,robust_median,0,0,0,,,,0.0
+smoke_null_evaluation_seed1,evaluation,smoke,null,1,shifted_state_detection,robust_trimmed_mean,0,0,0,,,,0.0
+smoke_null_evaluation_seed1,evaluation,smoke,null,1,shifted_state_detection,robust_geometric_median,0,0,0,,,,0.0

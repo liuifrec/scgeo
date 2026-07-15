@@ -1,0 +1,5 @@
+job_id,seed_split,profile,scenario,seed,metric,method,value,tp,fp,fn,precision,recall,f1
+smoke_replicate_heterogeneity_evaluation_seed1,evaluation,smoke,replicate_heterogeneity,1,bootstrap_interval_coverage,robust_shift,0.0,,,,,,
+smoke_replicate_heterogeneity_evaluation_seed1,evaluation,smoke,replicate_heterogeneity,1,alignment_class_accuracy,representation_stability,0.0,,,,,,
+smoke_replicate_heterogeneity_evaluation_seed1,evaluation,smoke,replicate_heterogeneity,1,representation_corruption_detection,local_geometry_stability,,0.0,1.0,0.0,0.0,,
+smoke_replicate_heterogeneity_evaluation_seed1,evaluation,smoke,replicate_heterogeneity,1,distorted_state_detection,local_geometry_stability,,0.0,0.0,0.0,,,

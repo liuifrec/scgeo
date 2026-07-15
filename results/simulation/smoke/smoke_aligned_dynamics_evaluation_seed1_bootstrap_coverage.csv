@@ -1,0 +1,6 @@
+job_id,seed_split,profile,scenario,seed,state,method,true_magnitude,ci95_low,ci95_high,covered
+smoke_aligned_dynamics_evaluation_seed1,evaluation,smoke,aligned_dynamics,1,state_0,robust_shift,1.0,0.8848885051310214,1.5642102166768592,True
+smoke_aligned_dynamics_evaluation_seed1,evaluation,smoke,aligned_dynamics,1,state_1,robust_shift,1.0,0.939049366872788,1.4235241150936615,True
+smoke_aligned_dynamics_evaluation_seed1,evaluation,smoke,aligned_dynamics,1,state_2,robust_shift,0.0,0.40150813931416,0.9138341968225264,False
+smoke_aligned_dynamics_evaluation_seed1,evaluation,smoke,aligned_dynamics,1,state_3,robust_shift,0.0,0.39500470171359914,0.8108856922285743,False
+smoke_aligned_dynamics_evaluation_seed1,evaluation,smoke,aligned_dynamics,1,state_4,robust_shift,0.0,0.2677432898320335,0.9274653144421631,False

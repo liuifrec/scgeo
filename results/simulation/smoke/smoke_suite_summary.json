@@ -1,0 +1,24 @@
+{
+  "profile": "smoke",
+  "scenarios": [
+    "abundance_only",
+    "aligned_dynamics",
+    "centroid_shift",
+    "covariance_only",
+    "discordant_dynamics",
+    "local_warp",
+    "null",
+    "outlier_contamination",
+    "replicate_heterogeneity",
+    "representation_corruption",
+    "unequal_cell_counts"
+  ],
+  "calibration_seeds": [
+    0
+  ],
+  "evaluation_seeds": [
+    1
+  ],
+  "n_jobs": 22,
+  "n_failed": 0
+}

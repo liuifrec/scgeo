@@ -31,6 +31,8 @@ _CONDITION1 = "treated"
 _STATE_KEY = "state"
 _CONDITION_KEY = "condition"
 _SAMPLE_KEY = "sample"
+_PREDECLARED_SHIFT_DETECTION_THRESHOLD = 0.5
+_SHIFT_SENSITIVITY_THRESHOLDS = (0.25, 0.5, 0.75, 1.0, 1.25)
 _ABLATION_VARIANTS = {
     "A_mean_shift_one_rep": "A. original mean shift on one representation",
     "B_robust_shift_one_rep": "B. robust shift on one representation",
@@ -469,10 +471,8 @@ def _classification_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str,
     }
 
 
-def _detection_threshold(truth: dict[str, Any]) -> float:
-    true_vals = np.asarray(list(truth.get("true_effect_magnitude", {}).values()), dtype=float)
-    max_true = float(np.nanmax(true_vals)) if true_vals.size else 0.0
-    return max(0.25, 0.5 * max_true)
+def _detection_threshold() -> float:
+    return float(_PREDECLARED_SHIFT_DETECTION_THRESHOLD)
 
 
 def _robust_store_to_rows(
@@ -614,15 +614,11 @@ def _shift_classification_metrics(state_metrics: pd.DataFrame, truth: dict[str, 
 
 
 def _threshold_sensitivity(state_metrics: pd.DataFrame, truth: dict[str, Any]) -> pd.DataFrame:
-    true_vals = np.asarray(list(truth.get("true_effect_magnitude", {}).values()), dtype=float)
-    max_true = float(np.nanmax(true_vals)) if true_vals.size else 0.0
-    base = max(max_true, 1.0)
-    thresholds = [0.1 * base, 0.25 * base, 0.5 * base, 0.75 * base, 1.0 * base]
     rows = []
     for method, df in state_metrics.groupby("method", sort=False):
         est = df["estimated_magnitude"].to_numpy(dtype=float)
         true_shift = df["true_shifted"].to_numpy(dtype=bool)
-        for thr in thresholds:
+        for thr in _SHIFT_SENSITIVITY_THRESHOLDS:
             cls = _classification_metrics(true_shift, np.isfinite(est) & (est >= thr))
             rows.append(
                 {
@@ -936,7 +932,7 @@ def evaluate_ground_truth(
     Baseline magnitude comparisons are run on a temporary copy of ``adata``.
     """
     truth = _require_truth(adata)
-    threshold = _detection_threshold(truth)
+    threshold = _detection_threshold()
     state_metrics = _run_baseline_estimators(adata, truth, threshold)
     rank_metrics = _rank_metrics(state_metrics, truth)
     shift_detection = _shift_classification_metrics(state_metrics, truth)
@@ -1100,9 +1096,9 @@ def _binary_outcome(
     if status in {"unavailable", "numerical_degeneracy"}:
         return status
     if status == "insufficient_coverage":
-        return "insufficient_or_unstable"
+        return "insufficient_coverage"
     if status == "representation_unstable" and not unstable_is_call:
-        return "insufficient_or_unstable"
+        return "representation_unstable"
     truth_bool = _as_bool(truth)
     call_bool = _as_bool(call)
     if truth_bool and call_bool:
@@ -1121,7 +1117,7 @@ def _class_outcome(true_class: Any, predicted_class: Any, status: str) -> str:
     if status in {"unavailable", "numerical_degeneracy"}:
         return status
     if status in {"insufficient_coverage", "representation_unstable"}:
-        return "insufficient_or_unstable"
+        return status
     true_class = str(true_class)
     predicted_class = str(predicted_class)
     if predicted_class == true_class:
@@ -1510,8 +1506,10 @@ def _summarize_framework_ablation(ablation_table: pd.DataFrame, *, split: str = 
     if not isinstance(ablation_table, pd.DataFrame) or ablation_table.empty:
         return pd.DataFrame()
     df = ablation_table.copy()
-    if "seed_split" in df and (df["seed_split"].astype(str) == str(split)).any():
+    if "seed_split" in df:
         df = df[df["seed_split"].astype(str) == str(split)].copy()
+    if df.empty:
+        return pd.DataFrame()
     group_cols = ["seed_split", "scenario", "variant", "variant_label", "failure_mode", "outcome"]
     summary = df.groupby(group_cols, dropna=False).size().reset_index(name="n")
     denom_cols = ["seed_split", "scenario", "variant", "failure_mode"]
@@ -1556,7 +1554,8 @@ def plot_framework_ablation(
         "correctly_rejects",
         "misses",
         "falsely_calls",
-        "insufficient_or_unstable",
+        "insufficient_coverage",
+        "representation_unstable",
         "unavailable",
         "not_computed",
     ]
@@ -1565,7 +1564,8 @@ def plot_framework_ablation(
         "correctly_rejects": "#56B4E9",
         "misses": "#E69F00",
         "falsely_calls": "#D55E00",
-        "insufficient_or_unstable": "#CC79A7",
+        "insufficient_coverage": "#7F7F7F",
+        "representation_unstable": "#CC79A7",
         "unavailable": "#999999",
         "not_computed": "#DDDDDD",
     }
@@ -1945,7 +1945,7 @@ def run_simulation_suite(
     if output_path is not None and "framework_ablation" in tables:
         tables["framework_ablation"].to_csv(output_path / f"{profile}_framework_ablation.csv", index=False)
         tables["framework_ablation_summary"].to_csv(output_path / f"{profile}_framework_ablation_summary.csv", index=False)
-        if not tables["framework_ablation"].empty:
+        if not tables["framework_ablation_summary"].empty:
             for suffix in ("png", "svg"):
                 fig_path = output_path / f"{profile}_framework_ablation_summary.{suffix}"
                 fig = plot_framework_ablation(

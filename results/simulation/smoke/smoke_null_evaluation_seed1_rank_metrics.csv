@@ -1,0 +1,6 @@
+job_id,seed_split,profile,scenario,seed,method,state_rank_spearman,n_states
+smoke_null_evaluation_seed1,evaluation,smoke,null,1,shift_mean,,5
+smoke_null_evaluation_seed1,evaluation,smoke,null,1,robust_mean,,5
+smoke_null_evaluation_seed1,evaluation,smoke,null,1,robust_median,,5
+smoke_null_evaluation_seed1,evaluation,smoke,null,1,robust_trimmed_mean,,5
+smoke_null_evaluation_seed1,evaluation,smoke,null,1,robust_geometric_median,,5

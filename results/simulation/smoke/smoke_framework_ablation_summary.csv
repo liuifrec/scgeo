@@ -1,0 +1,464 @@
+seed_split,scenario,variant,variant_label,failure_mode,outcome,n,n_total,rate
+evaluation,abundance_only,A_mean_shift_one_rep,A. original mean shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,abundance_only,A_mean_shift_one_rep,A. original mean shift on one representation,bootstrap_interval_coverage,not_computed,5,5,1.0
+evaluation,abundance_only,A_mean_shift_one_rep,A. original mean shift on one representation,centroid_shift,correctly_rejects,5,5,1.0
+evaluation,abundance_only,A_mean_shift_one_rep,A. original mean shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,abundance_only,A_mean_shift_one_rep,A. original mean shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,abundance_only,A_mean_shift_one_rep,A. original mean shift on one representation,representation_corruption,not_computed,4,4,1.0
+evaluation,abundance_only,A_mean_shift_one_rep,A. original mean shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,abundance_only,B_robust_shift_one_rep,B. robust shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,abundance_only,B_robust_shift_one_rep,B. robust shift on one representation,bootstrap_interval_coverage,misses,5,5,1.0
+evaluation,abundance_only,B_robust_shift_one_rep,B. robust shift on one representation,centroid_shift,correctly_rejects,5,5,1.0
+evaluation,abundance_only,B_robust_shift_one_rep,B. robust shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,abundance_only,B_robust_shift_one_rep,B. robust shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,abundance_only,B_robust_shift_one_rep,B. robust shift on one representation,representation_corruption,not_computed,4,4,1.0
+evaluation,abundance_only,B_robust_shift_one_rep,B. robust shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,abundance_only,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,abundance_change,not_computed,5,5,1.0
+evaluation,abundance_only,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,bootstrap_interval_coverage,misses,5,5,1.0
+evaluation,abundance_only,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,centroid_shift,representation_unstable,5,5,1.0
+evaluation,abundance_only,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,dynamics_alignment,not_computed,5,5,1.0
+evaluation,abundance_only,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,abundance_only,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_corruption,not_computed,4,4,1.0
+evaluation,abundance_only,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_instability,falsely_calls,5,5,1.0
+evaluation,abundance_only,D_plus_local_geometry,D. C plus local geometry diagnostics,abundance_change,not_computed,5,5,1.0
+evaluation,abundance_only,D_plus_local_geometry,D. C plus local geometry diagnostics,bootstrap_interval_coverage,misses,5,5,1.0
+evaluation,abundance_only,D_plus_local_geometry,D. C plus local geometry diagnostics,centroid_shift,representation_unstable,5,5,1.0
+evaluation,abundance_only,D_plus_local_geometry,D. C plus local geometry diagnostics,dynamics_alignment,not_computed,5,5,1.0
+evaluation,abundance_only,D_plus_local_geometry,D. C plus local geometry diagnostics,local_geometry_distortion,correctly_rejects,5,5,1.0
+evaluation,abundance_only,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,correctly_rejects,3,4,0.75
+evaluation,abundance_only,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,falsely_calls,1,4,0.25
+evaluation,abundance_only,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_instability,falsely_calls,5,5,1.0
+evaluation,abundance_only,E_plus_dynamics,E. D plus dynamics agreement,abundance_change,not_computed,5,5,1.0
+evaluation,abundance_only,E_plus_dynamics,E. D plus dynamics agreement,bootstrap_interval_coverage,misses,5,5,1.0
+evaluation,abundance_only,E_plus_dynamics,E. D plus dynamics agreement,centroid_shift,representation_unstable,5,5,1.0
+evaluation,abundance_only,E_plus_dynamics,E. D plus dynamics agreement,dynamics_alignment,unavailable,5,5,1.0
+evaluation,abundance_only,E_plus_dynamics,E. D plus dynamics agreement,local_geometry_distortion,correctly_rejects,5,5,1.0
+evaluation,abundance_only,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,correctly_rejects,3,4,0.75
+evaluation,abundance_only,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,falsely_calls,1,4,0.25
+evaluation,abundance_only,E_plus_dynamics,E. D plus dynamics agreement,representation_instability,falsely_calls,5,5,1.0
+evaluation,aligned_dynamics,A_mean_shift_one_rep,A. original mean shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,aligned_dynamics,A_mean_shift_one_rep,A. original mean shift on one representation,bootstrap_interval_coverage,not_computed,5,5,1.0
+evaluation,aligned_dynamics,A_mean_shift_one_rep,A. original mean shift on one representation,centroid_shift,correctly_rejects,3,5,0.6
+evaluation,aligned_dynamics,A_mean_shift_one_rep,A. original mean shift on one representation,centroid_shift,detects_correctly,2,5,0.4
+evaluation,aligned_dynamics,A_mean_shift_one_rep,A. original mean shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,aligned_dynamics,A_mean_shift_one_rep,A. original mean shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,aligned_dynamics,A_mean_shift_one_rep,A. original mean shift on one representation,representation_corruption,not_computed,4,4,1.0
+evaluation,aligned_dynamics,A_mean_shift_one_rep,A. original mean shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,aligned_dynamics,B_robust_shift_one_rep,B. robust shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,aligned_dynamics,B_robust_shift_one_rep,B. robust shift on one representation,bootstrap_interval_coverage,detects_correctly,2,5,0.4
+evaluation,aligned_dynamics,B_robust_shift_one_rep,B. robust shift on one representation,bootstrap_interval_coverage,misses,3,5,0.6
+evaluation,aligned_dynamics,B_robust_shift_one_rep,B. robust shift on one representation,centroid_shift,correctly_rejects,3,5,0.6
+evaluation,aligned_dynamics,B_robust_shift_one_rep,B. robust shift on one representation,centroid_shift,detects_correctly,2,5,0.4
+evaluation,aligned_dynamics,B_robust_shift_one_rep,B. robust shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,aligned_dynamics,B_robust_shift_one_rep,B. robust shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,aligned_dynamics,B_robust_shift_one_rep,B. robust shift on one representation,representation_corruption,not_computed,4,4,1.0
+evaluation,aligned_dynamics,B_robust_shift_one_rep,B. robust shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,aligned_dynamics,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,abundance_change,not_computed,5,5,1.0
+evaluation,aligned_dynamics,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,bootstrap_interval_coverage,detects_correctly,2,5,0.4
+evaluation,aligned_dynamics,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,bootstrap_interval_coverage,misses,3,5,0.6
+evaluation,aligned_dynamics,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,centroid_shift,correctly_rejects,3,5,0.6
+evaluation,aligned_dynamics,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,centroid_shift,detects_correctly,2,5,0.4
+evaluation,aligned_dynamics,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,dynamics_alignment,not_computed,5,5,1.0
+evaluation,aligned_dynamics,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,aligned_dynamics,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_corruption,not_computed,4,4,1.0
+evaluation,aligned_dynamics,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_instability,correctly_rejects,5,5,1.0
+evaluation,aligned_dynamics,D_plus_local_geometry,D. C plus local geometry diagnostics,abundance_change,not_computed,5,5,1.0
+evaluation,aligned_dynamics,D_plus_local_geometry,D. C plus local geometry diagnostics,bootstrap_interval_coverage,detects_correctly,2,5,0.4
+evaluation,aligned_dynamics,D_plus_local_geometry,D. C plus local geometry diagnostics,bootstrap_interval_coverage,misses,3,5,0.6
+evaluation,aligned_dynamics,D_plus_local_geometry,D. C plus local geometry diagnostics,centroid_shift,correctly_rejects,3,5,0.6
+evaluation,aligned_dynamics,D_plus_local_geometry,D. C plus local geometry diagnostics,centroid_shift,detects_correctly,2,5,0.4
+evaluation,aligned_dynamics,D_plus_local_geometry,D. C plus local geometry diagnostics,dynamics_alignment,not_computed,5,5,1.0
+evaluation,aligned_dynamics,D_plus_local_geometry,D. C plus local geometry diagnostics,local_geometry_distortion,correctly_rejects,5,5,1.0
+evaluation,aligned_dynamics,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,correctly_rejects,3,4,0.75
+evaluation,aligned_dynamics,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,falsely_calls,1,4,0.25
+evaluation,aligned_dynamics,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_instability,correctly_rejects,5,5,1.0
+evaluation,aligned_dynamics,E_plus_dynamics,E. D plus dynamics agreement,abundance_change,not_computed,5,5,1.0
+evaluation,aligned_dynamics,E_plus_dynamics,E. D plus dynamics agreement,bootstrap_interval_coverage,detects_correctly,2,5,0.4
+evaluation,aligned_dynamics,E_plus_dynamics,E. D plus dynamics agreement,bootstrap_interval_coverage,misses,3,5,0.6
+evaluation,aligned_dynamics,E_plus_dynamics,E. D plus dynamics agreement,centroid_shift,correctly_rejects,3,5,0.6
+evaluation,aligned_dynamics,E_plus_dynamics,E. D plus dynamics agreement,centroid_shift,detects_correctly,2,5,0.4
+evaluation,aligned_dynamics,E_plus_dynamics,E. D plus dynamics agreement,dynamics_alignment,correctly_rejects,2,5,0.4
+evaluation,aligned_dynamics,E_plus_dynamics,E. D plus dynamics agreement,dynamics_alignment,detects_correctly,2,5,0.4
+evaluation,aligned_dynamics,E_plus_dynamics,E. D plus dynamics agreement,dynamics_alignment,falsely_calls,1,5,0.2
+evaluation,aligned_dynamics,E_plus_dynamics,E. D plus dynamics agreement,local_geometry_distortion,correctly_rejects,5,5,1.0
+evaluation,aligned_dynamics,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,correctly_rejects,3,4,0.75
+evaluation,aligned_dynamics,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,falsely_calls,1,4,0.25
+evaluation,aligned_dynamics,E_plus_dynamics,E. D plus dynamics agreement,representation_instability,correctly_rejects,5,5,1.0
+evaluation,centroid_shift,A_mean_shift_one_rep,A. original mean shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,centroid_shift,A_mean_shift_one_rep,A. original mean shift on one representation,bootstrap_interval_coverage,not_computed,5,5,1.0
+evaluation,centroid_shift,A_mean_shift_one_rep,A. original mean shift on one representation,centroid_shift,correctly_rejects,3,5,0.6
+evaluation,centroid_shift,A_mean_shift_one_rep,A. original mean shift on one representation,centroid_shift,detects_correctly,2,5,0.4
+evaluation,centroid_shift,A_mean_shift_one_rep,A. original mean shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,centroid_shift,A_mean_shift_one_rep,A. original mean shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,centroid_shift,A_mean_shift_one_rep,A. original mean shift on one representation,representation_corruption,not_computed,4,4,1.0
+evaluation,centroid_shift,A_mean_shift_one_rep,A. original mean shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,centroid_shift,B_robust_shift_one_rep,B. robust shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,centroid_shift,B_robust_shift_one_rep,B. robust shift on one representation,bootstrap_interval_coverage,detects_correctly,2,5,0.4
+evaluation,centroid_shift,B_robust_shift_one_rep,B. robust shift on one representation,bootstrap_interval_coverage,misses,3,5,0.6
+evaluation,centroid_shift,B_robust_shift_one_rep,B. robust shift on one representation,centroid_shift,correctly_rejects,3,5,0.6
+evaluation,centroid_shift,B_robust_shift_one_rep,B. robust shift on one representation,centroid_shift,detects_correctly,2,5,0.4
+evaluation,centroid_shift,B_robust_shift_one_rep,B. robust shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,centroid_shift,B_robust_shift_one_rep,B. robust shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,centroid_shift,B_robust_shift_one_rep,B. robust shift on one representation,representation_corruption,not_computed,4,4,1.0
+evaluation,centroid_shift,B_robust_shift_one_rep,B. robust shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,centroid_shift,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,abundance_change,not_computed,5,5,1.0
+evaluation,centroid_shift,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,bootstrap_interval_coverage,detects_correctly,2,5,0.4
+evaluation,centroid_shift,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,bootstrap_interval_coverage,misses,3,5,0.6
+evaluation,centroid_shift,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,centroid_shift,representation_unstable,5,5,1.0
+evaluation,centroid_shift,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,dynamics_alignment,not_computed,5,5,1.0
+evaluation,centroid_shift,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,centroid_shift,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_corruption,not_computed,4,4,1.0
+evaluation,centroid_shift,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_instability,falsely_calls,5,5,1.0
+evaluation,centroid_shift,D_plus_local_geometry,D. C plus local geometry diagnostics,abundance_change,not_computed,5,5,1.0
+evaluation,centroid_shift,D_plus_local_geometry,D. C plus local geometry diagnostics,bootstrap_interval_coverage,detects_correctly,2,5,0.4
+evaluation,centroid_shift,D_plus_local_geometry,D. C plus local geometry diagnostics,bootstrap_interval_coverage,misses,3,5,0.6
+evaluation,centroid_shift,D_plus_local_geometry,D. C plus local geometry diagnostics,centroid_shift,representation_unstable,5,5,1.0
+evaluation,centroid_shift,D_plus_local_geometry,D. C plus local geometry diagnostics,dynamics_alignment,not_computed,5,5,1.0
+evaluation,centroid_shift,D_plus_local_geometry,D. C plus local geometry diagnostics,local_geometry_distortion,correctly_rejects,5,5,1.0
+evaluation,centroid_shift,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,correctly_rejects,3,4,0.75
+evaluation,centroid_shift,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,falsely_calls,1,4,0.25
+evaluation,centroid_shift,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_instability,falsely_calls,5,5,1.0
+evaluation,centroid_shift,E_plus_dynamics,E. D plus dynamics agreement,abundance_change,not_computed,5,5,1.0
+evaluation,centroid_shift,E_plus_dynamics,E. D plus dynamics agreement,bootstrap_interval_coverage,detects_correctly,2,5,0.4
+evaluation,centroid_shift,E_plus_dynamics,E. D plus dynamics agreement,bootstrap_interval_coverage,misses,3,5,0.6
+evaluation,centroid_shift,E_plus_dynamics,E. D plus dynamics agreement,centroid_shift,representation_unstable,5,5,1.0
+evaluation,centroid_shift,E_plus_dynamics,E. D plus dynamics agreement,dynamics_alignment,unavailable,5,5,1.0
+evaluation,centroid_shift,E_plus_dynamics,E. D plus dynamics agreement,local_geometry_distortion,correctly_rejects,5,5,1.0
+evaluation,centroid_shift,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,correctly_rejects,3,4,0.75
+evaluation,centroid_shift,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,falsely_calls,1,4,0.25
+evaluation,centroid_shift,E_plus_dynamics,E. D plus dynamics agreement,representation_instability,falsely_calls,5,5,1.0
+evaluation,covariance_only,A_mean_shift_one_rep,A. original mean shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,covariance_only,A_mean_shift_one_rep,A. original mean shift on one representation,bootstrap_interval_coverage,not_computed,5,5,1.0
+evaluation,covariance_only,A_mean_shift_one_rep,A. original mean shift on one representation,centroid_shift,correctly_rejects,5,5,1.0
+evaluation,covariance_only,A_mean_shift_one_rep,A. original mean shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,covariance_only,A_mean_shift_one_rep,A. original mean shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,covariance_only,A_mean_shift_one_rep,A. original mean shift on one representation,representation_corruption,not_computed,4,4,1.0
+evaluation,covariance_only,A_mean_shift_one_rep,A. original mean shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,covariance_only,B_robust_shift_one_rep,B. robust shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,covariance_only,B_robust_shift_one_rep,B. robust shift on one representation,bootstrap_interval_coverage,misses,5,5,1.0
+evaluation,covariance_only,B_robust_shift_one_rep,B. robust shift on one representation,centroid_shift,correctly_rejects,5,5,1.0
+evaluation,covariance_only,B_robust_shift_one_rep,B. robust shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,covariance_only,B_robust_shift_one_rep,B. robust shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,covariance_only,B_robust_shift_one_rep,B. robust shift on one representation,representation_corruption,not_computed,4,4,1.0
+evaluation,covariance_only,B_robust_shift_one_rep,B. robust shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,covariance_only,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,abundance_change,not_computed,5,5,1.0
+evaluation,covariance_only,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,bootstrap_interval_coverage,misses,5,5,1.0
+evaluation,covariance_only,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,centroid_shift,representation_unstable,5,5,1.0
+evaluation,covariance_only,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,dynamics_alignment,not_computed,5,5,1.0
+evaluation,covariance_only,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,covariance_only,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_corruption,not_computed,4,4,1.0
+evaluation,covariance_only,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_instability,falsely_calls,5,5,1.0
+evaluation,covariance_only,D_plus_local_geometry,D. C plus local geometry diagnostics,abundance_change,not_computed,5,5,1.0
+evaluation,covariance_only,D_plus_local_geometry,D. C plus local geometry diagnostics,bootstrap_interval_coverage,misses,5,5,1.0
+evaluation,covariance_only,D_plus_local_geometry,D. C plus local geometry diagnostics,centroid_shift,representation_unstable,5,5,1.0
+evaluation,covariance_only,D_plus_local_geometry,D. C plus local geometry diagnostics,dynamics_alignment,not_computed,5,5,1.0
+evaluation,covariance_only,D_plus_local_geometry,D. C plus local geometry diagnostics,local_geometry_distortion,correctly_rejects,3,5,0.6
+evaluation,covariance_only,D_plus_local_geometry,D. C plus local geometry diagnostics,local_geometry_distortion,misses,2,5,0.4
+evaluation,covariance_only,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,correctly_rejects,3,4,0.75
+evaluation,covariance_only,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,falsely_calls,1,4,0.25
+evaluation,covariance_only,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_instability,falsely_calls,5,5,1.0
+evaluation,covariance_only,E_plus_dynamics,E. D plus dynamics agreement,abundance_change,not_computed,5,5,1.0
+evaluation,covariance_only,E_plus_dynamics,E. D plus dynamics agreement,bootstrap_interval_coverage,misses,5,5,1.0
+evaluation,covariance_only,E_plus_dynamics,E. D plus dynamics agreement,centroid_shift,representation_unstable,5,5,1.0
+evaluation,covariance_only,E_plus_dynamics,E. D plus dynamics agreement,dynamics_alignment,unavailable,5,5,1.0
+evaluation,covariance_only,E_plus_dynamics,E. D plus dynamics agreement,local_geometry_distortion,correctly_rejects,3,5,0.6
+evaluation,covariance_only,E_plus_dynamics,E. D plus dynamics agreement,local_geometry_distortion,misses,2,5,0.4
+evaluation,covariance_only,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,correctly_rejects,3,4,0.75
+evaluation,covariance_only,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,falsely_calls,1,4,0.25
+evaluation,covariance_only,E_plus_dynamics,E. D plus dynamics agreement,representation_instability,falsely_calls,5,5,1.0
+evaluation,discordant_dynamics,A_mean_shift_one_rep,A. original mean shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,discordant_dynamics,A_mean_shift_one_rep,A. original mean shift on one representation,bootstrap_interval_coverage,not_computed,5,5,1.0
+evaluation,discordant_dynamics,A_mean_shift_one_rep,A. original mean shift on one representation,centroid_shift,correctly_rejects,3,5,0.6
+evaluation,discordant_dynamics,A_mean_shift_one_rep,A. original mean shift on one representation,centroid_shift,detects_correctly,2,5,0.4
+evaluation,discordant_dynamics,A_mean_shift_one_rep,A. original mean shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,discordant_dynamics,A_mean_shift_one_rep,A. original mean shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,discordant_dynamics,A_mean_shift_one_rep,A. original mean shift on one representation,representation_corruption,not_computed,4,4,1.0
+evaluation,discordant_dynamics,A_mean_shift_one_rep,A. original mean shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,discordant_dynamics,B_robust_shift_one_rep,B. robust shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,discordant_dynamics,B_robust_shift_one_rep,B. robust shift on one representation,bootstrap_interval_coverage,detects_correctly,2,5,0.4
+evaluation,discordant_dynamics,B_robust_shift_one_rep,B. robust shift on one representation,bootstrap_interval_coverage,misses,3,5,0.6
+evaluation,discordant_dynamics,B_robust_shift_one_rep,B. robust shift on one representation,centroid_shift,correctly_rejects,3,5,0.6
+evaluation,discordant_dynamics,B_robust_shift_one_rep,B. robust shift on one representation,centroid_shift,detects_correctly,2,5,0.4
+evaluation,discordant_dynamics,B_robust_shift_one_rep,B. robust shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,discordant_dynamics,B_robust_shift_one_rep,B. robust shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,discordant_dynamics,B_robust_shift_one_rep,B. robust shift on one representation,representation_corruption,not_computed,4,4,1.0
+evaluation,discordant_dynamics,B_robust_shift_one_rep,B. robust shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,discordant_dynamics,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,abundance_change,not_computed,5,5,1.0
+evaluation,discordant_dynamics,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,bootstrap_interval_coverage,detects_correctly,2,5,0.4
+evaluation,discordant_dynamics,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,bootstrap_interval_coverage,misses,3,5,0.6
+evaluation,discordant_dynamics,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,centroid_shift,correctly_rejects,3,5,0.6
+evaluation,discordant_dynamics,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,centroid_shift,detects_correctly,2,5,0.4
+evaluation,discordant_dynamics,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,dynamics_alignment,not_computed,5,5,1.0
+evaluation,discordant_dynamics,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,discordant_dynamics,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_corruption,not_computed,4,4,1.0
+evaluation,discordant_dynamics,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_instability,correctly_rejects,5,5,1.0
+evaluation,discordant_dynamics,D_plus_local_geometry,D. C plus local geometry diagnostics,abundance_change,not_computed,5,5,1.0
+evaluation,discordant_dynamics,D_plus_local_geometry,D. C plus local geometry diagnostics,bootstrap_interval_coverage,detects_correctly,2,5,0.4
+evaluation,discordant_dynamics,D_plus_local_geometry,D. C plus local geometry diagnostics,bootstrap_interval_coverage,misses,3,5,0.6
+evaluation,discordant_dynamics,D_plus_local_geometry,D. C plus local geometry diagnostics,centroid_shift,correctly_rejects,3,5,0.6
+evaluation,discordant_dynamics,D_plus_local_geometry,D. C plus local geometry diagnostics,centroid_shift,detects_correctly,2,5,0.4
+evaluation,discordant_dynamics,D_plus_local_geometry,D. C plus local geometry diagnostics,dynamics_alignment,not_computed,5,5,1.0
+evaluation,discordant_dynamics,D_plus_local_geometry,D. C plus local geometry diagnostics,local_geometry_distortion,correctly_rejects,5,5,1.0
+evaluation,discordant_dynamics,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,correctly_rejects,3,4,0.75
+evaluation,discordant_dynamics,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,falsely_calls,1,4,0.25
+evaluation,discordant_dynamics,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_instability,correctly_rejects,5,5,1.0
+evaluation,discordant_dynamics,E_plus_dynamics,E. D plus dynamics agreement,abundance_change,not_computed,5,5,1.0
+evaluation,discordant_dynamics,E_plus_dynamics,E. D plus dynamics agreement,bootstrap_interval_coverage,detects_correctly,2,5,0.4
+evaluation,discordant_dynamics,E_plus_dynamics,E. D plus dynamics agreement,bootstrap_interval_coverage,misses,3,5,0.6
+evaluation,discordant_dynamics,E_plus_dynamics,E. D plus dynamics agreement,centroid_shift,correctly_rejects,3,5,0.6
+evaluation,discordant_dynamics,E_plus_dynamics,E. D plus dynamics agreement,centroid_shift,detects_correctly,2,5,0.4
+evaluation,discordant_dynamics,E_plus_dynamics,E. D plus dynamics agreement,dynamics_alignment,correctly_rejects,2,5,0.4
+evaluation,discordant_dynamics,E_plus_dynamics,E. D plus dynamics agreement,dynamics_alignment,detects_correctly,2,5,0.4
+evaluation,discordant_dynamics,E_plus_dynamics,E. D plus dynamics agreement,dynamics_alignment,falsely_calls,1,5,0.2
+evaluation,discordant_dynamics,E_plus_dynamics,E. D plus dynamics agreement,local_geometry_distortion,correctly_rejects,5,5,1.0
+evaluation,discordant_dynamics,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,correctly_rejects,3,4,0.75
+evaluation,discordant_dynamics,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,falsely_calls,1,4,0.25
+evaluation,discordant_dynamics,E_plus_dynamics,E. D plus dynamics agreement,representation_instability,correctly_rejects,5,5,1.0
+evaluation,local_warp,A_mean_shift_one_rep,A. original mean shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,local_warp,A_mean_shift_one_rep,A. original mean shift on one representation,bootstrap_interval_coverage,not_computed,5,5,1.0
+evaluation,local_warp,A_mean_shift_one_rep,A. original mean shift on one representation,centroid_shift,correctly_rejects,5,5,1.0
+evaluation,local_warp,A_mean_shift_one_rep,A. original mean shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,local_warp,A_mean_shift_one_rep,A. original mean shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,local_warp,A_mean_shift_one_rep,A. original mean shift on one representation,representation_corruption,not_computed,4,4,1.0
+evaluation,local_warp,A_mean_shift_one_rep,A. original mean shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,local_warp,B_robust_shift_one_rep,B. robust shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,local_warp,B_robust_shift_one_rep,B. robust shift on one representation,bootstrap_interval_coverage,misses,5,5,1.0
+evaluation,local_warp,B_robust_shift_one_rep,B. robust shift on one representation,centroid_shift,correctly_rejects,5,5,1.0
+evaluation,local_warp,B_robust_shift_one_rep,B. robust shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,local_warp,B_robust_shift_one_rep,B. robust shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,local_warp,B_robust_shift_one_rep,B. robust shift on one representation,representation_corruption,not_computed,4,4,1.0
+evaluation,local_warp,B_robust_shift_one_rep,B. robust shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,local_warp,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,abundance_change,not_computed,5,5,1.0
+evaluation,local_warp,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,bootstrap_interval_coverage,misses,5,5,1.0
+evaluation,local_warp,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,centroid_shift,representation_unstable,5,5,1.0
+evaluation,local_warp,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,dynamics_alignment,not_computed,5,5,1.0
+evaluation,local_warp,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,local_warp,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_corruption,not_computed,4,4,1.0
+evaluation,local_warp,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_instability,falsely_calls,5,5,1.0
+evaluation,local_warp,D_plus_local_geometry,D. C plus local geometry diagnostics,abundance_change,not_computed,5,5,1.0
+evaluation,local_warp,D_plus_local_geometry,D. C plus local geometry diagnostics,bootstrap_interval_coverage,misses,5,5,1.0
+evaluation,local_warp,D_plus_local_geometry,D. C plus local geometry diagnostics,centroid_shift,representation_unstable,5,5,1.0
+evaluation,local_warp,D_plus_local_geometry,D. C plus local geometry diagnostics,dynamics_alignment,not_computed,5,5,1.0
+evaluation,local_warp,D_plus_local_geometry,D. C plus local geometry diagnostics,local_geometry_distortion,correctly_rejects,3,5,0.6
+evaluation,local_warp,D_plus_local_geometry,D. C plus local geometry diagnostics,local_geometry_distortion,misses,2,5,0.4
+evaluation,local_warp,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,correctly_rejects,3,4,0.75
+evaluation,local_warp,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,falsely_calls,1,4,0.25
+evaluation,local_warp,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_instability,falsely_calls,5,5,1.0
+evaluation,local_warp,E_plus_dynamics,E. D plus dynamics agreement,abundance_change,not_computed,5,5,1.0
+evaluation,local_warp,E_plus_dynamics,E. D plus dynamics agreement,bootstrap_interval_coverage,misses,5,5,1.0
+evaluation,local_warp,E_plus_dynamics,E. D plus dynamics agreement,centroid_shift,representation_unstable,5,5,1.0
+evaluation,local_warp,E_plus_dynamics,E. D plus dynamics agreement,dynamics_alignment,unavailable,5,5,1.0
+evaluation,local_warp,E_plus_dynamics,E. D plus dynamics agreement,local_geometry_distortion,correctly_rejects,3,5,0.6
+evaluation,local_warp,E_plus_dynamics,E. D plus dynamics agreement,local_geometry_distortion,misses,2,5,0.4
+evaluation,local_warp,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,correctly_rejects,3,4,0.75
+evaluation,local_warp,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,falsely_calls,1,4,0.25
+evaluation,local_warp,E_plus_dynamics,E. D plus dynamics agreement,representation_instability,falsely_calls,5,5,1.0
+evaluation,outlier_contamination,A_mean_shift_one_rep,A. original mean shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,outlier_contamination,A_mean_shift_one_rep,A. original mean shift on one representation,bootstrap_interval_coverage,not_computed,5,5,1.0
+evaluation,outlier_contamination,A_mean_shift_one_rep,A. original mean shift on one representation,centroid_shift,correctly_rejects,3,5,0.6
+evaluation,outlier_contamination,A_mean_shift_one_rep,A. original mean shift on one representation,centroid_shift,detects_correctly,2,5,0.4
+evaluation,outlier_contamination,A_mean_shift_one_rep,A. original mean shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,outlier_contamination,A_mean_shift_one_rep,A. original mean shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,outlier_contamination,A_mean_shift_one_rep,A. original mean shift on one representation,representation_corruption,not_computed,4,4,1.0
+evaluation,outlier_contamination,A_mean_shift_one_rep,A. original mean shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,outlier_contamination,B_robust_shift_one_rep,B. robust shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,outlier_contamination,B_robust_shift_one_rep,B. robust shift on one representation,bootstrap_interval_coverage,detects_correctly,1,5,0.2
+evaluation,outlier_contamination,B_robust_shift_one_rep,B. robust shift on one representation,bootstrap_interval_coverage,misses,4,5,0.8
+evaluation,outlier_contamination,B_robust_shift_one_rep,B. robust shift on one representation,centroid_shift,correctly_rejects,3,5,0.6
+evaluation,outlier_contamination,B_robust_shift_one_rep,B. robust shift on one representation,centroid_shift,detects_correctly,2,5,0.4
+evaluation,outlier_contamination,B_robust_shift_one_rep,B. robust shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,outlier_contamination,B_robust_shift_one_rep,B. robust shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,outlier_contamination,B_robust_shift_one_rep,B. robust shift on one representation,representation_corruption,not_computed,4,4,1.0
+evaluation,outlier_contamination,B_robust_shift_one_rep,B. robust shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,outlier_contamination,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,abundance_change,not_computed,5,5,1.0
+evaluation,outlier_contamination,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,bootstrap_interval_coverage,detects_correctly,1,5,0.2
+evaluation,outlier_contamination,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,bootstrap_interval_coverage,misses,4,5,0.8
+evaluation,outlier_contamination,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,centroid_shift,representation_unstable,5,5,1.0
+evaluation,outlier_contamination,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,dynamics_alignment,not_computed,5,5,1.0
+evaluation,outlier_contamination,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,outlier_contamination,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_corruption,not_computed,4,4,1.0
+evaluation,outlier_contamination,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_instability,falsely_calls,5,5,1.0
+evaluation,outlier_contamination,D_plus_local_geometry,D. C plus local geometry diagnostics,abundance_change,not_computed,5,5,1.0
+evaluation,outlier_contamination,D_plus_local_geometry,D. C plus local geometry diagnostics,bootstrap_interval_coverage,detects_correctly,1,5,0.2
+evaluation,outlier_contamination,D_plus_local_geometry,D. C plus local geometry diagnostics,bootstrap_interval_coverage,misses,4,5,0.8
+evaluation,outlier_contamination,D_plus_local_geometry,D. C plus local geometry diagnostics,centroid_shift,representation_unstable,5,5,1.0
+evaluation,outlier_contamination,D_plus_local_geometry,D. C plus local geometry diagnostics,dynamics_alignment,not_computed,5,5,1.0
+evaluation,outlier_contamination,D_plus_local_geometry,D. C plus local geometry diagnostics,local_geometry_distortion,correctly_rejects,5,5,1.0
+evaluation,outlier_contamination,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,correctly_rejects,3,4,0.75
+evaluation,outlier_contamination,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,falsely_calls,1,4,0.25
+evaluation,outlier_contamination,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_instability,falsely_calls,5,5,1.0
+evaluation,outlier_contamination,E_plus_dynamics,E. D plus dynamics agreement,abundance_change,not_computed,5,5,1.0
+evaluation,outlier_contamination,E_plus_dynamics,E. D plus dynamics agreement,bootstrap_interval_coverage,detects_correctly,1,5,0.2
+evaluation,outlier_contamination,E_plus_dynamics,E. D plus dynamics agreement,bootstrap_interval_coverage,misses,4,5,0.8
+evaluation,outlier_contamination,E_plus_dynamics,E. D plus dynamics agreement,centroid_shift,representation_unstable,5,5,1.0
+evaluation,outlier_contamination,E_plus_dynamics,E. D plus dynamics agreement,dynamics_alignment,unavailable,5,5,1.0
+evaluation,outlier_contamination,E_plus_dynamics,E. D plus dynamics agreement,local_geometry_distortion,correctly_rejects,5,5,1.0
+evaluation,outlier_contamination,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,correctly_rejects,3,4,0.75
+evaluation,outlier_contamination,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,falsely_calls,1,4,0.25
+evaluation,outlier_contamination,E_plus_dynamics,E. D plus dynamics agreement,representation_instability,falsely_calls,5,5,1.0
+evaluation,replicate_heterogeneity,A_mean_shift_one_rep,A. original mean shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,replicate_heterogeneity,A_mean_shift_one_rep,A. original mean shift on one representation,bootstrap_interval_coverage,not_computed,5,5,1.0
+evaluation,replicate_heterogeneity,A_mean_shift_one_rep,A. original mean shift on one representation,centroid_shift,detects_correctly,2,5,0.4
+evaluation,replicate_heterogeneity,A_mean_shift_one_rep,A. original mean shift on one representation,centroid_shift,falsely_calls,3,5,0.6
+evaluation,replicate_heterogeneity,A_mean_shift_one_rep,A. original mean shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,replicate_heterogeneity,A_mean_shift_one_rep,A. original mean shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,replicate_heterogeneity,A_mean_shift_one_rep,A. original mean shift on one representation,representation_corruption,not_computed,4,4,1.0
+evaluation,replicate_heterogeneity,A_mean_shift_one_rep,A. original mean shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,replicate_heterogeneity,B_robust_shift_one_rep,B. robust shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,replicate_heterogeneity,B_robust_shift_one_rep,B. robust shift on one representation,bootstrap_interval_coverage,misses,5,5,1.0
+evaluation,replicate_heterogeneity,B_robust_shift_one_rep,B. robust shift on one representation,centroid_shift,detects_correctly,2,5,0.4
+evaluation,replicate_heterogeneity,B_robust_shift_one_rep,B. robust shift on one representation,centroid_shift,falsely_calls,3,5,0.6
+evaluation,replicate_heterogeneity,B_robust_shift_one_rep,B. robust shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,replicate_heterogeneity,B_robust_shift_one_rep,B. robust shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,replicate_heterogeneity,B_robust_shift_one_rep,B. robust shift on one representation,representation_corruption,not_computed,4,4,1.0
+evaluation,replicate_heterogeneity,B_robust_shift_one_rep,B. robust shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,replicate_heterogeneity,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,abundance_change,not_computed,5,5,1.0
+evaluation,replicate_heterogeneity,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,bootstrap_interval_coverage,misses,5,5,1.0
+evaluation,replicate_heterogeneity,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,centroid_shift,representation_unstable,5,5,1.0
+evaluation,replicate_heterogeneity,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,dynamics_alignment,not_computed,5,5,1.0
+evaluation,replicate_heterogeneity,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,replicate_heterogeneity,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_corruption,not_computed,4,4,1.0
+evaluation,replicate_heterogeneity,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_instability,falsely_calls,5,5,1.0
+evaluation,replicate_heterogeneity,D_plus_local_geometry,D. C plus local geometry diagnostics,abundance_change,not_computed,5,5,1.0
+evaluation,replicate_heterogeneity,D_plus_local_geometry,D. C plus local geometry diagnostics,bootstrap_interval_coverage,misses,5,5,1.0
+evaluation,replicate_heterogeneity,D_plus_local_geometry,D. C plus local geometry diagnostics,centroid_shift,representation_unstable,5,5,1.0
+evaluation,replicate_heterogeneity,D_plus_local_geometry,D. C plus local geometry diagnostics,dynamics_alignment,not_computed,5,5,1.0
+evaluation,replicate_heterogeneity,D_plus_local_geometry,D. C plus local geometry diagnostics,local_geometry_distortion,correctly_rejects,5,5,1.0
+evaluation,replicate_heterogeneity,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,correctly_rejects,3,4,0.75
+evaluation,replicate_heterogeneity,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,falsely_calls,1,4,0.25
+evaluation,replicate_heterogeneity,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_instability,falsely_calls,5,5,1.0
+evaluation,replicate_heterogeneity,E_plus_dynamics,E. D plus dynamics agreement,abundance_change,not_computed,5,5,1.0
+evaluation,replicate_heterogeneity,E_plus_dynamics,E. D plus dynamics agreement,bootstrap_interval_coverage,misses,5,5,1.0
+evaluation,replicate_heterogeneity,E_plus_dynamics,E. D plus dynamics agreement,centroid_shift,representation_unstable,5,5,1.0
+evaluation,replicate_heterogeneity,E_plus_dynamics,E. D plus dynamics agreement,dynamics_alignment,unavailable,5,5,1.0
+evaluation,replicate_heterogeneity,E_plus_dynamics,E. D plus dynamics agreement,local_geometry_distortion,correctly_rejects,5,5,1.0
+evaluation,replicate_heterogeneity,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,correctly_rejects,3,4,0.75
+evaluation,replicate_heterogeneity,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,falsely_calls,1,4,0.25
+evaluation,replicate_heterogeneity,E_plus_dynamics,E. D plus dynamics agreement,representation_instability,falsely_calls,5,5,1.0
+evaluation,representation_corruption,A_mean_shift_one_rep,A. original mean shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,representation_corruption,A_mean_shift_one_rep,A. original mean shift on one representation,bootstrap_interval_coverage,not_computed,5,5,1.0
+evaluation,representation_corruption,A_mean_shift_one_rep,A. original mean shift on one representation,centroid_shift,correctly_rejects,3,5,0.6
+evaluation,representation_corruption,A_mean_shift_one_rep,A. original mean shift on one representation,centroid_shift,detects_correctly,2,5,0.4
+evaluation,representation_corruption,A_mean_shift_one_rep,A. original mean shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,representation_corruption,A_mean_shift_one_rep,A. original mean shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,representation_corruption,A_mean_shift_one_rep,A. original mean shift on one representation,representation_corruption,not_computed,5,5,1.0
+evaluation,representation_corruption,A_mean_shift_one_rep,A. original mean shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,representation_corruption,B_robust_shift_one_rep,B. robust shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,representation_corruption,B_robust_shift_one_rep,B. robust shift on one representation,bootstrap_interval_coverage,detects_correctly,2,5,0.4
+evaluation,representation_corruption,B_robust_shift_one_rep,B. robust shift on one representation,bootstrap_interval_coverage,misses,3,5,0.6
+evaluation,representation_corruption,B_robust_shift_one_rep,B. robust shift on one representation,centroid_shift,correctly_rejects,3,5,0.6
+evaluation,representation_corruption,B_robust_shift_one_rep,B. robust shift on one representation,centroid_shift,detects_correctly,2,5,0.4
+evaluation,representation_corruption,B_robust_shift_one_rep,B. robust shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,representation_corruption,B_robust_shift_one_rep,B. robust shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,representation_corruption,B_robust_shift_one_rep,B. robust shift on one representation,representation_corruption,not_computed,5,5,1.0
+evaluation,representation_corruption,B_robust_shift_one_rep,B. robust shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,representation_corruption,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,abundance_change,not_computed,5,5,1.0
+evaluation,representation_corruption,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,bootstrap_interval_coverage,detects_correctly,2,5,0.4
+evaluation,representation_corruption,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,bootstrap_interval_coverage,misses,3,5,0.6
+evaluation,representation_corruption,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,centroid_shift,representation_unstable,5,5,1.0
+evaluation,representation_corruption,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,dynamics_alignment,not_computed,5,5,1.0
+evaluation,representation_corruption,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,representation_corruption,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_corruption,not_computed,5,5,1.0
+evaluation,representation_corruption,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_instability,detects_correctly,5,5,1.0
+evaluation,representation_corruption,D_plus_local_geometry,D. C plus local geometry diagnostics,abundance_change,not_computed,5,5,1.0
+evaluation,representation_corruption,D_plus_local_geometry,D. C plus local geometry diagnostics,bootstrap_interval_coverage,detects_correctly,2,5,0.4
+evaluation,representation_corruption,D_plus_local_geometry,D. C plus local geometry diagnostics,bootstrap_interval_coverage,misses,3,5,0.6
+evaluation,representation_corruption,D_plus_local_geometry,D. C plus local geometry diagnostics,centroid_shift,representation_unstable,5,5,1.0
+evaluation,representation_corruption,D_plus_local_geometry,D. C plus local geometry diagnostics,dynamics_alignment,not_computed,5,5,1.0
+evaluation,representation_corruption,D_plus_local_geometry,D. C plus local geometry diagnostics,local_geometry_distortion,correctly_rejects,3,5,0.6
+evaluation,representation_corruption,D_plus_local_geometry,D. C plus local geometry diagnostics,local_geometry_distortion,falsely_calls,2,5,0.4
+evaluation,representation_corruption,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,correctly_rejects,4,5,0.8
+evaluation,representation_corruption,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,detects_correctly,1,5,0.2
+evaluation,representation_corruption,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_instability,detects_correctly,5,5,1.0
+evaluation,representation_corruption,E_plus_dynamics,E. D plus dynamics agreement,abundance_change,not_computed,5,5,1.0
+evaluation,representation_corruption,E_plus_dynamics,E. D plus dynamics agreement,bootstrap_interval_coverage,detects_correctly,2,5,0.4
+evaluation,representation_corruption,E_plus_dynamics,E. D plus dynamics agreement,bootstrap_interval_coverage,misses,3,5,0.6
+evaluation,representation_corruption,E_plus_dynamics,E. D plus dynamics agreement,centroid_shift,representation_unstable,5,5,1.0
+evaluation,representation_corruption,E_plus_dynamics,E. D plus dynamics agreement,dynamics_alignment,unavailable,5,5,1.0
+evaluation,representation_corruption,E_plus_dynamics,E. D plus dynamics agreement,local_geometry_distortion,correctly_rejects,3,5,0.6
+evaluation,representation_corruption,E_plus_dynamics,E. D plus dynamics agreement,local_geometry_distortion,falsely_calls,2,5,0.4
+evaluation,representation_corruption,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,correctly_rejects,4,5,0.8
+evaluation,representation_corruption,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,detects_correctly,1,5,0.2
+evaluation,representation_corruption,E_plus_dynamics,E. D plus dynamics agreement,representation_instability,detects_correctly,5,5,1.0
+evaluation,unequal_cell_counts,A_mean_shift_one_rep,A. original mean shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,unequal_cell_counts,A_mean_shift_one_rep,A. original mean shift on one representation,bootstrap_interval_coverage,not_computed,5,5,1.0
+evaluation,unequal_cell_counts,A_mean_shift_one_rep,A. original mean shift on one representation,centroid_shift,correctly_rejects,3,5,0.6
+evaluation,unequal_cell_counts,A_mean_shift_one_rep,A. original mean shift on one representation,centroid_shift,detects_correctly,2,5,0.4
+evaluation,unequal_cell_counts,A_mean_shift_one_rep,A. original mean shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,unequal_cell_counts,A_mean_shift_one_rep,A. original mean shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,unequal_cell_counts,A_mean_shift_one_rep,A. original mean shift on one representation,representation_corruption,not_computed,4,4,1.0
+evaluation,unequal_cell_counts,A_mean_shift_one_rep,A. original mean shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,unequal_cell_counts,B_robust_shift_one_rep,B. robust shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,unequal_cell_counts,B_robust_shift_one_rep,B. robust shift on one representation,bootstrap_interval_coverage,detects_correctly,1,5,0.2
+evaluation,unequal_cell_counts,B_robust_shift_one_rep,B. robust shift on one representation,bootstrap_interval_coverage,misses,4,5,0.8
+evaluation,unequal_cell_counts,B_robust_shift_one_rep,B. robust shift on one representation,centroid_shift,correctly_rejects,3,5,0.6
+evaluation,unequal_cell_counts,B_robust_shift_one_rep,B. robust shift on one representation,centroid_shift,detects_correctly,2,5,0.4
+evaluation,unequal_cell_counts,B_robust_shift_one_rep,B. robust shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,unequal_cell_counts,B_robust_shift_one_rep,B. robust shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,unequal_cell_counts,B_robust_shift_one_rep,B. robust shift on one representation,representation_corruption,not_computed,4,4,1.0
+evaluation,unequal_cell_counts,B_robust_shift_one_rep,B. robust shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,unequal_cell_counts,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,abundance_change,not_computed,5,5,1.0
+evaluation,unequal_cell_counts,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,bootstrap_interval_coverage,detects_correctly,1,5,0.2
+evaluation,unequal_cell_counts,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,bootstrap_interval_coverage,misses,4,5,0.8
+evaluation,unequal_cell_counts,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,centroid_shift,representation_unstable,5,5,1.0
+evaluation,unequal_cell_counts,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,dynamics_alignment,not_computed,5,5,1.0
+evaluation,unequal_cell_counts,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,unequal_cell_counts,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_corruption,not_computed,4,4,1.0
+evaluation,unequal_cell_counts,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_instability,falsely_calls,5,5,1.0
+evaluation,unequal_cell_counts,D_plus_local_geometry,D. C plus local geometry diagnostics,abundance_change,not_computed,5,5,1.0
+evaluation,unequal_cell_counts,D_plus_local_geometry,D. C plus local geometry diagnostics,bootstrap_interval_coverage,detects_correctly,1,5,0.2
+evaluation,unequal_cell_counts,D_plus_local_geometry,D. C plus local geometry diagnostics,bootstrap_interval_coverage,misses,4,5,0.8
+evaluation,unequal_cell_counts,D_plus_local_geometry,D. C plus local geometry diagnostics,centroid_shift,representation_unstable,5,5,1.0
+evaluation,unequal_cell_counts,D_plus_local_geometry,D. C plus local geometry diagnostics,dynamics_alignment,not_computed,5,5,1.0
+evaluation,unequal_cell_counts,D_plus_local_geometry,D. C plus local geometry diagnostics,local_geometry_distortion,correctly_rejects,5,5,1.0
+evaluation,unequal_cell_counts,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,correctly_rejects,3,4,0.75
+evaluation,unequal_cell_counts,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,falsely_calls,1,4,0.25
+evaluation,unequal_cell_counts,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_instability,falsely_calls,5,5,1.0
+evaluation,unequal_cell_counts,E_plus_dynamics,E. D plus dynamics agreement,abundance_change,not_computed,5,5,1.0
+evaluation,unequal_cell_counts,E_plus_dynamics,E. D plus dynamics agreement,bootstrap_interval_coverage,detects_correctly,1,5,0.2
+evaluation,unequal_cell_counts,E_plus_dynamics,E. D plus dynamics agreement,bootstrap_interval_coverage,misses,4,5,0.8
+evaluation,unequal_cell_counts,E_plus_dynamics,E. D plus dynamics agreement,centroid_shift,representation_unstable,5,5,1.0
+evaluation,unequal_cell_counts,E_plus_dynamics,E. D plus dynamics agreement,dynamics_alignment,unavailable,5,5,1.0
+evaluation,unequal_cell_counts,E_plus_dynamics,E. D plus dynamics agreement,local_geometry_distortion,correctly_rejects,5,5,1.0
+evaluation,unequal_cell_counts,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,correctly_rejects,3,4,0.75
+evaluation,unequal_cell_counts,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,falsely_calls,1,4,0.25
+evaluation,unequal_cell_counts,E_plus_dynamics,E. D plus dynamics agreement,representation_instability,falsely_calls,5,5,1.0
+evaluation,unknown,A_mean_shift_one_rep,A. original mean shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,unknown,A_mean_shift_one_rep,A. original mean shift on one representation,bootstrap_interval_coverage,not_computed,5,5,1.0
+evaluation,unknown,A_mean_shift_one_rep,A. original mean shift on one representation,centroid_shift,correctly_rejects,5,5,1.0
+evaluation,unknown,A_mean_shift_one_rep,A. original mean shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,unknown,A_mean_shift_one_rep,A. original mean shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,unknown,A_mean_shift_one_rep,A. original mean shift on one representation,representation_corruption,not_computed,4,4,1.0
+evaluation,unknown,A_mean_shift_one_rep,A. original mean shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,unknown,B_robust_shift_one_rep,B. robust shift on one representation,abundance_change,not_computed,5,5,1.0
+evaluation,unknown,B_robust_shift_one_rep,B. robust shift on one representation,bootstrap_interval_coverage,misses,5,5,1.0
+evaluation,unknown,B_robust_shift_one_rep,B. robust shift on one representation,centroid_shift,correctly_rejects,5,5,1.0
+evaluation,unknown,B_robust_shift_one_rep,B. robust shift on one representation,dynamics_alignment,not_computed,5,5,1.0
+evaluation,unknown,B_robust_shift_one_rep,B. robust shift on one representation,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,unknown,B_robust_shift_one_rep,B. robust shift on one representation,representation_corruption,not_computed,4,4,1.0
+evaluation,unknown,B_robust_shift_one_rep,B. robust shift on one representation,representation_instability,not_computed,5,5,1.0
+evaluation,unknown,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,abundance_change,not_computed,5,5,1.0
+evaluation,unknown,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,bootstrap_interval_coverage,misses,5,5,1.0
+evaluation,unknown,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,centroid_shift,representation_unstable,5,5,1.0
+evaluation,unknown,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,dynamics_alignment,not_computed,5,5,1.0
+evaluation,unknown,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,local_geometry_distortion,not_computed,5,5,1.0
+evaluation,unknown,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_corruption,not_computed,4,4,1.0
+evaluation,unknown,C_robust_shift_representation_consensus,C. robust shift plus representation consensus,representation_instability,falsely_calls,5,5,1.0
+evaluation,unknown,D_plus_local_geometry,D. C plus local geometry diagnostics,abundance_change,not_computed,5,5,1.0
+evaluation,unknown,D_plus_local_geometry,D. C plus local geometry diagnostics,bootstrap_interval_coverage,misses,5,5,1.0
+evaluation,unknown,D_plus_local_geometry,D. C plus local geometry diagnostics,centroid_shift,representation_unstable,5,5,1.0
+evaluation,unknown,D_plus_local_geometry,D. C plus local geometry diagnostics,dynamics_alignment,not_computed,5,5,1.0
+evaluation,unknown,D_plus_local_geometry,D. C plus local geometry diagnostics,local_geometry_distortion,correctly_rejects,4,5,0.8
+evaluation,unknown,D_plus_local_geometry,D. C plus local geometry diagnostics,local_geometry_distortion,falsely_calls,1,5,0.2
+evaluation,unknown,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,correctly_rejects,3,4,0.75
+evaluation,unknown,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_corruption,falsely_calls,1,4,0.25
+evaluation,unknown,D_plus_local_geometry,D. C plus local geometry diagnostics,representation_instability,falsely_calls,5,5,1.0
+evaluation,unknown,E_plus_dynamics,E. D plus dynamics agreement,abundance_change,not_computed,5,5,1.0
+evaluation,unknown,E_plus_dynamics,E. D plus dynamics agreement,bootstrap_interval_coverage,misses,5,5,1.0
+evaluation,unknown,E_plus_dynamics,E. D plus dynamics agreement,centroid_shift,representation_unstable,5,5,1.0
+evaluation,unknown,E_plus_dynamics,E. D plus dynamics agreement,dynamics_alignment,unavailable,5,5,1.0
+evaluation,unknown,E_plus_dynamics,E. D plus dynamics agreement,local_geometry_distortion,correctly_rejects,4,5,0.8
+evaluation,unknown,E_plus_dynamics,E. D plus dynamics agreement,local_geometry_distortion,falsely_calls,1,5,0.2
+evaluation,unknown,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,correctly_rejects,3,4,0.75
+evaluation,unknown,E_plus_dynamics,E. D plus dynamics agreement,representation_corruption,falsely_calls,1,4,0.25
+evaluation,unknown,E_plus_dynamics,E. D plus dynamics agreement,representation_instability,falsely_calls,5,5,1.0

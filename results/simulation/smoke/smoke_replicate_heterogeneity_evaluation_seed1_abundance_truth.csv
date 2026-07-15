@@ -1,0 +1,6 @@
+job_id,seed_split,profile,scenario,seed,state,true_abundance_change,true_abundance_changed
+smoke_replicate_heterogeneity_evaluation_seed1,evaluation,smoke,replicate_heterogeneity,1,state_0,-0.0031250000000000167,False
+smoke_replicate_heterogeneity_evaluation_seed1,evaluation,smoke,replicate_heterogeneity,1,state_1,0.0,False
+smoke_replicate_heterogeneity_evaluation_seed1,evaluation,smoke,replicate_heterogeneity,1,state_2,-0.0078125,False
+smoke_replicate_heterogeneity_evaluation_seed1,evaluation,smoke,replicate_heterogeneity,1,state_3,0.0078125,False
+smoke_replicate_heterogeneity_evaluation_seed1,evaluation,smoke,replicate_heterogeneity,1,state_4,0.0031250000000000167,False

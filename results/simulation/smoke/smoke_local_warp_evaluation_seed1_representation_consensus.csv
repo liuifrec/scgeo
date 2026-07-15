@@ -1,0 +1,6 @@
+job_id,seed_split,profile,scenario,seed,state,consensus_label,status,n_usable_representations,usable_fraction,normalized_magnitude_median,magnitude_rank_mean,magnitude_rank_std,pairwise_spearman_median,loo_rep_magnitude_max_relative_deviation,aligned_fraction,discordant_fraction,neutral_fraction,alignment_cosine_median,velocity_requested
+smoke_local_warp_evaluation_seed1,evaluation,smoke,local_warp,1,state_0,representation_unstable,representation_unstable,4,1.0,0.4867152847835423,2.0,0.0,0.9999999999999999,2.0456773458204983e-07,,,,,False
+smoke_local_warp_evaluation_seed1,evaluation,smoke,local_warp,1,state_1,representation_unstable,representation_unstable,4,1.0,0.6488187187831929,1.0,0.0,0.9999999999999999,2.8334974474179416e-07,,,,,False
+smoke_local_warp_evaluation_seed1,evaluation,smoke,local_warp,1,state_2,representation_unstable,representation_unstable,4,1.0,0.44543283118928645,3.0,0.0,0.9999999999999999,2.1282229553870333e-07,,,,,False
+smoke_local_warp_evaluation_seed1,evaluation,smoke,local_warp,1,state_3,representation_unstable,representation_unstable,4,1.0,0.34601502765759384,5.0,0.0,0.9999999999999999,1.6590143118056204e-07,,,,,False
+smoke_local_warp_evaluation_seed1,evaluation,smoke,local_warp,1,state_4,representation_unstable,representation_unstable,4,1.0,0.44015767604447703,4.0,0.0,0.9999999999999999,1.1178308409681512e-06,,,,,False

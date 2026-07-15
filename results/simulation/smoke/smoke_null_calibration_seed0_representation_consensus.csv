@@ -1,0 +1,6 @@
+job_id,seed_split,profile,scenario,seed,state,consensus_label,status,n_usable_representations,usable_fraction,normalized_magnitude_median,magnitude_rank_mean,magnitude_rank_std,pairwise_spearman_median,loo_rep_magnitude_max_relative_deviation,aligned_fraction,discordant_fraction,neutral_fraction,alignment_cosine_median,velocity_requested
+smoke_null_calibration_seed0,calibration,smoke,null,0,state_0,representation_unstable,representation_unstable,4,1.0,0.7432312380998469,4.0,0.0,0.9999999999999999,2.5061413075992482e-08,,,,,False
+smoke_null_calibration_seed0,calibration,smoke,null,0,state_1,representation_unstable,representation_unstable,4,1.0,0.7746094149651739,2.0,0.0,0.9999999999999999,1.6845570632832797e-07,,,,,False
+smoke_null_calibration_seed0,calibration,smoke,null,0,state_2,representation_unstable,representation_unstable,4,1.0,0.9473822200550248,1.0,0.0,0.9999999999999999,7.511651560689904e-08,,,,,False
+smoke_null_calibration_seed0,calibration,smoke,null,0,state_3,representation_unstable,representation_unstable,4,1.0,0.7603372202496081,3.0,0.0,0.9999999999999999,1.0466581169293875e-07,,,,,False
+smoke_null_calibration_seed0,calibration,smoke,null,0,state_4,representation_unstable,representation_unstable,4,1.0,0.7406425906411458,5.0,0.0,0.9999999999999999,7.2841296778566e-07,,,,,False

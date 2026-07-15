@@ -195,6 +195,45 @@ def test_state_report_robust_shift_only_missing_modules_and_strict_mode():
         sg.get.state_report(adata, node_key="state", strict=True)
 
 
+def test_state_report_one_sample_bootstrap_is_descriptive():
+    import scgeo as sg
+
+    rows = []
+    obs_rows = []
+    for condition, offset in [("A", 0.0), ("B", 1.0)]:
+        rows.append(np.column_stack([np.arange(8, dtype=float) * 0.01 + offset, np.zeros(8)]))
+        for i in range(8):
+            obs_rows.append({"state": "only", "condition": condition, "sample": f"{condition}_sample"})
+    X = np.vstack(rows).astype(np.float32)
+    obs = pd.DataFrame(obs_rows, index=[f"c{i}" for i in range(X.shape[0])])
+    adata = ad.AnnData(X=np.zeros((X.shape[0], 1)), obs=obs)
+    adata.obsm["X_base"] = X
+
+    sg.tl.robust_shift(
+        adata,
+        rep="X_base",
+        condition_key="condition",
+        group0="A",
+        group1="B",
+        by="state",
+        sample_key="sample",
+        center="mean",
+        n_boot=5,
+        seed=12,
+    )
+    report = sg.get.state_report(
+        adata,
+        node_key="state",
+        representation_key=None,
+        local_geometry_key=None,
+    )
+    row = report.iloc[0]
+    assert row["bootstrap_unit"] == "sample"
+    assert row["inference_level"] == "sample_descriptive"
+    assert bool(row["descriptive_only"])
+    assert "fewer than two biological samples" in row["warnings"]
+
+
 def test_state_report_missing_velocity_and_one_representation():
     import scgeo as sg
 

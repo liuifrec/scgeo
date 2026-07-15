@@ -1,0 +1,6 @@
+job_id,seed_split,profile,scenario,seed,metric,method,tp,fp,fn,precision,recall,f1,null_state_false_classification_rate
+smoke_centroid_shift_calibration_seed0,calibration,smoke,centroid_shift,0,shifted_state_detection,shift_mean,2,0,0,1.0,1.0,1.0,0.0
+smoke_centroid_shift_calibration_seed0,calibration,smoke,centroid_shift,0,shifted_state_detection,robust_mean,2,0,0,1.0,1.0,1.0,0.0
+smoke_centroid_shift_calibration_seed0,calibration,smoke,centroid_shift,0,shifted_state_detection,robust_median,2,0,0,1.0,1.0,1.0,0.0
+smoke_centroid_shift_calibration_seed0,calibration,smoke,centroid_shift,0,shifted_state_detection,robust_trimmed_mean,2,0,0,1.0,1.0,1.0,0.0
+smoke_centroid_shift_calibration_seed0,calibration,smoke,centroid_shift,0,shifted_state_detection,robust_geometric_median,2,0,0,1.0,1.0,1.0,0.0

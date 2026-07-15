@@ -1,0 +1,2 @@
+job_id,seed_split,profile,scenario,seed,runtime_seconds,peak_memory_mb,n_obs,n_vars
+smoke_outlier_contamination_evaluation_seed1,evaluation,smoke,outlier_contamination,1,5.186701002998234,312.2734375,1280,1

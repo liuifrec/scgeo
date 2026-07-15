@@ -1,0 +1,6 @@
+job_id,seed_split,profile,scenario,seed,state,method,true_magnitude,ci95_low,ci95_high,covered
+smoke_local_warp_calibration_seed0,calibration,smoke,local_warp,0,state_0,robust_shift,0.0,0.34000462969305345,0.92333290923328,False
+smoke_local_warp_calibration_seed0,calibration,smoke,local_warp,0,state_1,robust_shift,0.0,0.3765650314471024,0.8927875056201834,False
+smoke_local_warp_calibration_seed0,calibration,smoke,local_warp,0,state_2,robust_shift,0.0,0.46529222934828995,0.9666902316029686,False
+smoke_local_warp_calibration_seed0,calibration,smoke,local_warp,0,state_3,robust_shift,0.0,0.27296326310345875,1.0986272441515341,False
+smoke_local_warp_calibration_seed0,calibration,smoke,local_warp,0,state_4,robust_shift,0.0,0.3486930070757054,0.971874341452118,False

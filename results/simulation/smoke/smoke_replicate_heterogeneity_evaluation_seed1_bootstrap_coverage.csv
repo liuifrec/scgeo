@@ -1,0 +1,6 @@
+job_id,seed_split,profile,scenario,seed,state,method,true_magnitude,ci95_low,ci95_high,covered
+smoke_replicate_heterogeneity_evaluation_seed1,evaluation,smoke,replicate_heterogeneity,1,state_0,robust_shift,1.0,1.2635424889436317,3.152074618523147,False
+smoke_replicate_heterogeneity_evaluation_seed1,evaluation,smoke,replicate_heterogeneity,1,state_1,robust_shift,1.0,1.4703462218314198,3.0491255117121354,False
+smoke_replicate_heterogeneity_evaluation_seed1,evaluation,smoke,replicate_heterogeneity,1,state_2,robust_shift,0.0,1.2599168866843669,2.8468138958207736,False
+smoke_replicate_heterogeneity_evaluation_seed1,evaluation,smoke,replicate_heterogeneity,1,state_3,robust_shift,0.0,1.2160890764717145,3.056873013431378,False
+smoke_replicate_heterogeneity_evaluation_seed1,evaluation,smoke,replicate_heterogeneity,1,state_4,robust_shift,0.0,1.3362106468545702,2.833485921920279,False

@@ -1,0 +1,6 @@
+job_id,seed_split,profile,scenario,seed,state,true_abundance_change,true_abundance_changed
+smoke_unequal_cell_counts_evaluation_seed1,evaluation,smoke,unequal_cell_counts,1,state_0,0.1171875,True
+smoke_unequal_cell_counts_evaluation_seed1,evaluation,smoke,unequal_cell_counts,1,state_1,0.09486607142857145,True
+smoke_unequal_cell_counts_evaluation_seed1,evaluation,smoke,unequal_cell_counts,1,state_2,-0.12031249999999999,True
+smoke_unequal_cell_counts_evaluation_seed1,evaluation,smoke,unequal_cell_counts,1,state_3,-0.04821428571428574,True
+smoke_unequal_cell_counts_evaluation_seed1,evaluation,smoke,unequal_cell_counts,1,state_4,-0.04352678571428571,True

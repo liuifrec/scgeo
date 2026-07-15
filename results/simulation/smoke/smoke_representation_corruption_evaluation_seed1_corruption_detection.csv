@@ -1,0 +1,6 @@
+job_id,seed_split,profile,scenario,seed,rep,true_corrupted,predicted_corrupted,neighborhood_outlier,distortion_outlier,state_graph_outlier,insufficient_coverage
+smoke_representation_corruption_evaluation_seed1,evaluation,smoke,representation_corruption,1,X_truth,False,False,False,False,False,False
+smoke_representation_corruption_evaluation_seed1,evaluation,smoke,representation_corruption,1,X_rotated,False,False,False,False,False,False
+smoke_representation_corruption_evaluation_seed1,evaluation,smoke,representation_corruption,1,X_scaled,False,False,False,False,False,False
+smoke_representation_corruption_evaluation_seed1,evaluation,smoke,representation_corruption,1,X_padded,False,False,False,False,False,False
+smoke_representation_corruption_evaluation_seed1,evaluation,smoke,representation_corruption,1,X_corrupted,True,True,True,True,True,False

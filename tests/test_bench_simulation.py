@@ -144,6 +144,18 @@ def test_evaluate_ground_truth_tidy_schemas():
     assert {"state", "true_abundance_change", "true_abundance_changed"} <= set(out["abundance_truth"].columns)
 
 
+def test_shift_detection_threshold_is_predeclared_not_truth_scaled():
+    import scgeo as sg
+
+    low = sg.bench.evaluate_ground_truth(_small_sim(scenario="centroid_shift", effect_size=0.4, seed=31))
+    high = sg.bench.evaluate_ground_truth(_small_sim(scenario="centroid_shift", effect_size=1.6, seed=31))
+
+    assert set(low["state_metrics"]["threshold"]) == {0.5}
+    assert set(high["state_metrics"]["threshold"]) == {0.5}
+    assert set(low["threshold_sensitivity"]["threshold"]) == {0.25, 0.5, 0.75, 1.0, 1.25}
+    assert set(high["threshold_sensitivity"]["threshold"]) == {0.25, 0.5, 0.75, 1.0, 1.25}
+
+
 def test_framework_ablation_schema_and_outcomes():
     import scgeo as sg
 
@@ -176,6 +188,7 @@ def test_framework_ablation_schema_and_outcomes():
     }
     assert "score" not in ablation.columns
     assert "composite_score" not in ablation.columns
+    assert "insufficient_or_unstable" not in set(ablation["outcome"])
     assert "representation_corruption" in set(ablation["failure_mode"])
     corr = ablation[
         (ablation["variant"] == "D_plus_local_geometry")
@@ -195,6 +208,17 @@ def test_framework_ablation_plot_returns_figure():
     fig = sg.bench.plot_framework_ablation(ablation, show=False)
     assert fig.__class__.__name__ == "Figure"
     plt.close(fig)
+
+
+def test_framework_ablation_plot_requires_requested_split():
+    import scgeo as sg
+
+    adata = _run_small_stack(_small_sim(scenario="null", seed=37))
+    ablation = sg.bench.framework_ablation(sg.bench.evaluate_ground_truth(adata))
+    ablation["seed_split"] = "calibration"
+
+    with pytest.raises(ValueError, match="no rows to plot"):
+        sg.bench.plot_framework_ablation(ablation, split="evaluation", show=False)
 
 
 def test_null_abundance_and_covariance_do_not_force_centroid_shift_calls():

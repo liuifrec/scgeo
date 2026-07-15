@@ -1,0 +1,2 @@
+job_id,seed_split,profile,scenario,seed,runtime_seconds,peak_memory_mb,n_obs,n_vars
+smoke_discordant_dynamics_evaluation_seed1,evaluation,smoke,discordant_dynamics,1,4.563814024999374,311.5625,1280,1

@@ -1,0 +1,6 @@
+job_id,seed_split,profile,scenario,seed,state,method,true_magnitude,ci95_low,ci95_high,covered
+smoke_representation_corruption_calibration_seed0,calibration,smoke,representation_corruption,0,state_0,robust_shift,1.0,0.9940572166442423,1.6793738351879564,True
+smoke_representation_corruption_calibration_seed0,calibration,smoke,representation_corruption,0,state_1,robust_shift,1.0,0.7418442523132521,1.3273606665802475,True
+smoke_representation_corruption_calibration_seed0,calibration,smoke,representation_corruption,0,state_2,robust_shift,0.0,0.46529222934828995,0.9666902316029686,False
+smoke_representation_corruption_calibration_seed0,calibration,smoke,representation_corruption,0,state_3,robust_shift,0.0,0.27296326310345875,1.0986272441515341,False
+smoke_representation_corruption_calibration_seed0,calibration,smoke,representation_corruption,0,state_4,robust_shift,0.0,0.3486930070757054,0.971874341452118,False

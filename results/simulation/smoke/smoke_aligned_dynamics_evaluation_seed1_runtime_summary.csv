@@ -1,0 +1,2 @@
+job_id,seed_split,profile,scenario,seed,runtime_seconds,peak_memory_mb,n_obs,n_vars
+smoke_aligned_dynamics_evaluation_seed1,evaluation,smoke,aligned_dynamics,1,4.610053862001223,310.578125,1280,1

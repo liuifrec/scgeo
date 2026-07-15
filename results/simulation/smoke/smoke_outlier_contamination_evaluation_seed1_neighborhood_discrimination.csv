@@ -1,0 +1,13 @@
+job_id,seed_split,profile,scenario,seed,rep_a,rep_b,k,metric,value,pair_class
+smoke_outlier_contamination_evaluation_seed1,evaluation,smoke,outlier_contamination,1,X_truth,X_rotated,15,neighbor_overlap,1.0,equivalent
+smoke_outlier_contamination_evaluation_seed1,evaluation,smoke,outlier_contamination,1,X_truth,X_rotated,15,neighbor_jaccard,1.0,equivalent
+smoke_outlier_contamination_evaluation_seed1,evaluation,smoke,outlier_contamination,1,X_truth,X_scaled,15,neighbor_overlap,1.0,equivalent
+smoke_outlier_contamination_evaluation_seed1,evaluation,smoke,outlier_contamination,1,X_truth,X_scaled,15,neighbor_jaccard,1.0,equivalent
+smoke_outlier_contamination_evaluation_seed1,evaluation,smoke,outlier_contamination,1,X_truth,X_padded,15,neighbor_overlap,1.0,equivalent
+smoke_outlier_contamination_evaluation_seed1,evaluation,smoke,outlier_contamination,1,X_truth,X_padded,15,neighbor_jaccard,1.0,equivalent
+smoke_outlier_contamination_evaluation_seed1,evaluation,smoke,outlier_contamination,1,X_rotated,X_scaled,15,neighbor_overlap,1.0,equivalent
+smoke_outlier_contamination_evaluation_seed1,evaluation,smoke,outlier_contamination,1,X_rotated,X_scaled,15,neighbor_jaccard,1.0,equivalent
+smoke_outlier_contamination_evaluation_seed1,evaluation,smoke,outlier_contamination,1,X_rotated,X_padded,15,neighbor_overlap,1.0,equivalent
+smoke_outlier_contamination_evaluation_seed1,evaluation,smoke,outlier_contamination,1,X_rotated,X_padded,15,neighbor_jaccard,1.0,equivalent
+smoke_outlier_contamination_evaluation_seed1,evaluation,smoke,outlier_contamination,1,X_scaled,X_padded,15,neighbor_overlap,1.0,equivalent
+smoke_outlier_contamination_evaluation_seed1,evaluation,smoke,outlier_contamination,1,X_scaled,X_padded,15,neighbor_jaccard,1.0,equivalent

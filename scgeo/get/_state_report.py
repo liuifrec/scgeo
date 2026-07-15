@@ -283,20 +283,28 @@ def _apply_inference_metadata(
 
     bootstrap_unit = params.get("resolved_bootstrap_unit", params.get("bootstrap_unit", pd.NA))
     sample_key = params.get("sample_key")
-    if not _is_missing(bootstrap_unit) and bootstrap_unit == "sample" and sample_key is not None:
-        inference_level = "biological_sample"
-        descriptive_only = False
-    elif not _is_missing(bootstrap_unit) and bootstrap_unit == "cell":
-        inference_level = "cell_descriptive"
-        descriptive_only = True
-    elif _is_missing(bootstrap_unit):
-        inference_level = "not_computed"
-        descriptive_only = True
-    else:
-        inference_level = "descriptive"
-        descriptive_only = True
-
     for row in rows.values():
+        if not _is_missing(bootstrap_unit) and bootstrap_unit == "sample" and sample_key is not None:
+            n0 = row.get("n_samples0", np.nan)
+            n1 = row.get("n_samples1", np.nan)
+            if np.isfinite(n0) and np.isfinite(n1) and n0 >= 2 and n1 >= 2:
+                inference_level = "biological_sample"
+                descriptive_only = False
+            else:
+                inference_level = "sample_descriptive"
+                descriptive_only = True
+                row["warnings"].append(
+                    "sample-level bootstrap has fewer than two biological samples in at least one group."
+                )
+        elif not _is_missing(bootstrap_unit) and bootstrap_unit == "cell":
+            inference_level = "cell_descriptive"
+            descriptive_only = True
+        elif _is_missing(bootstrap_unit):
+            inference_level = "not_computed"
+            descriptive_only = True
+        else:
+            inference_level = "descriptive"
+            descriptive_only = True
         row["bootstrap_unit"] = bootstrap_unit
         row["inference_level"] = inference_level
         row["descriptive_only"] = bool(descriptive_only)
@@ -902,8 +910,8 @@ def state_report(
     )
     rows = _empty_rows(states)
     _merge_robust_shift(rows, robust, node_key=node_key)
-    _apply_inference_metadata(rows, robust, representation)
     _merge_representation(rows, representation)
+    _apply_inference_metadata(rows, robust, representation)
     _merge_local_geometry(
         rows,
         local_geometry,

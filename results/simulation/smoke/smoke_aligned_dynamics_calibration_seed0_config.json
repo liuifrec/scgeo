@@ -1,0 +1,26 @@
+{
+  "job_id": "smoke_aligned_dynamics_calibration_seed0",
+  "profile": "smoke",
+  "scenario": "aligned_dynamics",
+  "seed_split": "calibration",
+  "seed": 0,
+  "profile_cfg": {
+    "n_samples_per_condition": 4,
+    "cells_per_sample": 160,
+    "n_boot": 25,
+    "k_values": [
+      15
+    ],
+    "max_exact_cells": 750,
+    "default_calibration_seeds": [
+      0
+    ],
+    "default_evaluation_seeds": [
+      1
+    ],
+    "approx_cells": "1,000-2,000"
+  },
+  "velocity_mode": "aligned",
+  "output_dir": "results/simulation/smoke",
+  "resume": true
+}

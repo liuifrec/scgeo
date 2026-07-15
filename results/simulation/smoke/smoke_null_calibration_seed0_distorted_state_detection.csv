@@ -1,0 +1,6 @@
+job_id,seed_split,profile,scenario,seed,state,local_distortion_score,threshold,true_distorted,predicted_distorted
+smoke_null_calibration_seed0,calibration,smoke,null,0,state_0,1.1404968625223537e-07,1.3037797206979195e-07,False,False
+smoke_null_calibration_seed0,calibration,smoke,null,0,state_1,7.854592714370803e-08,1.3037797206979195e-07,False,False
+smoke_null_calibration_seed0,calibration,smoke,null,0,state_2,6.126857883501339e-08,1.3037797206979195e-07,False,False
+smoke_null_calibration_seed0,calibration,smoke,null,0,state_3,7.66901143626058e-08,1.3037797206979195e-07,False,False
+smoke_null_calibration_seed0,calibration,smoke,null,0,state_4,1.29895220318131e-07,1.3037797206979195e-07,False,False

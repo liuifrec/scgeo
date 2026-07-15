@@ -1,0 +1,6 @@
+job_id,seed_split,profile,scenario,seed,state,method,true_magnitude,ci95_low,ci95_high,covered
+smoke_outlier_contamination_evaluation_seed1,evaluation,smoke,outlier_contamination,1,state_0,robust_shift,1.0,0.8118943647378583,1.7531962917366988,True
+smoke_outlier_contamination_evaluation_seed1,evaluation,smoke,outlier_contamination,1,state_1,robust_shift,1.0,1.0840756907451157,1.5126802085628608,False
+smoke_outlier_contamination_evaluation_seed1,evaluation,smoke,outlier_contamination,1,state_2,robust_shift,0.0,0.35926584389481614,0.9402843435407157,False
+smoke_outlier_contamination_evaluation_seed1,evaluation,smoke,outlier_contamination,1,state_3,robust_shift,0.0,0.4587904356548108,0.8956427224759724,False
+smoke_outlier_contamination_evaluation_seed1,evaluation,smoke,outlier_contamination,1,state_4,robust_shift,0.0,0.4099097287160854,0.8617085373830898,False

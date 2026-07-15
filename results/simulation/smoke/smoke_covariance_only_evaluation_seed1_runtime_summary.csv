@@ -1,0 +1,2 @@
+job_id,seed_split,profile,scenario,seed,runtime_seconds,peak_memory_mb,n_obs,n_vars
+smoke_covariance_only_evaluation_seed1,evaluation,smoke,covariance_only,1,5.233191325000007,310.88671875,1280,1

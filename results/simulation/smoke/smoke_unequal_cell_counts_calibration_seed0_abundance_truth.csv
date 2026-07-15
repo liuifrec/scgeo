@@ -1,0 +1,6 @@
+job_id,seed_split,profile,scenario,seed,state,true_abundance_change,true_abundance_changed
+smoke_unequal_cell_counts_calibration_seed0,calibration,smoke,unequal_cell_counts,0,state_0,0.10848214285714286,True
+smoke_unequal_cell_counts_calibration_seed0,calibration,smoke,unequal_cell_counts,0,state_1,0.12566964285714285,True
+smoke_unequal_cell_counts_calibration_seed0,calibration,smoke,unequal_cell_counts,0,state_2,-0.06941964285714286,True
+smoke_unequal_cell_counts_calibration_seed0,calibration,smoke,unequal_cell_counts,0,state_3,-0.0955357142857143,True
+smoke_unequal_cell_counts_calibration_seed0,calibration,smoke,unequal_cell_counts,0,state_4,-0.06919642857142858,True
