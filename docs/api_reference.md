@@ -128,6 +128,30 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
 - Uncertain: **yes**
 - Normalized I/O: **uncertain** — entry is listed under `skipped` in `scgeo_io_manifest.json` (needs domain-specific inputs).
 
+### `scgeo.tl.representation_stability`
+
+- Full name: `scgeo.tl.representation_stability`
+- Signature: `(adata, *, reps, node_key, condition_key, group0, group1, sample_key=None, center: 'str' = 'geometric_median', trim_fraction: 'float' = 0.1, n_boot: 'int' = 500, velocity_keys=None, alignment_pos_thr: 'float' = 0.3, alignment_neg_thr: 'float' = -0.3, min_cells: 'int' = 20, seed: 'int' = 0, store_key: 'str' = 'representation_stability')`
+- Description: Assess whether state-level perturbation geometry is stable across representations.
+- Uncertain: no
+- Normalized I/O:
+  - obs cols: added [none], touched [`batch`, `cluster`, `condition`], removed [none]
+  - obsm keys: added [none], touched [`X_pca`, `X_umap`], removed [none]
+  - layers keys: added [none], touched [none], removed [none]
+  - uns keys: added [`scgeo`], touched [none], removed [none]
+
+### `scgeo.tl.robust_shift`
+
+- Full name: `scgeo.tl.robust_shift`
+- Signature: `(adata, rep: 'str' = 'X_pca', condition_key: 'str' = 'condition', group0: 'Any' = None, group1: 'Any' = None, by: 'Optional[str]' = None, sample_key: 'Optional[str]' = None, center: 'str' = 'geometric_median', trim_fraction: 'float' = 0.1, n_boot: 'int' = 500, bootstrap_unit: 'str' = 'auto', normalize_by: 'Optional[str]' = 'pooled_robust_scale', seed: 'int' = 0, store_key: 'str' = 'robust_shift') -> 'Dict[str, Any]'`
+- Description: Robust condition displacement with sample-aware bootstrap uncertainty.
+- Uncertain: no
+- Normalized I/O:
+  - obs cols: added [none], touched [`batch`, `cluster`, `condition`], removed [none]
+  - obsm keys: added [none], touched [`X_pca`, `X_umap`], removed [none]
+  - layers keys: added [none], touched [none], removed [none]
+  - uns keys: added [`scgeo`], touched [none], removed [none]
+
 ### `scgeo.tl.shift`
 
 - Full name: `scgeo.tl.shift`

@@ -1,4 +1,6 @@
 from ._shift import shift
+from ._robust_shift import robust_shift
+from ._representation_stability import representation_stability
 from ._mixscore import mixscore
 from ._map_knn import map_knn
 from ._align_vectors import align_vectors
@@ -17,7 +19,7 @@ from ._velocity_shift_alignment import velocity_shift_alignment
 from ._alignment_driver_genes import alignment_driver_genes
 
 __all__ = [
-  "shift", "mixscore", "map_knn", "align_vectors", "velocity_delta_alignment",
+  "shift", "robust_shift", "representation_stability", "mixscore", "map_knn", "align_vectors", "velocity_delta_alignment",
   "projection_disagreement", "wasserstein","density_overlap","distribution_test",
   "paga_composition_stats","consensus_subspace","map_query_to_ref","map_query_to_ref_pool",
   "map_query_to_ref_pool_census","analyze_shift","velocity_shift_alignment",

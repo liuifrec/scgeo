@@ -67,6 +67,16 @@
       "doc": "Compute per-cell projection disagreement among multiple vector sources."
     },
     {
+      "name": "scgeo.tl.representation_stability",
+      "signature": "(adata, *, reps, node_key, condition_key, group0, group1, sample_key=None, center: 'str' = 'geometric_median', trim_fraction: 'float' = 0.1, n_boot: 'int' = 500, velocity_keys=None, alignment_pos_thr: 'float' = 0.3, alignment_neg_thr: 'float' = -0.3, min_cells: 'int' = 20, seed: 'int' = 0, store_key: 'str' = 'representation_stability')",
+      "doc": "Assess whether state-level perturbation geometry is stable across representations."
+    },
+    {
+      "name": "scgeo.tl.robust_shift",
+      "signature": "(adata, rep: 'str' = 'X_pca', condition_key: 'str' = 'condition', group0: 'Any' = None, group1: 'Any' = None, by: 'Optional[str]' = None, sample_key: 'Optional[str]' = None, center: 'str' = 'geometric_median', trim_fraction: 'float' = 0.1, n_boot: 'int' = 500, bootstrap_unit: 'str' = 'auto', normalize_by: 'Optional[str]' = 'pooled_robust_scale', seed: 'int' = 0, store_key: 'str' = 'robust_shift') -> 'Dict[str, Any]'",
+      "doc": "Robust condition displacement with sample-aware bootstrap uncertainty."
+    },
+    {
       "name": "scgeo.tl.shift",
       "signature": "(adata, rep: 'str' = 'X_pca', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, by: 'Optional[str]' = None, sample_key: 'Optional[str]' = None, store_key: 'str' = 'scgeo') -> 'None'",
       "doc": "Compute mean shift vector \u0394 = \u03bc1 - \u03bc0 in representation space."

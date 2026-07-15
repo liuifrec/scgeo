@@ -39,6 +39,22 @@ import scgeo as sg
 
 # compute geometry
 sg.tl.shift(adata)
+sg.tl.robust_shift(
+    adata,
+    condition_key="condition",
+    group0="control",
+    group1="treated",
+    sample_key="donor",
+)
+sg.tl.representation_stability(
+    adata,
+    reps=["X_pca", "X_scvi"],
+    node_key="cell_type",
+    condition_key="condition",
+    group0="control",
+    group1="treated",
+    sample_key="donor",
+)
 sg.tl.mixscore(adata)
 sg.tl.distribution_test(adata)
 

@@ -82,7 +82,21 @@ def _diff_raw(a: Dict[str, List[str]], b: Dict[str, List[str]]) -> Dict[str, Lis
 def _call_policy_raw(fn, adata: ad.AnnData) -> Tuple[bool, str]:
     name = fn.__name__
     try:
-        if name in {"shift", "mixscore", "density_overlap", "distribution_test", "wasserstein"}:
+        if name == "robust_shift":
+            fn(adata, n_boot=25, seed=0)
+        elif name == "representation_stability":
+            fn(
+                adata,
+                reps=["X_pca", "X_umap"],
+                node_key="cell_type",
+                condition_key="condition",
+                group0="A",
+                group1="B",
+                min_cells=2,
+                n_boot=5,
+                seed=0,
+            )
+        elif name in {"shift", "mixscore", "density_overlap", "distribution_test", "wasserstein"}:
             fn(adata)
         elif name in {"consensus_subspace"}:
             fn(adata, rep="X_pca", condition_key="condition", group0="A", group1="B")
@@ -140,6 +154,30 @@ def _call_policy_clean(fn, adata: ad.AnnData) -> Tuple[bool, str]:
     try:
         if name == "shift":
             fn(adata, rep="X_pca", condition_key="condition", group0="A", group1="B", store_key="shift_test")
+        elif name == "robust_shift":
+            fn(
+                adata,
+                rep="X_pca",
+                condition_key="condition",
+                group0="A",
+                group1="B",
+                n_boot=25,
+                seed=0,
+                store_key="robust_shift_test",
+            )
+        elif name == "representation_stability":
+            fn(
+                adata,
+                reps=["X_pca", "X_umap"],
+                node_key="cluster",
+                condition_key="condition",
+                group0="A",
+                group1="B",
+                min_cells=2,
+                n_boot=5,
+                seed=0,
+                store_key="representation_stability_test",
+            )
         elif name == "mixscore":
             fn(adata, label_key="batch", rep="X_umap", store_key="mix_test")
         elif name == "density_overlap":
