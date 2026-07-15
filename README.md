@@ -187,6 +187,83 @@ bundle = sg.pl.perturbation_report(
 ScGeo complements Scanpy, scVelo, CellRank, and scFates by making
 **representation geometry explicit and measurable**.
 
+## Synthetic benchmarks
+
+ScGeo includes a synthetic-only benchmark framework under `scgeo.bench`.
+It is designed to test whether the analysis stack separates effect magnitude,
+abundance change, distributional shape change, local geometric distortion,
+representation stability, uncertainty, and geometry-dynamics agreement.
+
+```python
+import scgeo as sg
+
+adata = sg.bench.simulate_perturbation_geometry(
+    scenario="outlier_contamination",
+    n_states=5,
+    n_samples_per_condition=3,
+    cells_per_sample=200,
+    seed=0,
+)
+
+# Run the analysis stack, then evaluate against stored synthetic truth.
+sg.tl.robust_shift(
+    adata,
+    rep="X_truth",
+    condition_key="condition",
+    group0="control",
+    group1="treated",
+    by="state",
+    sample_key="sample",
+    n_boot=50,
+)
+results = sg.bench.evaluate_ground_truth(adata)
+results["state_metrics"].head()
+
+# Or run a predefined reproducible suite.
+suite = sg.bench.run_simulation_suite(
+    profile="smoke",
+    scenarios=["null", "outlier_contamination"],
+    output_dir="scgeo_simulation_benchmark",
+)
+
+# Explicit framework ablation, summarized on held-out evaluation seeds.
+ablation = suite["tables"]["framework_ablation"]
+fig = sg.bench.plot_framework_ablation(ablation, split="evaluation", show=False)
+```
+
+Profiles:
+
+| Profile | Approximate cells per job | Seeds | Bootstrap | k values | Rank subset |
+|---------|---------------------------|-------|-----------|----------|-------------|
+| smoke | 1,000-2,000 | 2 total | 25 | 15 | 750 |
+| quick | 3,000-5,000 | 5 total | 100 | 15, 30 | 1,500 |
+| manuscript | 5,000-10,000 | 20 total | 300 | 15, 30, 50 | 3,000 |
+
+Calibration seeds and held-out evaluation seeds are tracked separately in every
+suite result table. Calibration runs may be used to explore thresholds, but
+final reported performance should come from held-out evaluation seeds. The
+suite exports threshold-sensitivity tables; it does not modify ScGeo consensus
+thresholds automatically.
+
+The framework ablation compares:
+
+| Variant | Evidence included |
+|---------|-------------------|
+| A | original mean shift on `X_truth` |
+| B | robust geometric-median shift on `X_truth` |
+| C | B plus representation-consensus status |
+| D | C plus local-geometry diagnostics |
+| E | D plus dynamics agreement |
+
+The ablation table reports, for every synthetic scenario and failure mode,
+whether each variant detects the failure correctly, misses it, falsely calls it,
+or marks the evidence as insufficient, unstable, unavailable, or not computed.
+It is intentionally not a composite score.
+
+Simulation benchmarks are not experimental validation. They support claims
+about expected behavior under controlled synthetic perturbations and failure
+modes, not claims about biological truth in real datasets.
+
 ## Mapping to manuscript concepts
 
 | Manuscript concept | API |

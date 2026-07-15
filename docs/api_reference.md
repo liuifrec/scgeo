@@ -24,6 +24,47 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
 - State-graph summaries are kept as global diagnostics unless a stored analysis provides a genuinely state-specific transition-profile metric.
 - Missing-data behavior: `strict=False` returns available columns with warnings; `strict=True` raises if requested storage objects are absent.
 
+## scgeo.bench
+
+### `scgeo.bench.simulate_perturbation_geometry`
+
+- Full name: `scgeo.bench.simulate_perturbation_geometry`
+- Signature: `( *, scenario='centroid_shift', n_states=5, n_samples_per_condition=4, cells_per_sample=400, latent_dim=8, effect_size=1.0, affected_states=None, outlier_fraction=0.0, outlier_scale=10.0, sample_heterogeneity=0.15, abundance_effect=0.0, covariance_effect=0.0, warp_strength=0.0, velocity_mode=None, seed=0)`
+- Description: Generate a synthetic perturbation-geometry benchmark AnnData object.
+- Scenarios: `null`, `centroid_shift`, `abundance_only`, `covariance_only`, `local_warp`, `outlier_contamination`, `unequal_cell_counts`, `replicate_heterogeneity`, `representation_corruption`, `aligned_dynamics`, `discordant_dynamics`.
+- Output: synthetic AnnData with `obs['state']`, `obs['condition']`, `obs['sample']`, representation ensemble, optional velocity embeddings, and `adata.uns['simulation_truth']`.
+
+### `scgeo.bench.evaluate_ground_truth`
+
+- Full name: `scgeo.bench.evaluate_ground_truth`
+- Signature: `(adata, *, robust_shift_key='robust_shift', representation_key='representation_stability', local_geometry_key='local_geometry_stability')`
+- Description: Evaluate stored ScGeo outputs against synthetic simulation truth.
+- Output: dictionary of tidy DataFrames for state magnitude errors, rank agreement, shifted-state precision/recall/F1, null false classification, bootstrap coverage, representation consensus labels, abundance truth, dynamics class accuracy, corrupted-representation detection, distorted-state detection, neighborhood preservation discrimination, coverage, runtime, and threshold sensitivity. No composite benchmark score is created.
+
+### `scgeo.bench.framework_ablation`
+
+- Full name: `scgeo.bench.framework_ablation`
+- Signature: `(tables, *, final_split='evaluation')`
+- Description: Build a tidy framework-ablation table from synthetic benchmark outputs.
+- Variants: A original mean shift on one representation; B robust shift on one representation; C robust shift plus representation consensus; D C plus local geometry diagnostics; E D plus dynamics agreement.
+- Output: one row per scenario, seed, variant, failure mode, and evaluated unit with explicit `truth`, `call`, `status`, and `outcome`; held-out evaluation rows are marked by `final_evaluation`. No composite score is created.
+
+### `scgeo.bench.plot_framework_ablation`
+
+- Full name: `scgeo.bench.plot_framework_ablation`
+- Signature: `(ablation_table, *, split='evaluation', normalize=True, figsize=None, title=None, save_path=None, show=True)`
+- Description: Plot held-out framework-ablation outcome rates or counts.
+- Output: matplotlib Figure with stacked outcome bars for scenario/failure-mode/variant rows; missing or unavailable evidence is shown separately from false negatives.
+
+### `scgeo.bench.run_simulation_suite`
+
+- Full name: `scgeo.bench.run_simulation_suite`
+- Signature: `( *, profile='smoke', scenarios=None, seeds=None, output_dir=None, resume=True, n_jobs=1)`
+- Description: Run a reproducible synthetic ScGeo benchmark suite.
+- Profiles: `smoke` is approximately 1,000-2,000 cells/job with 25 bootstrap iterations and `k=(15,)`; `quick` is approximately 3,000-5,000 cells/job with 100 bootstrap iterations and `k=(15, 30)`; `manuscript` is approximately 5,000-10,000 cells/job with 300 bootstrap iterations and `k=(15, 30, 50)`.
+- Calibration and held-out evaluation seeds are tracked separately. The suite exports threshold-sensitivity tables and framework-ablation tables; final ablation summaries and saved figures use held-out evaluation seeds. The suite does not modify consensus thresholds automatically.
+- Synthetic benchmarks are methodological checks, not experimental validation.
+
 ## scgeo.tl
 
 ### `scgeo.tl.align_vectors`

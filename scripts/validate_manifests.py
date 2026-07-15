@@ -25,7 +25,7 @@ def validate() -> None:
     raw = _load(RAW_PATH)
     clean = _load(CLEAN_PATH)
 
-    api_entries = api.get("tl", []) + api.get("pl", []) + api.get("get", [])
+    api_entries = api.get("tl", []) + api.get("pl", []) + api.get("get", []) + api.get("bench", [])
 
     # (a) every api_manifest entry is importable
     for entry in api_entries:

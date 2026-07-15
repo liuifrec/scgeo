@@ -59,12 +59,14 @@ def main() -> None:
     tl = importlib.import_module("scgeo.tl")
     pl = importlib.import_module("scgeo.pl")
     get = importlib.import_module("scgeo.get")
+    bench = importlib.import_module("scgeo.bench")
 
     manifest = {
         "scgeo_version": getattr(scgeo, "__version__", None),
         "tl": module_manifest(tl, "scgeo.tl"),
         "pl": module_manifest(pl, "scgeo.pl"),
         "get": module_manifest(get, "scgeo.get"),
+        "bench": module_manifest(bench, "scgeo.bench"),
     }
     print(json.dumps(manifest, indent=2))
 

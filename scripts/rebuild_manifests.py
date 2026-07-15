@@ -226,13 +226,20 @@ def rebuild() -> None:
     api_tl_prev = {entry["name"]: entry for entry in api_prev.get("tl", [])}
     api_pl_prev = {entry["name"]: entry for entry in api_prev.get("pl", [])}
     api_get_prev = {entry["name"]: entry for entry in api_prev.get("get", [])}
+    api_bench_prev = {entry["name"]: entry for entry in api_prev.get("bench", [])}
     api_manifest = {
         "scgeo_version": getattr(sg, "__version__", None),
         "tl": _public_callables("scgeo.tl"),
         "pl": _public_callables("scgeo.pl"),
         "get": _public_callables("scgeo.get"),
+        "bench": _public_callables("scgeo.bench"),
     }
-    for section, prev_map in (("tl", api_tl_prev), ("pl", api_pl_prev), ("get", api_get_prev)):
+    for section, prev_map in (
+        ("tl", api_tl_prev),
+        ("pl", api_pl_prev),
+        ("get", api_get_prev),
+        ("bench", api_bench_prev),
+    ):
         for row in api_manifest[section]:
             prev = prev_map.get(row["name"])
             if prev is not None and row["name"] not in REFRESH_SIGNATURES:
