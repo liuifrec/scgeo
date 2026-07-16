@@ -1,0 +1,249 @@
+{
+  "schema_version": "scgeo.benchmark_protocol.v1",
+  "protocol_name": "manuscript_protocol_v1",
+  "date_frozen": "2026-07-16",
+  "git_commit": "7d6a3b8b8bb9c0bbb92b496994e09ae15a77d5a8",
+  "package": {
+    "name": "scgeo",
+    "version": "0.1.0-dev"
+  },
+  "post_evaluation_tuning_policy": "Calibration seeds may be used only for predeclared calibration summaries. Evaluation seeds are held out. After any evaluation-seed run, thresholds, estimator choices, consensus rules, truth definitions, scenario definitions, evaluation logic, and plotting filters must not be changed to improve reported performance; any such change requires a new protocol version and a new held-out evaluation.",
+  "profile": {
+    "selected": "manuscript",
+    "n_samples_per_condition": 4,
+    "cells_per_sample": 800,
+    "n_boot": 300,
+    "k_values": [
+      15,
+      30,
+      50
+    ],
+    "max_exact_cells": 3000,
+    "approx_cells": "5,000-10,000"
+  },
+  "seeds": {
+    "calibration": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "evaluation": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ]
+  },
+  "scenarios": [
+    "abundance_only",
+    "aligned_dynamics",
+    "balanced_replicate_heterogeneity",
+    "batch_condition_confounding",
+    "centroid_shift",
+    "covariance_only",
+    "discordant_dynamics",
+    "local_warp",
+    "null_effect",
+    "outlier_contamination",
+    "representation_corruption",
+    "unequal_cell_counts"
+  ],
+  "thresholds": {
+    "shift_detection": 0.5,
+    "zero_effect_epsilon": 1e-8,
+    "shift_sensitivity": [
+      0.25,
+      0.5,
+      0.75,
+      1.0,
+      1.25
+    ]
+  },
+  "estimators": [
+    {
+      "method": "shift_mean",
+      "function": "scgeo.tl.shift",
+      "representation": "X_truth",
+      "center": "arithmetic_mean",
+      "sample_key": "sample"
+    },
+    {
+      "method": "robust_mean",
+      "function": "scgeo.tl.robust_shift",
+      "representation": "X_truth",
+      "center": "mean",
+      "trim_fraction": 0.1,
+      "baseline_n_boot": 0,
+      "sample_key": "sample"
+    },
+    {
+      "method": "robust_median",
+      "function": "scgeo.tl.robust_shift",
+      "representation": "X_truth",
+      "center": "median",
+      "trim_fraction": 0.1,
+      "baseline_n_boot": 0,
+      "sample_key": "sample"
+    },
+    {
+      "method": "robust_trimmed_mean",
+      "function": "scgeo.tl.robust_shift",
+      "representation": "X_truth",
+      "center": "trimmed_mean",
+      "trim_fraction": 0.1,
+      "baseline_n_boot": 0,
+      "sample_key": "sample"
+    },
+    {
+      "method": "robust_geometric_median",
+      "function": "scgeo.tl.robust_shift",
+      "representation": "X_truth",
+      "center": "geometric_median",
+      "trim_fraction": 0.1,
+      "baseline_n_boot": 0,
+      "benchmark_stack_n_boot": 300,
+      "sample_key": "sample"
+    }
+  ],
+  "benchmark_stack": {
+    "robust_shift": {
+      "function": "scgeo.tl.robust_shift",
+      "representation": "X_truth",
+      "center": "geometric_median",
+      "n_boot": 300,
+      "seed": "simulation_seed",
+      "store_key": "robust_shift"
+    },
+    "representation_stability": {
+      "function": "scgeo.tl.representation_stability",
+      "representations": "truth.consensus_representations",
+      "node_key": "state",
+      "center": "geometric_median",
+      "n_boot": 300,
+      "min_cells": 10,
+      "seed": "simulation_seed",
+      "store_key": "representation_stability"
+    },
+    "local_geometry_stability": {
+      "function": "scgeo.tl.local_geometry_stability",
+      "representations": "truth.representations",
+      "k_values": [
+        15,
+        30,
+        50
+      ],
+      "n_boot": 50,
+      "max_exact_cells": 3000,
+      "seed": "simulation_seed",
+      "store_key": "local_geometry_stability"
+    }
+  },
+  "consensus_rules": {
+    "representation_stability": {
+      "min_usable_representations": 2,
+      "min_usable_fraction": 0.5,
+      "min_samples_per_condition": 2,
+      "min_pairwise_spearman": 0.5,
+      "max_rank_std": 1.25,
+      "max_leave_one_rep_magnitude_relative_deviation": 0.5,
+      "max_leave_one_rep_class_switch_fraction": 0.34,
+      "class_fraction_threshold": 0.6,
+      "neutral_normalized_magnitude_max": 0.25,
+      "neutral_delta_norm_median_max": 0.5,
+      "label_order": [
+        "insufficient_coverage",
+        "representation_unstable",
+        "stable_neutral",
+        "stable_effect",
+        "stable_aligned",
+        "stable_discordant"
+      ],
+      "stable_aligned": "coverage passes, coordinate-safe magnitude/rank diagnostics pass, and aligned velocity classes meet class_fraction_threshold",
+      "stable_discordant": "coverage passes, coordinate-safe magnitude/rank diagnostics pass, and discordant velocity classes meet class_fraction_threshold",
+      "stable_neutral": "coverage passes and normalized magnitudes are consistently below neutral_normalized_magnitude_max, or raw median magnitude is below neutral_delta_norm_median_max with leave-one-representation agreement",
+      "stable_effect": "coverage passes, coordinate-safe magnitude/rank diagnostics pass, and a non-neutral effect is stable across representations without velocity evidence",
+      "representation_unstable": "coverage passes for a non-neutral effect, but rank agreement, rank spread, leave-one-representation-out magnitude deviation, or velocity-class agreement fails an explicit threshold",
+      "insufficient_coverage": "too few usable representations, too low usable representation fraction, or no velocity evidence for a non-neutral shifted state when velocity_keys is provided"
+    }
+  },
+  "framework_ablation_variants": [
+    {
+      "variant": "A_mean_shift_one_rep",
+      "display": "A",
+      "description": "A. original mean shift on one representation",
+      "evidence_layers": [
+        "Effect"
+      ]
+    },
+    {
+      "variant": "B_robust_shift_one_rep",
+      "display": "B",
+      "description": "B. robust shift on one representation",
+      "evidence_layers": [
+        "Effect",
+        "Uncertainty"
+      ]
+    },
+    {
+      "variant": "C_robust_shift_representation_consensus",
+      "display": "C",
+      "description": "C. robust shift plus representation consensus",
+      "evidence_layers": [
+        "Effect",
+        "Uncertainty",
+        "Representation stability"
+      ]
+    },
+    {
+      "variant": "D_plus_local_geometry",
+      "display": "D",
+      "description": "D. C plus local geometry diagnostics",
+      "evidence_layers": [
+        "Effect",
+        "Uncertainty",
+        "Representation stability",
+        "Local geometry"
+      ]
+    },
+    {
+      "variant": "E_plus_dynamics",
+      "display": "E",
+      "description": "E. D plus dynamics agreement",
+      "evidence_layers": [
+        "Effect",
+        "Uncertainty",
+        "Representation stability",
+        "Local geometry",
+        "Dynamics"
+      ]
+    }
+  ],
+  "evaluation_targets": [
+    "centroid_shift",
+    "bootstrap_interval_coverage",
+    "representation_instability",
+    "representation_quality_outlier",
+    "representation_distortion_detection",
+    "explicit_corruption_detection",
+    "representation_local_distortion",
+    "dynamics_alignment"
+  ],
+  "batch_condition_confounding_policy": {
+    "state_status": "non_identifiable",
+    "ordinary_tp_fp_metrics": "excluded",
+    "required_evaluable_state_count": 0
+  }
+}
