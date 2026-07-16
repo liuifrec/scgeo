@@ -480,6 +480,10 @@ Compute per-cell projection disagreement among multiple vector sources.
 **Docstring**  
 Assess whether state-level perturbation geometry is stable across representations.
 
+Consensus labels distinguish `stable_neutral`, magnitude-only `stable_effect`,
+velocity-supported `stable_aligned`/`stable_discordant`,
+`representation_unstable`, and `insufficient_coverage`.
+
 ### I/O contract
 
 **Manifest status:** `ok`

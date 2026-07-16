@@ -22,10 +22,12 @@ _CONSENSUS_LABEL_RULES: Dict[str, Any] = {
     "max_leave_one_rep_class_switch_fraction": 0.34,
     "class_fraction_threshold": 0.6,
     "neutral_normalized_magnitude_max": 0.25,
+    "neutral_delta_norm_median_max": 0.5,
     "label_order": [
         "insufficient_coverage",
         "representation_unstable",
         "stable_neutral",
+        "stable_effect",
         "stable_aligned",
         "stable_discordant",
     ],
@@ -38,13 +40,19 @@ _CONSENSUS_LABEL_RULES: Dict[str, Any] = {
         "and discordant velocity classes meet class_fraction_threshold"
     ),
     "stable_neutral": (
+        "coverage passes and normalized magnitudes are consistently below "
+        "neutral_normalized_magnitude_max, or raw median magnitude is below "
+        "neutral_delta_norm_median_max with leave-one-representation agreement"
+    ),
+    "stable_effect": (
         "coverage passes, coordinate-safe magnitude/rank diagnostics pass, "
-        "and either normalized magnitude is below neutral_normalized_magnitude_max "
-        "or neutral velocity classes meet class_fraction_threshold"
+        "and a non-neutral effect is stable across representations without "
+        "velocity evidence"
     ),
     "representation_unstable": (
-        "coverage passes, but rank agreement, rank spread, leave-one-representation-out "
-        "magnitude deviation, or velocity-class agreement fails an explicit threshold"
+        "coverage passes for a non-neutral effect, but rank agreement, rank spread, "
+        "leave-one-representation-out magnitude deviation, or velocity-class agreement "
+        "fails an explicit threshold"
     ),
     "insufficient_coverage": (
         "too few usable representations, too low usable representation fraction, "
@@ -61,6 +69,7 @@ _CONSENSUS_NUMERIC_RULE_RANGES: Dict[str, tuple[float | None, float | None, bool
     "max_leave_one_rep_class_switch_fraction": (0.0, 1.0, False),
     "class_fraction_threshold": (0.0, 1.0, False),
     "neutral_normalized_magnitude_max": (0.0, None, False),
+    "neutral_delta_norm_median_max": (0.0, None, False),
 }
 
 
@@ -304,6 +313,8 @@ def _label_consensus(
     usable_fraction: float,
     n_velocity_available: int,
     normalized_magnitude_median: float,
+    normalized_magnitude_max: float,
+    delta_norm_median: float,
     magnitude_rank_std: float,
     pairwise_spearman_median: float,
     loo_rep_magnitude_max_relative_deviation: float,
@@ -317,10 +328,25 @@ def _label_consensus(
     if n_usable < rules["min_usable_representations"] or usable_fraction < rules["min_usable_fraction"]:
         return "insufficient_coverage"
 
-    neutral_by_magnitude = (
+    neutral_by_normalized_magnitude = (
         np.isfinite(normalized_magnitude_median)
         and normalized_magnitude_median <= rules["neutral_normalized_magnitude_max"]
+        and np.isfinite(normalized_magnitude_max)
+        and normalized_magnitude_max <= rules["neutral_normalized_magnitude_max"]
     )
+    neutral_by_raw_magnitude = (
+        np.isfinite(delta_norm_median)
+        and delta_norm_median <= rules["neutral_delta_norm_median_max"]
+        and (
+            not np.isfinite(loo_rep_magnitude_max_relative_deviation)
+            or loo_rep_magnitude_max_relative_deviation
+            <= rules["max_leave_one_rep_magnitude_relative_deviation"]
+        )
+    )
+    neutral_by_magnitude = neutral_by_normalized_magnitude or neutral_by_raw_magnitude
+
+    if neutral_by_magnitude:
+        return "stable_neutral"
 
     if (
         np.isfinite(magnitude_rank_std)
@@ -344,11 +370,11 @@ def _label_consensus(
     ):
         return "representation_unstable"
 
-    if neutral_by_magnitude:
-        return "stable_neutral"
-
     if velocity_requested and n_velocity_available == 0:
         return "insufficient_coverage"
+
+    if not velocity_requested:
+        return "stable_effect"
 
     threshold = rules["class_fraction_threshold"]
     if np.isfinite(aligned_fraction) and aligned_fraction >= threshold:
@@ -383,7 +409,11 @@ def _consensus_state(
         mags = usable["normalized_delta_norm"].to_numpy(dtype=float)
         mags = mags[np.isfinite(mags)]
         mag_median = float(np.nanmedian(mags)) if mags.size else np.nan
+        mag_max = float(np.nanmax(mags)) if mags.size else np.nan
         mag_q25, mag_q75, mag_iqr = _quantile_iqr(mags)
+        delta_norms = usable["delta_norm"].to_numpy(dtype=float)
+        delta_norms = delta_norms[np.isfinite(delta_norms)]
+        delta_norm_median = float(np.nanmedian(delta_norms)) if delta_norms.size else np.nan
 
         ranks = usable["magnitude_rank"].to_numpy(dtype=float)
         ranks = ranks[np.isfinite(ranks)]
@@ -432,6 +462,8 @@ def _consensus_state(
             usable_fraction=usable_fraction,
             n_velocity_available=n_velocity_available,
             normalized_magnitude_median=mag_median,
+            normalized_magnitude_max=mag_max,
+            delta_norm_median=delta_norm_median,
             magnitude_rank_std=rank_std,
             pairwise_spearman_median=pairwise_spearman_median,
             loo_rep_magnitude_max_relative_deviation=loo_relative,
@@ -450,6 +482,8 @@ def _consensus_state(
                 "n_usable_representations": n_usable,
                 "usable_fraction": usable_fraction,
                 "normalized_magnitude_median": mag_median,
+                "normalized_magnitude_max": mag_max,
+                "delta_norm_median": delta_norm_median,
                 "normalized_magnitude_q25": mag_q25,
                 "normalized_magnitude_q75": mag_q75,
                 "normalized_magnitude_iqr": mag_iqr,
@@ -500,7 +534,10 @@ def representation_stability(
     Consensus labels use explicit rules stored in ``params['consensus_label_rules']``.
     The function never averages raw displacement vectors across representations; it
     combines only coordinate-safe scalars: normalized magnitudes, ranks, velocity
-    cosines computed within each representation, and class agreement.
+    cosines computed within each representation, and class agreement. Non-neutral
+    magnitude agreement without velocity evidence is labeled ``stable_effect``;
+    rank and direction instability are reserved for substantive representation
+    disagreement after coverage and stable-neutral checks.
     """
     reps = _as_sequence_of_reps(reps)
     missing = [rep for rep in reps if rep not in adata.obsm]

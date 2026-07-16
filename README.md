@@ -83,7 +83,7 @@ ScGeo reports are organized around four questions:
 
 | Term | Question | Evidence shown |
 |------|----------|----------------|
-| Effect | Did the state move? | robust displacement magnitude, normalized magnitude, bootstrap interval, directional stability |
+| Effect | Did the state move? | robust displacement magnitude, normalized magnitude, bootstrap uncertainty interval, directional stability |
 | Stability | Is that conclusion stable across representations? | usable representation fraction, consensus label, rank spread, leave-one-representation-out sensitivity |
 | Local geometry | Is neighborhood structure preserved or distorted? | neighbor overlap, neighbor Jaccard, local-shape distortion, global-scale-normalized distortion, k values used, median and worst-case representation-pair summaries |
 | Dynamics | Does the displacement agree with inferred dynamics? | within-representation displacement-velocity cosine and aligned/discordant/neutral fractions |
@@ -95,6 +95,13 @@ codes such as `stable_across_representations`, `representation_sensitive`,
 `insufficient_coverage`. Report summaries stay quantitative unless a qualitative
 label is already defined by a stored analysis module. These labels are not a
 weighted score or a new significance statistic.
+
+Bootstrap magnitude intervals report resampling uncertainty around the
+nonnegative displacement norm. They are not treated as a formal null-effect
+coverage diagnostic: benchmark states with true magnitude at or below the
+documented zero-effect epsilon are marked `not_applicable` for magnitude
+coverage, and null behavior is evaluated through shifted-state false-call rates
+and prespecified null diagnostics.
 
 The report metadata records the comparison label, condition groups, source
 store keys, representations, k values, sample key, center estimator, bootstrap
@@ -222,7 +229,7 @@ results["state_metrics"].head()
 # Or run a predefined reproducible suite.
 suite = sg.bench.run_simulation_suite(
     profile="smoke",
-    scenarios=["null", "outlier_contamination"],
+    scenarios=["null_effect", "outlier_contamination"],
     output_dir="scgeo_simulation_benchmark",
 )
 
@@ -239,11 +246,23 @@ Profiles:
 | quick | 3,000-5,000 | 5 total | 100 | 15, 30 | 1,500 |
 | manuscript | 5,000-10,000 | 20 total | 300 | 15, 30, 50 | 3,000 |
 
+Replicate-design scenarios are separated by identifiability. The
+`balanced_replicate_heterogeneity` scenario draws random sample offsets and
+zero-centers them within each condition, so it should mainly widen uncertainty
+without systematically shifting neutral states. The `batch_condition_confounding`
+scenario applies a systematic sample/batch offset correlated with condition and
+is explicitly marked non-identifiable without additional design information;
+those observed condition deltas are not counted as ordinary biological
+shift-detection successes or false positives. The legacy input name
+`replicate_heterogeneity` maps to `balanced_replicate_heterogeneity`.
+
 Calibration seeds and held-out evaluation seeds are tracked separately in every
 suite result table. Calibration runs may be used to explore thresholds, but
 final reported performance should come from held-out evaluation seeds. The
 suite exports threshold-sensitivity tables; it does not modify ScGeo consensus
-thresholds automatically.
+thresholds automatically. Final ablation summaries first aggregate outcomes
+within each simulation seed/job, then report mean, median, spread, and confidence
+intervals across held-out jobs when at least two held-out jobs are available.
 
 The framework ablation compares:
 
@@ -257,8 +276,16 @@ The framework ablation compares:
 
 The ablation table reports, for every synthetic scenario and failure mode,
 whether each variant detects the failure correctly, misses it, falsely calls it,
-or marks the evidence as insufficient, unstable, unavailable, or not computed.
-It is intentionally not a composite score.
+or marks the evidence as insufficient, unstable, unavailable, not applicable, or
+not computed. Condition distributional-shape truth is reported separately from
+representation-local-distortion truth so covariance-only condition changes are
+not scored as failures of representation-to-representation local geometry.
+Representation truth is split into equivalent, diagnostically distorted, and
+explicitly corrupted categories; diagnostic distortions are not counted as false
+explicit-corruption calls. The default summary figure uses a compact 5 x 5
+capability table, a curated applicable-performance heatmap, and a separate
+support-status heatmap; detailed supplemental heatmaps paginate when needed. It
+is intentionally not a composite score.
 
 Simulation benchmarks are not experimental validation. They support claims
 about expected behavior under controlled synthetic perturbations and failure

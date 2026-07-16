@@ -591,7 +591,7 @@ def _append_reason_codes(row: dict[str, Any]) -> None:
 
     label_value = row.get("representation_consensus_label")
     label = None if pd.isna(label_value) else str(label_value)
-    if label in {"stable_aligned", "stable_discordant", "stable_neutral"}:
+    if label in {"stable_aligned", "stable_discordant", "stable_neutral", "stable_effect"}:
         codes.append("stable_across_representations")
     if label == "representation_unstable":
         codes.append("representation_sensitive")

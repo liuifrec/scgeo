@@ -17,6 +17,7 @@ _CONSENSUS_PALETTE = {
     "stable_aligned": "#0072B2",
     "stable_discordant": "#D55E00",
     "stable_neutral": "#009E73",
+    "stable_effect": "#4D4D4D",
     "representation_unstable": "#CC79A7",
     "insufficient_coverage": "#7F7F7F",
     "missing": "#BDBDBD",

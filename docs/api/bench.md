@@ -8,6 +8,13 @@
 **Docstring**  
 Evaluate stored ScGeo outputs against synthetic simulation truth.
 
+Zero-effect magnitude coverage is marked `not_applicable`; bootstrap magnitude
+intervals are reported as uncertainty intervals, and null behavior is evaluated
+through shifted-state false-call rates and prespecified null diagnostics.
+Representation outputs are split into quality outlier, diagnostic distortion,
+and explicit corruption targets; state-level local distortion is evaluated at
+representation-pair × state resolution.
+
 ### I/O contract
 
 _No I/O entry in `scgeo_io_manifest.json` for this function._
@@ -22,6 +29,12 @@ _No I/O entry in `scgeo_io_manifest.json` for this function._
 **Docstring**  
 Build a tidy framework-ablation table from synthetic benchmark outputs.
 
+The long-form table preserves every evaluated unit. Condition distribution-shape
+truth is separate from representation-local-distortion truth, and zero-effect
+bootstrap magnitude coverage does not generate `misses`.
+Diagnostic distorted representations are not scored as false explicit-corruption
+calls.
+
 ### I/O contract
 
 _No I/O entry in `scgeo_io_manifest.json` for this function._
@@ -31,10 +44,18 @@ _No I/O entry in `scgeo_io_manifest.json` for this function._
 ## `scgeo.bench.plot_framework_ablation`
 
 **Signature**  
-`(ablation_table: 'pd.DataFrame', *, split: 'str' = 'evaluation', normalize: 'bool' = True, figsize=None, title: 'Optional[str]' = None, save_path=None, show: 'bool' = True)`
+`(ablation_table: 'pd.DataFrame', *, split: 'str' = 'evaluation', normalize: 'bool' = True, figsize='auto', row_height: 'float' = 0.3, min_height: 'float' = 3.2, wrap_width: 'int' = 18, show_values: 'bool | str' = 'auto', title: 'Optional[str]' = None, save_path=None, show: 'bool' = True)`
 
 **Docstring**  
 Plot a manuscript-ready framework-ablation summary.
+
+The default figure contains a fixed 5 x 5 capability table, a curated
+applicable-performance heatmap, and a separate support-status heatmap.
+`figsize='auto'` sizes height from row counts and row height, and panel widths
+from wrapped label lengths within fixed caps. Unsupported cells are blank, and
+`not_computed`, `not_applicable`, and scientifically irrelevant rows are not
+mixed with performance outcomes. Plotting metadata is attached to the returned
+Figure.
 
 ### I/O contract
 
@@ -49,6 +70,12 @@ _No I/O entry in `scgeo_io_manifest.json` for this function._
 
 **Docstring**  
 Run a reproducible synthetic ScGeo benchmark suite.
+
+Final summaries use simulation seed/job as the independent unit and report
+mean, median, spread, and confidence intervals across held-out jobs when the
+number of held-out jobs permits.
+The legacy scenario input `null` is accepted as an alias, but benchmark exports
+use `null_effect`.
 
 ### I/O contract
 

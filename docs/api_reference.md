@@ -31,7 +31,8 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
 - Full name: `scgeo.bench.simulate_perturbation_geometry`
 - Signature: `( *, scenario='centroid_shift', n_states=5, n_samples_per_condition=4, cells_per_sample=400, latent_dim=8, effect_size=1.0, affected_states=None, outlier_fraction=0.0, outlier_scale=10.0, sample_heterogeneity=0.15, abundance_effect=0.0, covariance_effect=0.0, warp_strength=0.0, velocity_mode=None, seed=0)`
 - Description: Generate a synthetic perturbation-geometry benchmark AnnData object.
-- Scenarios: `null`, `centroid_shift`, `abundance_only`, `covariance_only`, `local_warp`, `outlier_contamination`, `unequal_cell_counts`, `replicate_heterogeneity`, `representation_corruption`, `aligned_dynamics`, `discordant_dynamics`.
+- Scenarios: `null_effect`, `centroid_shift`, `abundance_only`, `covariance_only`, `local_warp`, `outlier_contamination`, `unequal_cell_counts`, `balanced_replicate_heterogeneity`, `batch_condition_confounding`, `representation_corruption`, `aligned_dynamics`, `discordant_dynamics`. The legacy input aliases `null` and `replicate_heterogeneity` are accepted but exported as `null_effect` and `balanced_replicate_heterogeneity`, respectively.
+- Replicate designs: `balanced_replicate_heterogeneity` draws random sample offsets and exactly zero-centers them within each condition, so the expected outcome is wider uncertainty with a low neutral-state false-call rate. `batch_condition_confounding` applies a systematic sample/batch offset correlated with condition and is marked non-identifiable without additional design information; observed condition deltas are not counted as ordinary biological shifted-state detection successes or false positives.
 - Output: synthetic AnnData with `obs['state']`, `obs['condition']`, `obs['sample']`, representation ensemble, optional velocity embeddings, and `adata.uns['simulation_truth']`.
 
 ### `scgeo.bench.evaluate_ground_truth`
@@ -39,7 +40,7 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
 - Full name: `scgeo.bench.evaluate_ground_truth`
 - Signature: `(adata, *, robust_shift_key='robust_shift', representation_key='representation_stability', local_geometry_key='local_geometry_stability')`
 - Description: Evaluate stored ScGeo outputs against synthetic simulation truth.
-- Output: dictionary of tidy DataFrames for state magnitude errors, rank agreement, shifted-state precision/recall/F1, null false classification, bootstrap coverage, representation consensus labels, abundance truth, dynamics class accuracy, corrupted-representation detection, distorted-state detection, neighborhood preservation discrimination, coverage, runtime, and threshold sensitivity. No composite benchmark score is created.
+- Output: dictionary of tidy DataFrames for state magnitude errors, rank agreement, shifted-state precision/recall/F1, null false classification, bootstrap uncertainty interval coverage for nonzero effects, representation consensus labels, abundance truth, condition distribution-shape truth, non-identifiability truth, dynamics class accuracy, representation quality outlier detection, representation distortion detection, explicit corruption detection, pair-state representation-local-distortion detection, neighborhood preservation discrimination, replicate/sample diagnostics, coverage, runtime, and threshold sensitivity. Zero-effect magnitude coverage is marked `not_applicable`; null behavior is evaluated through shifted-state false-call rates and prespecified null diagnostics. Non-identifiable batch-confounded states are excluded from ordinary biological shifted-state classification rates. No composite benchmark score is created.
 
 ### `scgeo.bench.framework_ablation`
 
@@ -47,14 +48,14 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
 - Signature: `(tables, *, final_split='evaluation')`
 - Description: Build a tidy framework-ablation table from synthetic benchmark outputs.
 - Variants: A original mean shift on one representation; B robust shift on one representation; C robust shift plus representation consensus; D C plus local geometry diagnostics; E D plus dynamics agreement.
-- Output: one row per scenario, seed, variant, failure mode, and evaluated unit with explicit `truth`, `call`, `status`, and `outcome`; held-out evaluation rows are marked by `final_evaluation`. No composite score is created.
+- Output: one row per scenario, seed/job, variant, failure mode, and evaluated unit with explicit `truth`, `call`, `status`, and `outcome`; held-out evaluation rows are marked by `final_evaluation`. `condition_distribution_shape_change` is separate from pair-state `representation_local_distortion`; representation-level targets are split into `representation_quality_outlier`, `representation_distortion_detection`, and `explicit_corruption_detection`. Zero-effect bootstrap magnitude coverage rows use `not_applicable` rather than `misses`. No composite score is created.
 
 ### `scgeo.bench.plot_framework_ablation`
 
 - Full name: `scgeo.bench.plot_framework_ablation`
-- Signature: `(ablation_table, *, split='evaluation', normalize=True, figsize=None, title=None, save_path=None, show=True)`
-- Description: Plot held-out framework-ablation outcome rates or counts.
-- Output: matplotlib Figure with stacked outcome bars for scenario/failure-mode/variant rows; missing or unavailable evidence is shown separately from false negatives.
+- Signature: `(ablation_table, *, split='evaluation', normalize=True, figsize='auto', row_height=0.30, min_height=3.2, wrap_width=18, show_values='auto', title=None, save_path=None, show=True)`
+- Description: Plot held-out framework-ablation summaries without mixing unavailable evidence with performance outcomes.
+- Output: compact matplotlib Figure with a fixed 5 x 5 capability table, a curated applicable-performance heatmap, and a separate support-status heatmap. `figsize='auto'` sizes height from row counts and row height, and panel widths from wrapped label lengths within fixed caps. Unsupported cells are blank; `not_computed`, `not_applicable`, and scientifically irrelevant scenario/failure-mode rows are not plotted on the performance color scale. Plotting metadata is attached to the returned Figure.
 
 ### `scgeo.bench.run_simulation_suite`
 
@@ -62,7 +63,7 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
 - Signature: `( *, profile='smoke', scenarios=None, seeds=None, output_dir=None, resume=True, n_jobs=1)`
 - Description: Run a reproducible synthetic ScGeo benchmark suite.
 - Profiles: `smoke` is approximately 1,000-2,000 cells/job with 25 bootstrap iterations and `k=(15,)`; `quick` is approximately 3,000-5,000 cells/job with 100 bootstrap iterations and `k=(15, 30)`; `manuscript` is approximately 5,000-10,000 cells/job with 300 bootstrap iterations and `k=(15, 30, 50)`.
-- Calibration and held-out evaluation seeds are tracked separately. The suite exports threshold-sensitivity tables and framework-ablation tables; final ablation summaries and saved figures use held-out evaluation seeds. The suite does not modify consensus thresholds automatically.
+- Calibration and held-out evaluation seeds are tracked separately. The suite exports threshold-sensitivity tables, the complete long-form framework-ablation table, seed/job-level ablation summaries, and final held-out summaries that report mean, median, spread, and confidence intervals across held-out jobs when the number of jobs permits. The suite does not modify consensus thresholds automatically.
 - Synthetic benchmarks are methodological checks, not experimental validation.
 
 ## scgeo.tl
@@ -200,6 +201,7 @@ Entries marked **Uncertain** are listed in `scgeo_io_manifest.json` under `skipp
 - Full name: `scgeo.tl.representation_stability`
 - Signature: `(adata, *, reps, node_key, condition_key, group0, group1, sample_key=None, center: 'str' = 'geometric_median', trim_fraction: 'float' = 0.1, n_boot: 'int' = 500, velocity_keys=None, alignment_pos_thr: 'float' = 0.3, alignment_neg_thr: 'float' = -0.3, min_cells: 'int' = 20, consensus_rules=None, seed: 'int' = 0, store_key: 'str' = 'representation_stability')`
 - Description: Assess whether state-level perturbation geometry is stable across representations.
+- Consensus labels include `stable_neutral` for consistently negligible effects, `stable_effect` for non-neutral magnitude agreement without velocity evidence, `stable_aligned`/`stable_discordant` when velocity classes agree, `representation_unstable` for substantive representation disagreement, and `insufficient_coverage`.
 - Uncertain: no
 - Normalized I/O:
   - obs cols: added [none], touched [`batch`, `cluster`, `condition`], removed [none]
