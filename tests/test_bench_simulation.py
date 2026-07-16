@@ -625,6 +625,42 @@ def test_framework_ablation_plot_matrices_are_compact_and_mask_unsupported_cells
     plt.close(fig)
 
 
+def test_framework_ablation_capability_headers_do_not_overlap_after_draw():
+    import matplotlib.pyplot as plt
+    import scgeo as sg
+
+    fig = sg.bench.plot_framework_ablation(_synthetic_full_smoke_ablation_table(), show=False)
+    metadata = fig.scgeo_ablation_plot_metadata
+
+    assert metadata["displayed_labels"]["capability_columns"] == [
+        "Effect",
+        "Uncertainty",
+        "Rep.\nstability",
+        "Local\ngeometry",
+        "Dynamics",
+    ]
+    assert metadata["original_labels"]["capability_columns"] == [
+        "Effect",
+        "Uncertainty",
+        "Representation stability",
+        "Local geometry",
+        "Dynamics",
+    ]
+
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    cap_ax = next(ax for ax in fig.axes if ax.get_title() == "Capability")
+    table = next(child for child in cap_ax.get_children() if child.__class__.__name__ == "Table")
+    header_bboxes = [
+        table.get_celld()[(0, col)].get_text().get_window_extent(renderer)
+        for col in range(5)
+    ]
+    for left, right in zip(header_bboxes, header_bboxes[1:]):
+        assert left.x1 <= right.x0 + 0.5
+        assert not left.overlaps(right)
+    plt.close(fig)
+
+
 def test_framework_ablation_short_labels_are_deterministic():
     from scgeo.bench._simulation import _framework_ablation_plot_matrices, _short_ablation_row_label
 

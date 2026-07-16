@@ -89,9 +89,9 @@ _CAPABILITY_COLUMNS = (
 )
 _CAPABILITY_DISPLAY_LABELS = {
     "Effect": "Effect",
-    "Uncertainty": "Uncert.",
-    "Representation stability": "Stability",
-    "Local geometry": "Local\ngeom.",
+    "Uncertainty": "Uncertainty",
+    "Representation stability": "Rep.\nstability",
+    "Local geometry": "Local\ngeometry",
     "Dynamics": "Dynamics",
 }
 _CAPABILITY_BY_VARIANT = {
@@ -141,12 +141,12 @@ _DYNAMICS_SCENARIOS = {"aligned_dynamics", "discordant_dynamics"}
 _PLOT_AUTO_ROW_HEIGHT = 0.30
 _PLOT_AUTO_MIN_HEIGHT = 3.2
 _PLOT_AUTO_MIN_PANEL_WIDTHS = {
-    "capability": 1.45,
+    "capability": 2.85,
     "performance": 2.70,
     "support": 1.90,
 }
 _PLOT_AUTO_MAX_PANEL_WIDTHS = {
-    "capability": 1.80,
+    "capability": 3.25,
     "performance": 4.80,
     "support": 3.30,
 }
@@ -2626,18 +2626,30 @@ def plot_framework_ablation(
             loc="center",
         )
         table.auto_set_font_size(False)
-        table.set_fontsize(7)
-        table.scale(1.0, 1.25)
+        table.set_fontsize(8)
+        table.scale(1.04, 1.28)
         for (row, col), cell in table.get_celld().items():
             cell.set_edgecolor("#c8c8c8")
             cell.set_linewidth(0.6)
-            if row == 0 or col == -1:
+            text = cell.get_text()
+            text.set_ha("center")
+            text.set_va("center")
+            text.set_multialignment("center")
+            if row == 0:
                 cell.set_facecolor("#f2f2f2")
-                cell.set_text_props(weight="bold")
+                cell.set_height(cell.get_height() * 1.70)
+                text.set_fontsize(6.4)
+                text.set_weight("bold")
+            elif col == -1:
+                cell.set_facecolor("#f2f2f2")
+                text.set_fontsize(7.8)
+                text.set_weight("bold")
             elif cell.get_text().get_text():
                 cell.set_facecolor("#d9ead3")
+                text.set_fontsize(8.6)
             else:
                 cell.set_facecolor("#ffffff")
+                text.set_fontsize(8.0)
         ax.set_title(title_text, fontsize=9)
 
     def _draw_rate_heatmap(ax, matrix: pd.DataFrame, *, title_text: str, cmap: str, vmin: float, vmax: float):
