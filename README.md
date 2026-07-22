@@ -128,11 +128,13 @@ documented in [BENCHMARK_PROTOCOL.md](docs/revision/BENCHMARK_PROTOCOL.md).
 
 ## 9. Public validation
 
-Public-data workflows live in the companion repository. They cover a pancreas
-dynamics analysis, a descriptive inflammatory xenograft analysis without a
-recoverable biological-replicate identity, and a replicate-aware,
-cross-sectional mouse-lung radiation analysis. Their inference scopes are not
-interchangeable. See [Companion notebooks](docs/COMPANION_NOTEBOOKS.md).
+Public-data workflows live in the companion repository. They cover the public
+pancreatic-development workflow; GSE249479, a public human HSPC inflammatory
+xenograft dataset with no recoverable biological-replicate identity; and
+GSE211713, a public mouse-lung radiation dataset with 20 independent mouse
+libraries. The GSE211713 analysis is replicate-aware and cross-sectional, not
+longitudinal. Their inference scopes are not interchangeable. See
+[Companion notebooks](docs/COMPANION_NOTEBOOKS.md).
 
 ## 10. Reproducibility and companion repository
 
