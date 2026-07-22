@@ -116,6 +116,12 @@ abundance, distributional shape, local distortion, representation stability,
 uncertainty, and geometry–dynamics agreement. Calibration and held-out seeds are
 kept separate, and frozen thresholds are not automatically tuned by the suite.
 
+The `balanced_replicate_heterogeneity` scenario uses random sample offsets that
+are zero-centered within condition and is intended to test uncertainty without a
+systematic condition shift. The separate `batch_condition_confounding` scenario
+applies a systematic sample/batch offset correlated with condition and is
+non-identifiable without additional design information.
+
 Synthetic results validate behavior under their stated perturbations and
 failure modes; they do not establish biological truth. The frozen protocol is
 documented in [BENCHMARK_PROTOCOL.md](docs/revision/BENCHMARK_PROTOCOL.md).
