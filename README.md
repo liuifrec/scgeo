@@ -1,28 +1,45 @@
 <p align="center">
-  <img src="docs/assets/ScGeo_logo.png" width="420">
+  <img src="docs/assets/ScGeo_logo.png" width="420" alt="ScGeo logo">
 </p>
 
 <h1 align="center">ScGeo</h1>
 
-<p align="center">
-Geometry-aware analysis of single-cell representations
-</p>
+<p align="center">Geometry-aware analysis of single-cell representations</p>
 
+## 1. What ScGeo is
 
-ScGeo is a geometry-aware framework for single-cell analysis that treats low-dimensional embeddings as quantitative representations of cellular state space.
+ScGeo is an installable Python library for quantifying perturbation-associated
+geometry in low-dimensional single-cell representations. It organizes robust
+state displacement, biological-sample uncertainty, representation stability,
+local geometry, dynamics agreement, abundance, and distributional change as
+separate evidence layers.
 
-It enables:
+Start with the [framework overview](docs/OVERVIEW.md), then follow the
+[quick start](docs/QUICKSTART.md).
 
-- measurement of perturbation-driven state transitions (Δ-shift)
-- evaluation of integration via local mixing structure
-- detection of global redistribution (distributional divergence)
-- alignment of embedding geometry with RNA velocity and fate inference
+## 2. What ScGeo is not
 
-Importantly, ScGeo reveals structured biological dynamics and non-canonical trajectories that are not fully captured by RNA velocity alone.
+ScGeo is not a batch-correction or integration algorithm, and it does not make
+cells into biological replicates. It does not make UMAP a quantitative
+coordinate system, turn agreement among nested PCA dimensions into independent
+confirmation, or convert descriptive geometry into causal evidence. ScGeo uses
+standard geometric and statistical primitives; its contribution is the
+auditable framework that connects those primitives across evidence layers.
 
-ScGeo provides a quantitative framework to detect, compare, and interpret perturbation-induced state transitions directly in embedding space.
+## 3. Core analysis layers
 
-## Installation
+| Layer | Main question | Typical output |
+|---|---|---|
+| Robust shift | How far and in what direction did a state move? | displacement, normalized effect, direction stability |
+| Sample uncertainty | Is the shift stable across biological samples? | sample bootstrap interval and coverage |
+| Representation stability | Does the conclusion persist across prespecified representations? | consensus status and sensitivity diagnostics |
+| Local geometry | Are neighborhoods and local shapes preserved? | overlap, Jaccard, and distortion metrics |
+| Dynamics agreement | Does displacement align with an available dynamics estimate? | aligned, discordant, neutral, or unavailable evidence |
+| Abundance and distribution | Did composition or within-state shape also change? | separate proportions and distribution distances |
+
+See [Analysis layers](docs/ANALYSIS_LAYERS.md) for estimands and interpretation.
+
+## 4. Installation
 
 ```bash
 git clone https://github.com/liuifrec/scgeo.git
@@ -32,110 +49,17 @@ conda activate scgeo
 pip install -e .
 ```
 
-## Minimal example
+The frozen package checkpoint used for the major-revision evidence package is
+[`9a0ed16`](https://github.com/liuifrec/scgeo/tree/9a0ed16cbaa57f935f9c9bc87d1643a25b51012c).
+
+## 5. Minimal sample-aware example
+
+The biological sample identifier belongs in `adata.obs`; it should identify an
+independently sampled unit rather than a cell, condition, or artificial
+partition.
 
 ```python
 import scgeo as sg
-
-# compute geometry
-sg.tl.shift(adata)
-sg.tl.robust_shift(
-    adata,
-    condition_key="condition",
-    group0="control",
-    group1="treated",
-    sample_key="donor",
-)
-sg.tl.representation_stability(
-    adata,
-    reps=["X_pca", "X_scvi"],
-    node_key="cell_type",
-    condition_key="condition",
-    group0="control",
-    group1="treated",
-    sample_key="donor",
-)
-sg.tl.local_geometry_stability(
-    adata,
-    reps=["X_pca", "X_scvi"],
-    node_key="cell_type",
-    sample_key="donor",
-    k_values=(15, 30),
-)
-report = sg.get.state_report(adata, node_key="cell_type")
-sg.pl.state_evidence_panel(report)
-sg.pl.representation_stability_heatmap(adata)
-sg.pl.consensus_state_map(adata, node_key="cell_type")
-bundle = sg.pl.perturbation_report(adata, node_key="cell_type")
-sg.tl.mixscore(adata)
-sg.tl.distribution_test(adata)
-
-# analyze dynamics
-sg.tl.velocity_shift_alignment(adata)
-
-# visualize
-sg.pl.recovery_compass(adata)
-```
-
-## How to read a ScGeo report
-
-ScGeo reports are organized around four questions:
-
-| Term | Question | Evidence shown |
-|------|----------|----------------|
-| Effect | Did the state move? | robust displacement magnitude, normalized magnitude, bootstrap uncertainty interval, directional stability |
-| Stability | Is that conclusion stable across representations? | usable representation fraction, consensus label, rank spread, leave-one-representation-out sensitivity |
-| Local geometry | Is neighborhood structure preserved or distorted? | neighbor overlap, neighbor Jaccard, local-shape distortion, global-scale-normalized distortion, k values used, median and worst-case representation-pair summaries |
-| Dynamics | Does the displacement agree with inferred dynamics? | within-representation displacement-velocity cosine and aligned/discordant/neutral fractions |
-| Coverage | Is the conclusion adequately supported? | cell/sample counts, underpowered states, missing modules, warning text |
-
-`scgeo.get.state_report` returns one row per state and adds transparent reason
-codes such as `stable_across_representations`, `representation_sensitive`,
-`dynamics_aligned`, `dynamics_discordant`, `dynamics_unavailable`, and
-`insufficient_coverage`. Report summaries stay quantitative unless a qualitative
-label is already defined by a stored analysis module. These labels are not a
-weighted score or a new significance statistic.
-
-Bootstrap magnitude intervals report resampling uncertainty around the
-nonnegative displacement norm. They are not treated as a formal null-effect
-coverage diagnostic: benchmark states with true magnitude at or below the
-documented zero-effect epsilon are marked `not_applicable` for magnitude
-coverage, and null behavior is evaluated through shifted-state false-call rates
-and prespecified null diagnostics.
-
-The report metadata records the comparison label, condition groups, source
-store keys, representations, k values, sample key, center estimator, bootstrap
-unit, consensus rules, global diagnostics, representation diagnostics, warnings,
-and creation timestamp. State-graph summaries remain global diagnostics unless
-a stored analysis provides a genuinely state-specific transition-profile metric.
-
-Small synthetic example:
-
-```python
-import anndata as ad
-import numpy as np
-import pandas as pd
-import scgeo as sg
-
-rng = np.random.default_rng(0)
-n = 40
-x0 = rng.normal(scale=0.2, size=(n, 2))
-x1 = rng.normal(loc=(1.0, 0.0), scale=0.2, size=(n, 2))
-x = np.vstack([x0, x1])
-obs = pd.DataFrame(
-    {
-        "condition": ["control"] * n + ["treated"] * n,
-        "state": ["state_a"] * (2 * n),
-        "donor": [f"d{i % 4}" for i in range(2 * n)],
-    },
-    index=[f"cell{i}" for i in range(2 * n)],
-)
-adata = ad.AnnData(X=np.zeros((2 * n, 1)), obs=obs)
-adata.obsm["X_pca"] = x
-adata.obsm["X_rot"] = x @ np.array([[0.0, -1.0], [1.0, 0.0]])
-adata.obsm["X_umap"] = x
-adata.obsm["V_pca"] = np.repeat([[1.0, 0.0]], 2 * n, axis=0)
-adata.obsm["V_rot"] = adata.obsm["V_pca"] @ np.array([[0.0, -1.0], [1.0, 0.0]])
 
 sg.tl.robust_shift(
     adata,
@@ -143,226 +67,99 @@ sg.tl.robust_shift(
     condition_key="condition",
     group0="control",
     group1="treated",
-    by="state",
+    by="cell_type",
     sample_key="donor",
-    n_boot=50,
+    n_boot=500,
 )
+
 sg.tl.representation_stability(
     adata,
-    reps=["X_pca", "X_rot"],
-    node_key="state",
+    reps=["X_pca", "X_scvi"],
+    node_key="cell_type",
     condition_key="condition",
     group0="control",
     group1="treated",
     sample_key="donor",
-    velocity_keys={"X_pca": "V_pca", "X_rot": "V_rot"},
-    min_cells=10,
-    n_boot=25,
-)
-sg.tl.local_geometry_stability(
-    adata,
-    reps=["X_pca", "X_rot"],
-    node_key="state",
-    sample_key="donor",
-    k_values=(10,),
-    n_boot=25,
 )
 
-report = sg.get.state_report(adata, node_key="state")
+report = sg.get.state_report(adata, node_key="cell_type")
 sg.pl.state_evidence_panel(report)
-bundle = sg.pl.perturbation_report(
-    adata,
-    node_key="state",
-    report=report,
-    comparison_label="treated_vs_control",
-    save_dir="scgeo_report",
-    show=False,
-)
 ```
 
+Required fields and expected outputs are listed in
+[Quick start](docs/QUICKSTART.md).
 
-## Core questions ScGeo answers
+## 6. How to interpret results
 
-| Question                                  | Geometric tool              |
-|-------------------------------------------|-----------------------------|
-| How different are two conditions overall? | Wasserstein distance        |
-| How much do populations overlap?          | Bhattacharyya / kNN mixing  |
-| Are two responses aligned?                | cosine(Δ₁, Δ₂)              |
-| Which cells drive the difference?         | consensus subspace          |
-| Where are ambiguous cells?                | projection disagreement     |
+Read effect size, uncertainty, representation stability, local geometry, and
+coverage together. `stable_effect`, `stable_neutral`,
+`representation_unstable`, and `insufficient_coverage` describe evidence under
+the stored rules; they are not interchangeable with population-level causal
+claims. Bootstrap magnitude intervals summarize resampling uncertainty around a
+nonnegative norm and are not automatically null-hypothesis tests.
 
-ScGeo complements Scanpy, scVelo, CellRank, and scFates by making
-**representation geometry explicit and measurable**.
+See [Result interpretation](docs/RESULT_INTERPRETATION.md) for status-specific
+language and warnings.
 
-## Synthetic benchmarks
+## 7. Representation robustness
 
-ScGeo includes a synthetic-only benchmark framework under `scgeo.bench`.
-It is designed to test whether the analysis stack separates effect magnitude,
-abundance change, distributional shape change, local geometric distortion,
-representation stability, uncertainty, and geometry-dynamics agreement.
+Representations must be prespecified as primary or sensitivity views. Related
+PCA20, PCA30, and PCA50 views share a basis and should not be counted as three
+independent confirmations. UMAP should ordinarily remain display-only.
+Condition mixing is a descriptive diagnostic when condition is biological, not
+an integration objective. See [Analysis layers](docs/ANALYSIS_LAYERS.md).
 
-```python
-import scgeo as sg
+## 8. Synthetic validation
 
-adata = sg.bench.simulate_perturbation_geometry(
-    scenario="outlier_contamination",
-    n_states=5,
-    n_samples_per_condition=3,
-    cells_per_sample=200,
-    seed=0,
-)
+The `scgeo.bench` module provides controlled simulations for effect magnitude,
+abundance, distributional shape, local distortion, representation stability,
+uncertainty, and geometry–dynamics agreement. Calibration and held-out seeds are
+kept separate, and frozen thresholds are not automatically tuned by the suite.
 
-# Run the analysis stack, then evaluate against stored synthetic truth.
-sg.tl.robust_shift(
-    adata,
-    rep="X_truth",
-    condition_key="condition",
-    group0="control",
-    group1="treated",
-    by="state",
-    sample_key="sample",
-    n_boot=50,
-)
-results = sg.bench.evaluate_ground_truth(adata)
-results["state_metrics"].head()
+The `balanced_replicate_heterogeneity` scenario uses random sample offsets that
+are zero-centered within condition and is intended to test uncertainty without a
+systematic condition shift. The separate `batch_condition_confounding` scenario
+applies a systematic sample/batch offset correlated with condition and is
+non-identifiable without additional design information.
 
-# Or run a predefined reproducible suite.
-suite = sg.bench.run_simulation_suite(
-    profile="smoke",
-    scenarios=["null_effect", "outlier_contamination"],
-    output_dir="scgeo_simulation_benchmark",
-)
+Synthetic results validate behavior under their stated perturbations and
+failure modes; they do not establish biological truth. The frozen protocol is
+documented in [BENCHMARK_PROTOCOL.md](docs/revision/BENCHMARK_PROTOCOL.md).
 
-# Explicit framework ablation, summarized on held-out evaluation seeds.
-ablation = suite["tables"]["framework_ablation"]
-fig = sg.bench.plot_framework_ablation(ablation, split="evaluation", show=False)
-```
+## 9. Public validation
 
-Profiles:
+Public-data workflows live in the companion repository. They cover a pancreas
+dynamics analysis, a descriptive inflammatory xenograft analysis without a
+recoverable biological-replicate identity, and a replicate-aware,
+cross-sectional mouse-lung radiation analysis. Their inference scopes are not
+interchangeable. See [Companion notebooks](docs/COMPANION_NOTEBOOKS.md).
 
-| Profile | Approximate cells per job | Seeds | Bootstrap | k values | Rank subset |
-|---------|---------------------------|-------|-----------|----------|-------------|
-| smoke | 1,000-2,000 | 2 total | 25 | 15 | 750 |
-| quick | 3,000-5,000 | 5 total | 100 | 15, 30 | 1,500 |
-| manuscript | 5,000-10,000 | 20 total | 300 | 15, 30, 50 | 3,000 |
+## 10. Reproducibility and companion repository
 
-Replicate-design scenarios are separated by identifiability. The
-`balanced_replicate_heterogeneity` scenario draws random sample offsets and
-zero-centers them within each condition, so it should mainly widen uncertainty
-without systematically shifting neutral states. The `batch_condition_confounding`
-scenario applies a systematic sample/batch offset correlated with condition and
-is explicitly marked non-identifiable without additional design information;
-those observed condition deltas are not counted as ordinary biological
-shift-detection successes or false positives. The legacy input name
-`replicate_heterogeneity` maps to `balanced_replicate_heterogeneity`.
+The library code is maintained here. Source notebooks, execution wrappers,
+figure assembly, evidence ledgers, and ignored large artifacts are maintained
+in [`scgeo-notebooks`](https://github.com/liuifrec/scgeo-notebooks). Source
+notebooks are kept output-free; executed review copies are generated locally.
 
-Calibration seeds and held-out evaluation seeds are tracked separately in every
-suite result table. Calibration runs may be used to explore thresholds, but
-final reported performance should come from held-out evaluation seeds. The
-suite exports threshold-sensitivity tables; it does not modify ScGeo consensus
-thresholds automatically. Final ablation summaries first aggregate outcomes
-within each simulation seed/job, then report mean, median, spread, and confidence
-intervals across held-out jobs when at least two held-out jobs are available.
+See [Reproducibility](docs/REPRODUCIBILITY.md) and the generated
+[API reference](docs/api_reference.md).
 
-The framework ablation compares:
+## 11. Limitations
 
-| Variant | Evidence included |
-|---------|-------------------|
-| A | original mean shift on `X_truth` |
-| B | robust geometric-median shift on `X_truth` |
-| C | B plus representation-consensus status |
-| D | C plus local-geometry diagnostics |
-| E | D plus dynamics agreement |
+- Geometry depends on the chosen representation and its coverage.
+- Biological-sample inference requires genuine independent sample identifiers.
+- Abundance, displacement, and distributional change answer different questions.
+- Dynamics agreement depends on the assumptions of the supplied dynamics model.
+- Weak reference support is an unsupported-state warning, not general
+  out-of-distribution detection.
+- Public validations cannot establish causality beyond their experimental design.
 
-The ablation table reports, for every synthetic scenario and failure mode,
-whether each variant detects the failure correctly, misses it, falsely calls it,
-or marks the evidence as insufficient, unstable, unavailable, not applicable, or
-not computed. Condition distributional-shape truth is reported separately from
-representation-local-distortion truth so covariance-only condition changes are
-not scored as failures of representation-to-representation local geometry.
-Representation truth is split into equivalent, diagnostically distorted, and
-explicitly corrupted categories; diagnostic distortions are not counted as false
-explicit-corruption calls. The default summary figure uses a compact 5 x 5
-capability table, a curated applicable-performance heatmap, and a separate
-support-status heatmap; detailed supplemental heatmaps paginate when needed. It
-is intentionally not a composite score.
-
-Simulation benchmarks are not experimental validation. They support claims
-about expected behavior under controlled synthetic perturbations and failure
-modes, not claims about biological truth in real datasets.
-
-## Mapping to manuscript concepts
-
-| Manuscript concept | API |
-|-------------------|-----|
-| Geometric displacement (Δ) | scgeo.tl.shift |
-| Local mixing | scgeo.tl.mixscore |
-| Distribution divergence | scgeo.tl.distribution_test |
-| Geometry–velocity alignment | scgeo.tl.velocity_shift_alignment |
-| OOD detection | scgeo.tl.ood_cells |
-| Composition drift | scgeo.pl.composition_drift |
-| Recovery trajectory visualization | scgeo.pl.recovery_compass |
-
-## Core functions
-
-- `scgeo.tl.shift` — geometric displacement between conditions
-- `scgeo.tl.mixscore` — local neighborhood mixing
-- `scgeo.tl.distribution_test` — embedding-level divergence
-- `scgeo.tl.velocity_shift_alignment` — geometry–velocity consistency
-
-
-
-## Core Features (v0.2)
-
-- Geometry-aware reference mapping (Census / local)
-- Velocity–embedding alignment metrics
-- Driver gene identification via geometric shift
-- OOD detection in embedding space
-
-## Extended capabilities (ongoing development)
-- QC-aware atlas mapping & annotation
-- cellxgene reference pool integration
-- batch correction benchmarking
-- trajectory / velocity / fate geometry
-- cross-modality (scRNA / spatial / bulk) analysis
-
-## Manuscript
-
-ScGeo is introduced and validated in:
-
-"ScGeo reveals non-canonical trajectories beyond RNA velocity in radiation-induced hematopoietic recovery"
-
-All analysis workflows and figure-generation notebooks are available in:
-https://github.com/liuifrec/scgeo-notebooks
-
-
-## Citation
+## 12. Citation
 
 If you use ScGeo, please cite:
 
-Liu Y-C, Yoshida K.  
-*ScGeo reveals non-canonical trajectories beyond RNA velocity in radiation-induced hematopoietic recovery.*
+Liu Y-C, Yoshida K. *ScGeo reveals non-canonical trajectories beyond RNA
+velocity in radiation-induced hematopoietic recovery.*
 
-## Manifest layers (reproducible contracts)
-
-ScGeo tracks public and I/O contracts across three aligned JSON manifests:
-
-- `api_manifest.json`: exported public API (`scgeo.tl`, `scgeo.pl`, and `scgeo.get`)
-- `scgeo_io_raw.json`: raw write-diff observations for TL functions
-- `scgeo_io_manifest.json`: normalized TL I/O contract
-
-Rebuild all manifests in one step:
-
-```bash
-PYTHONPATH=. python scripts/rebuild_manifests.py
-```
-
-Validate the alignment/importability checks:
-
-```bash
-PYTHONPATH=. python scripts/validate_manifests.py
-```
-
-Public API docs generated from these manifests are available at:
-
-- `docs/api_reference.md`
+The manuscript and repository documentation remain the authoritative sources
+for the exact frozen revision checkpoint and analysis scope.
