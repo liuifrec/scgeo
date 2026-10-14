@@ -11,8 +11,8 @@ frozen workstation.
 |---|---|---|
 | Synthetic benchmark | Controlled perturbations, failure modes, and held-out evaluation | Synthetic ground truth only; no biological claim |
 | Public pancreas | Developmental dynamics with scVelo and CellRank context | Descriptive dynamics validation |
-| Dataset B, GSE249479 | Inflammatory xenograft treatment geometry and official R Augur comparison | `descriptive_only`; no recoverable cell-level biological-replicate identity |
-| Dataset C, GSE211713 | Mouse-lung radiation response with independent mouse libraries | Replicate-aware primary associations; cross-sectional, not longitudinal |
+| GSE249479, a public human HSPC inflammatory xenograft dataset | Inflammatory treatment geometry and official R Augur comparison | `descriptive_only`; no recoverable cell-level biological-replicate identity |
+| GSE211713, a public mouse-lung radiation dataset with 20 independent mouse libraries | Mouse-lung radiation response | Replicate-aware primary associations; cross-sectional, not longitudinal |
 
 The companion also contains the original manuscript workflow, reviewer-facing
 metric audits, manuscript figure assembly, and reproducibility gates.
