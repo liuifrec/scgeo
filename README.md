@@ -6,6 +6,15 @@
 
 <p align="center">Geometry-aware analysis of single-cell representations</p>
 
+[![DOI](https://img.shields.io/badge/DOI-10.1093%2Fbioadv%2Fvbag266-blue)](https://doi.org/10.1093/bioadv/vbag266)
+
+**Published study:** Liu Y-C, Yoshida K (2026). *Bioinformatics Advances*,
+**6**(1), vbag266. [Read the paper](https://doi.org/10.1093/bioadv/vbag266).
+
+[Quick start](docs/QUICKSTART.md) | [API reference](docs/api_reference.md) |
+[Reproducibility](docs/REPRODUCIBILITY.md) |
+[Companion workflows](https://github.com/liuifrec/scgeo-notebooks)
+
 ## 1. What ScGeo is
 
 ScGeo is an installable Python library for quantifying perturbation-associated
@@ -156,10 +165,29 @@ See [Reproducibility](docs/REPRODUCIBILITY.md) and the generated
 
 ## 12. Citation
 
-If you use ScGeo, please cite:
+If you use ScGeo, please cite the published paper:
 
-Liu Y-C, Yoshida K. *ScGeo reveals non-canonical trajectories beyond RNA
-velocity in radiation-induced hematopoietic recovery.*
+Liu Y-C, Yoshida K. **ScGeo reveals non-canonical trajectories beyond RNA
+velocity in radiation-induced hematopoietic recovery.** *Bioinformatics Advances*.
+2026;6(1):vbag266. [doi:10.1093/bioadv/vbag266](https://doi.org/10.1093/bioadv/vbag266).
 
-The manuscript and repository documentation remain the authoritative sources
-for the exact frozen revision checkpoint and analysis scope.
+```bibtex
+@article{Liu2026ScGeo,
+  author = {Liu, Yu-Chen and Yoshida, Kengo},
+  title = {{ScGeo} reveals non-canonical trajectories beyond {RNA} velocity in radiation-induced hematopoietic recovery},
+  journal = {Bioinformatics Advances},
+  year = {2026},
+  volume = {6},
+  number = {1},
+  pages = {vbag266},
+  doi = {10.1093/bioadv/vbag266},
+  url = {https://doi.org/10.1093/bioadv/vbag266}
+}
+```
+
+Machine-readable citation metadata is provided in [CITATION.cff](CITATION.cff).
+
+For reproducibility, also report the exact package commit or tag, analysis
+configuration, and environment. The article DOI identifies the paper, not a
+separately archived software release. See [Reproducibility](docs/REPRODUCIBILITY.md)
+for the documented frozen analysis checkpoint and provenance requirements.

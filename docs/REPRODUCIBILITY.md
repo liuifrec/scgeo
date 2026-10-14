@@ -1,5 +1,16 @@
 # Reproducibility
 
+## Published study and software provenance
+
+The associated study is Liu Y-C, Yoshida K (2026), *Bioinformatics Advances*
+6(1):vbag266, [doi:10.1093/bioadv/vbag266](https://doi.org/10.1093/bioadv/vbag266).
+The complete citation and BibTeX are in the [package README](../README.md#12-citation).
+
+The article DOI identifies the paper, not a separately archived software
+release. Record the exact Git commit, package and environment versions,
+configuration, and numerical input checksums when reporting an analysis.
+Documentation updates do not change the frozen checkpoint recorded below.
+
 ## Frozen package checkpoint
 
 The package checkpoint used by the major-revision evidence package is commit

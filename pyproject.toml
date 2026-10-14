@@ -21,6 +21,14 @@ dependencies = [
     "pyarrow",
 ]
 
+[project.urls]
+Homepage = "https://github.com/liuifrec/scgeo"
+Documentation = "https://github.com/liuifrec/scgeo/blob/main/docs/OVERVIEW.md"
+Repository = "https://github.com/liuifrec/scgeo"
+Issues = "https://github.com/liuifrec/scgeo/issues"
+Publication = "https://doi.org/10.1093/bioadv/vbag266"
+"Companion workflows" = "https://github.com/liuifrec/scgeo-notebooks"
+
 [project.optional-dependencies]
 dev = ["pytest", "ruff"]
 plot = ["matplotlib"]
