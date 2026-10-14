@@ -50,16 +50,34 @@ See [Analysis layers](docs/ANALYSIS_LAYERS.md) for estimands and interpretation.
 
 ## 4. Installation
 
+Use a fresh environment (Python 3.12 recommended). Install the development
+package directly from GitHub; no manual clone or Git installation is needed:
+
 ```bash
-git clone https://github.com/liuifrec/scgeo.git
-cd scgeo
-conda env create -f environment.yml
-conda activate scgeo
-pip install -e .
+python -m pip install "scgeo @ https://github.com/liuifrec/scgeo/archive/refs/heads/main.zip"
 ```
+
+For a conda-managed environment with Scanpy and an IPython kernel:
+
+```bash
+conda env create -f https://raw.githubusercontent.com/liuifrec/scgeo/main/environment-user.yml
+conda activate scgeo
+```
+
+The conda environment installs ScGeo with pip after installing its scientific
+stack from conda-forge. This is not yet an advertised `conda install scgeo`
+channel release. A bare `pip install scgeo` requires a verified PyPI release;
+the commands above deliberately identify this repository instead.
+
+The default package includes geometry and plotting dependencies. Optional
+`scanpy`, `scvelo`, `census`, and `notebook` extras install workflow-specific
+packages. See [Installation](docs/INSTALLATION.md) for examples, developer
+installs, smoke checks, and local native conda builds.
 
 The frozen package checkpoint used for the major-revision evidence package is
 [`9a0ed16`](https://github.com/liuifrec/scgeo/tree/9a0ed16cbaa57f935f9c9bc87d1643a25b51012c).
+Use its recorded environment to reproduce the paper; a current development
+installation does not replace that environment.
 
 ## 5. Minimal sample-aware example
 

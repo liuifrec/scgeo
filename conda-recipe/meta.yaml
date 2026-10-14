@@ -1,0 +1,53 @@
+# Local development recipe. Use an immutable release URL and SHA256 before
+# submitting to a public channel; source.path is intentionally local here.
+package:
+  name: scgeo
+  version: "0.1.0.dev0"
+
+source:
+  path: ..
+
+build:
+  number: 0
+  noarch: python
+  script: "{{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv"
+
+requirements:
+  host:
+    - python >=3.9
+    - pip
+    - setuptools >=64
+    - wheel
+  run:
+    - python >=3.9
+    - numpy
+    - pandas
+    - anndata
+    - scipy
+    - scikit-learn
+    - matplotlib-base
+    - plotly
+
+test:
+  requires:
+    - pip
+    - packaging
+  imports:
+    - scgeo
+  source_files:
+    - scripts/smoke_installation.py
+  commands:
+    - python -m pip check
+    - python scripts/smoke_installation.py
+
+about:
+  home: https://github.com/liuifrec/scgeo
+  license: MIT
+  license_file: LICENSE
+  summary: Geometry-aware analysis of single-cell representations
+  doc_url: https://github.com/liuifrec/scgeo/blob/main/docs/OVERVIEW.md
+  dev_url: https://github.com/liuifrec/scgeo
+
+extra:
+  recipe-maintainers:
+    - liuifrec

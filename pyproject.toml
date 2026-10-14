@@ -15,10 +15,10 @@ dependencies = [
     "numpy",
     "pandas",
     "anndata",
+    "scipy",
+    "scikit-learn",
+    "matplotlib",
     "plotly",
-    "cellxgene-census",
-    "tiledbsoma", 
-    "pyarrow",
 ]
 
 [project.urls]
@@ -31,6 +31,9 @@ Publication = "https://doi.org/10.1093/bioadv/vbag266"
 
 [project.optional-dependencies]
 dev = ["pytest", "ruff"]
+census = ["cellxgene-census", "tiledbsoma", "pyarrow"]
+notebook = ["jupyterlab", "ipykernel"]
+# Retain existing extras for compatibility; these are now core dependencies.
 plot = ["matplotlib"]
 scanpy = ["scanpy"]
 sklearn = ["scikit-learn"]
