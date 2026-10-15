@@ -1,0 +1,12 @@
+include LICENSE README.md CITATION.cff CHANGELOG.md pytest.ini api_manifest.json
+include environment.yml environment-user.yml conda-recipe/meta.yaml
+include scripts/smoke_installation.py scripts/check_release.py scripts/verify_testpypi.py
+recursive-include scgeo *.py
+recursive-include tests *.py
+recursive-include configs *.json
+recursive-include docs *.md
+prune .cache
+prune results
+prune .git
+prune .github
+global-exclude __pycache__ *.py[cod]

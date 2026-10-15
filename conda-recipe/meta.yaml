@@ -2,7 +2,7 @@
 # submitting to a public channel; source.path is intentionally local here.
 package:
   name: scgeo
-  version: "0.1.0.dev0"
+  version: "0.1.0"
 
 source:
   path: ..
@@ -16,7 +16,7 @@ requirements:
   host:
     - python >=3.9
     - pip
-    - setuptools >=64
+    - setuptools >=77
     - wheel
   run:
     - python >=3.9

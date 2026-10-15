@@ -1,13 +1,14 @@
 [build-system]
-requires = ["setuptools>=64", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "scgeo"
-version = "0.1.0-dev"
+version = "0.1.0"
 description = "Geometric analysis of single-cell representations"
-authors = [{name = "YuChen Liu"}]
-license = {text = "MIT"}
+authors = [{name = "Yu-Chen Liu"}]
+license = "MIT"
+license-files = ["LICENSE"]
 readme = "README.md"
 requires-python = ">=3.9"
 

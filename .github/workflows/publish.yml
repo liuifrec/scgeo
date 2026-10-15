@@ -1,0 +1,266 @@
+name: Release checks and TestPyPI
+
+"on":
+  pull_request:
+    paths:
+      - "scgeo/**"
+      - "tests/**"
+      - "scripts/**"
+      - "pyproject.toml"
+      - "MANIFEST.in"
+      - "conda-recipe/**"
+      - ".github/workflows/publish.yml"
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths:
+      - "scgeo/**"
+      - "tests/**"
+      - "scripts/**"
+      - "pyproject.toml"
+      - "MANIFEST.in"
+      - "conda-recipe/**"
+      - ".github/workflows/publish.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  MPLBACKEND: Agg
+  PYTHONNOUSERSITE: "1"
+
+jobs:
+  build:
+    name: Build and inspect release artifacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      version: ${{ steps.inspect.outputs.version }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Require a tagged release to come from main
+        if: startsWith(github.ref, 'refs/tags/')
+        run: git merge-base --is-ancestor HEAD origin/main
+      - name: Build wheel through the source distribution
+        run: |
+          python -m pip install --upgrade pip build twine packaging pyyaml
+          python -m build
+          python -m twine check --strict dist/*
+      - name: Check versions, source bytes, dependencies, license and archive contents
+        id: inspect
+        run: |
+          python scripts/check_release.py
+          python -m pip freeze > release-audit/build-environment.txt
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: scgeo-distributions
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: scgeo-release-audit
+          path: release-audit/
+          if-no-files-found: error
+          retention-days: 30
+
+  library:
+    name: Library suite / Python ${{ matrix.python }}
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: scgeo-distributions
+          path: dist/
+      - name: Install the inspected wheel and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python - <<'PY'
+          from pathlib import Path
+          import subprocess, sys
+          wheel = next(Path("dist").glob("*.whl")).resolve()
+          subprocess.run([sys.executable, "-m", "pip", "install", f"{wheel}[dev,scanpy]"], check=True)
+          PY
+          python -m pip check
+      - name: Run the complete default library suite
+        run: python -m pytest -q -ra --junitxml=release-tests.xml
+      - name: Record the resolved test environment
+        if: always()
+        run: python -m pip freeze > test-environment.txt
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        if: always()
+        with:
+          name: library-tests-${{ matrix.python }}
+          path: |
+            release-tests.xml
+            test-environment.txt
+          retention-days: 30
+
+  extras:
+    name: Optional installation / ${{ matrix.extra }}
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - extra: scanpy,scvelo
+            modules: scanpy scvelo igraph leidenalg skmisc
+          - extra: census
+            modules: cellxgene_census tiledbsoma pyarrow
+          - extra: notebook
+            modules: jupyterlab ipykernel
+    env:
+      SCGEO_EXTRA: ${{ matrix.extra }}
+      SCGEO_MODULES: ${{ matrix.modules }}
+    steps:
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: scgeo-distributions
+          path: dist/
+      - name: Install the inspected wheel with the selected extra
+        run: |
+          python -m pip install --upgrade pip
+          python - <<'PY'
+          from pathlib import Path
+          import os, subprocess, sys
+          wheel = next(Path("dist").glob("*.whl")).resolve()
+          subprocess.run([sys.executable, "-m", "pip", "install", f"{wheel}[{os.environ['SCGEO_EXTRA']}]"], check=True)
+          PY
+          python -m pip check
+      - name: Import optional packages without data downloads
+        run: |
+          python -I - <<'PY'
+          import importlib, os
+          import scgeo
+          for name in os.environ["SCGEO_MODULES"].split():
+              importlib.import_module(name)
+              print("PASS:", name)
+          PY
+      - name: Record the resolved optional environment
+        if: always()
+        run: python -m pip freeze > optional-environment.txt
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        if: always()
+        with:
+          name: optional-${{ matrix.extra }}
+          path: optional-environment.txt
+          retention-days: 30
+
+  conda-sdist:
+    name: Native conda build from inspected sdist
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: scgeo-distributions
+          path: dist/
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: scgeo-release-audit
+          path: release-audit/
+      - uses: conda-incubator/setup-miniconda@fc2d68f6413eb2d87b895e92f8584b5b94a10167 # v3
+        with:
+          miniforge-version: latest
+          activate-environment: scgeo-build
+          python-version: "3.12"
+          channels: conda-forge
+          channel-priority: strict
+          auto-activate-base: false
+      - name: Build a recipe using the exact sdist URL and checksum
+        run: |
+          conda install -y --override-channels -c conda-forge conda-build pyyaml
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, json, yaml
+          manifest = json.loads(Path("release-audit/release-manifest.json").read_text())
+          source = next(Path("dist").glob("*.tar.gz")).resolve()
+          digest = hashlib.sha256(source.read_bytes()).hexdigest()
+          assert digest == manifest["files"][source.name], "sdist digest mismatch"
+          recipe = yaml.safe_load(Path("release-audit/meta.yaml").read_text())
+          recipe["source"] = {"url": source.as_uri(), "sha256": digest}
+          Path("release-recipe").mkdir()
+          Path("release-recipe/meta.yaml").write_text(yaml.safe_dump(recipe, sort_keys=False))
+          PY
+          conda run -n scgeo-build conda-build release-recipe --override-channels -c conda-forge --python 3.12 --no-anaconda-upload
+
+  testpypi:
+    name: Approve upload to TestPyPI
+    needs: [build, library, extras, conda-sdist]
+    if: >-
+      github.repository == 'liuifrec/scgeo' &&
+      github.event_name != 'pull_request' &&
+      startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/scgeo
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: scgeo-distributions
+          path: dist/
+      - name: Publish the tested files to TestPyPI, not production PyPI
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          packages-dir: dist/
+
+  verify-testpypi:
+    name: Verify TestPyPI file hashes and clean installation
+    needs: testpypi
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: scgeo-release-audit
+          path: release-audit/
+      - name: Retrieve only files matching the tested SHA256 checksums
+        run: python release-audit/verify_testpypi.py release-audit/release-manifest.json testpypi-downloads
+      - name: Install dependencies from PyPI and verified ScGeo wheel from TestPyPI
+        run: |
+          python -m pip install --index-url https://pypi.org/simple -r release-audit/core-requirements.txt
+          python -m pip install --no-deps testpypi-downloads/*.whl
+          python -m pip check
+          ROOT="$PWD"
+          cd "$RUNNER_TEMP"
+          python "$ROOT/release-audit/smoke_installation.py" --source-root "$ROOT"
