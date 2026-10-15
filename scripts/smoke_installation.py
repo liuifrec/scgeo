@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 from importlib.metadata import version
+from importlib.util import find_spec
 from pathlib import Path
 import sys
 import subprocess
@@ -30,6 +31,11 @@ def main() -> None:
             f"Imported the source checkout, not the installed distribution: {installed_from}"
         )
     assert Version(version("scgeo")) == Version(sg.__version__)
+    assert "scgeo.bench" not in sys.modules
+    assert "bench" in dir(sg)
+    if find_spec("resource") is not None:
+        assert sg.bench.__name__ == "scgeo.bench"
+        assert sg.bench is sys.modules["scgeo.bench"]
     for name in ("robust_shift", "representation_stability", "local_geometry_stability"):
         assert callable(getattr(sg.tl, name)), name
 
@@ -55,6 +61,30 @@ else:
     raise AssertionError("Missing optional Scanpy did not produce an installation hint")
 """
     subprocess.run([sys.executable, "-I", "-c", optional_probe], check=True)
+
+    # Reproduce Windows' missing Unix resource module on every CI platform.
+    resource_probe = """
+import importlib.abc
+import sys
+
+class NoResource(importlib.abc.MetaPathFinder):
+    def find_spec(self, fullname, path=None, target=None):
+        if fullname == "resource":
+            raise ModuleNotFoundError("Resource blocked by installation test", name="resource")
+        return None
+
+sys.meta_path.insert(0, NoResource())
+import scgeo
+assert "scgeo.bench" not in sys.modules
+assert callable(scgeo.tl.robust_shift)
+try:
+    scgeo.bench
+except ImportError as exc:
+    assert "Unix-only resource" in str(exc), str(exc)
+else:
+    raise AssertionError("Unavailable benchmark profiler was not reported")
+"""
+    subprocess.run([sys.executable, "-I", "-c", resource_probe], check=True)
 
     # The same three sample patterns occur in each condition with a known shift.
     pattern = np.array([[-0.05, 0], [0.05, 0], [0, -0.05], [0, 0.05]])
@@ -86,6 +116,7 @@ else:
     print(f"PASS: ScGeo {version('scgeo')} imported from {installed_from}")
     print("PASS: sample-aware displacement on tiny synthetic input; no Census access")
     print("PASS: core import and helpful DE error with optional Scanpy blocked")
+    print("PASS: core import is independent of the Unix-only benchmark profiler")
 
 
 if __name__ == "__main__":

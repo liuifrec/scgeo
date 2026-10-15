@@ -111,6 +111,15 @@ existing `0.1.0-dev` version, not a new stable release. It must be converted to
 an immutable release source and checksum before submission to Bioconda or
 conda-forge. See [Release checklist](RELEASING.md).
 
+## Platform scope
+
+Core analysis and plotting installation checks cover Linux, Windows, and macOS.
+The separate `scgeo.bench` simulation suite currently uses Python's Unix-only
+`resource` module for profiling. Run that suite on Linux (including WSL) or
+macOS. ScGeo loads it only when requested, so it does not prevent ordinary
+Windows users from importing ScGeo or using its analysis functions. This change
+does not port or alter the frozen benchmark calculations.
+
 ## What installation checks cover
 
 The packaging workflow builds an sdist and a wheel, checks distribution metadata,
