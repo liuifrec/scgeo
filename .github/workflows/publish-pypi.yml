@@ -1,0 +1,192 @@
+name: Promote ScGeo 0.1.0 to PyPI
+
+"on":
+  pull_request:
+    paths:
+      - ".github/workflows/publish-pypi.yml"
+      - "scripts/pypi_promotion.py"
+      - ".github/tests/**"
+      - "docs/PYPI_PUBLICATION.md"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-pypi.yml"
+      - "scripts/pypi_promotion.py"
+      - ".github/tests/**"
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish the verified ScGeo 0.1.0 files to real PyPI (requires approval)"
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scgeo-0.1.0-production-promotion
+  cancel-in-progress: false
+
+env:
+  MPLBACKEND: Agg
+  PYTHONNOUSERSITE: "1"
+
+jobs:
+  guard-tests:
+    name: Offline promotion guard tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - run: python -m unittest discover -s .github/tests -p 'test_*.py' -v
+
+  prepare:
+    name: Verify original TestPyPI files (no upload)
+    needs: guard-tests
+    if: >-
+      github.repository == 'liuifrec/scgeo' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == 'liuifrec/scgeo')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Verify pinned staging run, jobs, tag and original artifact IDs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/pypi_promotion.py source promotion-audit
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          repository: liuifrec/scgeo
+          run-id: 38683215223
+          artifact-ids: "11949430229"
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: staged-dist/
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          repository: liuifrec/scgeo
+          run-id: 38683215223
+          artifact-ids: "11949625115"
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: staged-audit/
+      - name: Verify manifest, original distribution bytes and both live TestPyPI files
+        run: python scripts/pypi_promotion.py prepare staged-audit staged-dist promotion-dist
+      - name: Smoke-test the exact staged wheel outside the checkout
+        run: |
+          python -m pip install --index-url https://pypi.org/simple --only-binary=:all: promotion-dist/*.whl
+          python -m pip check
+          ROOT="$PWD"
+          cd "$RUNNER_TEMP"
+          python "$ROOT/scripts/smoke_installation.py" --source-root "$ROOT"
+      - name: Refuse to overwrite or re-upload an existing production version
+        if: github.event_name == 'workflow_dispatch' && inputs.publish
+        run: python scripts/pypi_promotion.py preflight
+      - name: Record promotion provenance for review
+        run: |
+          cp staged-audit/release-manifest.json promotion-audit/
+          python -m pip freeze > promotion-audit/verification-environment.txt
+          {
+            echo '### ScGeo 0.1.0 production candidate'
+            echo 'Original staging run: 38683215223 (v0.1.0)'
+            echo 'Package source commit: 6ab8a8ea4144f66613812b7b79976b1a67ad29d1'
+            echo 'No package was rebuilt. Both files match the approved staging hashes.'
+            echo 'Publishing requires a manual main-branch run with publish checked and pypi approval.'
+            echo '```'
+            sha256sum promotion-dist/*
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: scgeo-pypi-distributions
+          path: promotion-dist/
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: scgeo-pypi-promotion-audit
+          path: promotion-audit/
+          if-no-files-found: error
+          retention-days: 90
+
+  publish:
+    name: Approve publication to REAL PyPI
+    needs: prepare
+    if: >-
+      github.repository == 'liuifrec/scgeo' &&
+      github.event_name == 'workflow_dispatch' &&
+      github.ref == 'refs/heads/main' && inputs.publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: pypi
+      url: https://pypi.org/project/scgeo/0.1.0/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: scgeo-pypi-distributions
+          path: dist/
+      - name: Recheck exact approved bytes immediately before uploading
+        shell: bash
+        run: |
+          cd dist
+          test "$(find . -mindepth 1 -maxdepth 1 | wc -l)" -eq 2
+          test -f scgeo-0.1.0-py3-none-any.whl && test ! -L scgeo-0.1.0-py3-none-any.whl
+          test -f scgeo-0.1.0.tar.gz && test ! -L scgeo-0.1.0.tar.gz
+          sha256sum --check --strict <<'HASHES'
+          16c85ba42c66fe75404966daedd4b7595369f7221017167ce29e4cfdca5d45e3  scgeo-0.1.0-py3-none-any.whl
+          87928f91cd5ecbe06347e5ea9f290602030e0af2a7f7a3fd831daaf488cea175  scgeo-0.1.0.tar.gz
+          HASHES
+      - name: Publish unchanged tested files using PyPI Trusted Publishing
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
+        with:
+          repository-url: https://upload.pypi.org/legacy/
+          packages-dir: dist/
+          skip-existing: false
+
+  verify-pypi:
+    name: Verify REAL PyPI hashes and fresh pip installation
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Verify real-index wheel and sdist against the original hashes
+        run: python scripts/pypi_promotion.py verify-pypi production-downloads
+      - name: Test the public pip command in a fresh environment
+        run: |
+          python -m venv "$RUNNER_TEMP/scgeo-public-check"
+          PY="$RUNNER_TEMP/scgeo-public-check/bin/python"
+          "$PY" -m pip install --index-url https://pypi.org/simple --only-binary=:all: "scgeo==0.1.0"
+          "$PY" -m pip check
+          ROOT="$PWD"
+          cd "$RUNNER_TEMP"
+          "$PY" "$ROOT/scripts/smoke_installation.py" --source-root "$ROOT"
+      - name: Record successful publication verification
+        run: |
+          echo '### ScGeo 0.1.0 is verified on real PyPI' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Both file hashes match the original TestPyPI release. A fresh pip installation passed.' >> "$GITHUB_STEP_SUMMARY"
