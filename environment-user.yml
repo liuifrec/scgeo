@@ -1,0 +1,19 @@
+# Current development installation, not a frozen manuscript environment.
+name: scgeo
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.12
+  - pip
+  - numpy
+  - pandas
+  - scipy
+  - anndata
+  - scikit-learn
+  - matplotlib-base
+  - plotly
+  - scanpy
+  - ipykernel
+  - pip:
+      - "scgeo @ https://github.com/liuifrec/scgeo/archive/refs/heads/main.zip"

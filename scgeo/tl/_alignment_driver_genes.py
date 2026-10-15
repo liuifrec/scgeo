@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Optional, Sequence
 
 import pandas as pd
-import scanpy as sc
 from anndata import AnnData
 
 
@@ -80,6 +79,17 @@ def alignment_driver_genes(
         ['names', 'scores', 'logfoldchanges', 'pvals', 'pvals_adj', ...]
         plus ['subset', 'group1', 'group2'].
     """
+    # Scanpy is only needed for this differential-expression helper.
+    try:
+        import scanpy as sc
+    except ModuleNotFoundError as exc:
+        if exc.name != "scanpy":
+            raise
+        raise ImportError(
+            "Scanpy is required for alignment_driver_genes. "
+            "Install it with `python -m pip install scanpy`."
+        ) from exc
+
     if alignment_key not in adata.obs:
         raise KeyError(f"{alignment_key!r} not found in adata.obs")
 
