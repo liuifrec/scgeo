@@ -102,7 +102,7 @@ It uses the current checkout, rather than a fabricated release URL or checksum:
 conda create -n scgeo-build --override-channels -c conda-forge python=3.12 conda-build
 conda activate scgeo-build
 # Run from the repository root:
-conda build conda-recipe --override-channels -c conda-forge --python 3.12 --no-anaconda-upload
+conda-build conda-recipe --override-channels -c conda-forge --python 3.12 --no-anaconda-upload
 conda create -n scgeo-local --use-local --override-channels -c conda-forge python=3.12 scgeo=0.1.0.dev0
 ```
 

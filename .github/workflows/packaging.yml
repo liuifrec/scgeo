@@ -125,4 +125,4 @@ jobs:
           cd "$RUNNER_TEMP"
           conda run -n scgeo-install-check python "$ROOT/scripts/smoke_installation.py" --source-root "$ROOT"
       - name: Build and test native conda package without uploading
-        run: conda build conda-recipe --override-channels -c conda-forge --python 3.12 --no-anaconda-upload
+        run: conda run -n scgeo-build conda-build conda-recipe --override-channels -c conda-forge --python 3.12 --no-anaconda-upload

@@ -10,6 +10,7 @@ import argparse
 from importlib.metadata import version
 from pathlib import Path
 import sys
+import subprocess
 
 
 def main() -> None:
@@ -31,6 +32,29 @@ def main() -> None:
     assert Version(version("scgeo")) == Version(sg.__version__)
     for name in ("robust_shift", "representation_stability", "local_geometry_stability"):
         assert callable(getattr(sg.tl, name)), name
+
+    # Regression check: core import must work even in an environment where
+    # Scanpy cannot be imported. The DE helper must explain its optional need.
+    optional_probe = """
+import importlib.abc
+import sys
+
+class NoScanpy(importlib.abc.MetaPathFinder):
+    def find_spec(self, fullname, path=None, target=None):
+        if fullname.split(".")[0] == "scanpy":
+            raise ModuleNotFoundError("Scanpy blocked by installation test", name="scanpy")
+        return None
+
+sys.meta_path.insert(0, NoScanpy())
+import scgeo
+try:
+    scgeo.tl.alignment_driver_genes(None, alignment_key="alignment")
+except ImportError as exc:
+    assert "python -m pip install scanpy" in str(exc), str(exc)
+else:
+    raise AssertionError("Missing optional Scanpy did not produce an installation hint")
+"""
+    subprocess.run([sys.executable, "-I", "-c", optional_probe], check=True)
 
     # The same three sample patterns occur in each condition with a known shift.
     pattern = np.array([[-0.05, 0], [0.05, 0], [0, -0.05], [0, 0.05]])
@@ -61,6 +85,7 @@ def main() -> None:
     assert "tiledbsoma" not in sys.modules
     print(f"PASS: ScGeo {version('scgeo')} imported from {installed_from}")
     print("PASS: sample-aware displacement on tiny synthetic input; no Census access")
+    print("PASS: core import and helpful DE error with optional Scanpy blocked")
 
 
 if __name__ == "__main__":
