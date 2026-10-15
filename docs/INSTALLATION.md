@@ -103,13 +103,12 @@ conda create -n scgeo-build --override-channels -c conda-forge python=3.12 conda
 conda activate scgeo-build
 # Run from the repository root:
 conda-build conda-recipe --override-channels -c conda-forge --python 3.12 --no-anaconda-upload
-conda create -n scgeo-local --use-local --override-channels -c conda-forge python=3.12 scgeo=0.1.0.dev0
+conda create -n scgeo-local --use-local --override-channels -c conda-forge python=3.12 scgeo=0.1.0
 ```
 
-The recipe builds the core package. Its version is the normalized form of the
-existing `0.1.0-dev` version, not a new stable release. It must be converted to
-an immutable release source and checksum before submission to Bioconda or
-conda-forge. See [Release checklist](RELEASING.md).
+The recipe builds core ScGeo 0.1.0 from this checkout; this does not publish it
+to any channel. It must be converted to an immutable release source and checksum
+before submission to Bioconda or conda-forge. See [Release checklist](RELEASING.md).
 
 ## Platform scope
 

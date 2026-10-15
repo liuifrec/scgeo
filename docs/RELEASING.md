@@ -1,67 +1,123 @@
 # Distribution release checklist
 
-The packaging workflow only builds and tests. It has read-only repository
-permissions and no publishing job. Merging installation changes does not create a
-PyPI release, a conda-channel release, a tag, or a new software DOI.
+## Current scope
 
-## Before a first public release
+Version 0.1.0 is prepared for release review. The existing `packaging.yml`
+workflow checks installation. The new `publish.yml` performs additional release
+checks and can upload to **TestPyPI only**, after the owner creates a version tag
+and approves the `testpypi` environment deployment. It has no production PyPI
+upload job. Merging a pull request does not publish a package.
 
-1. Require successful clean wheel and conda installation checks. Run the full
-   library test suite and test any optional extras to be advertised. Investigate
-   failures rather than weakening the tests to force a release.
-2. Verify ownership and availability of the project name on PyPI and the target
-   conda channel. A missing search result is not a guarantee of name availability.
-3. Select and review a release version. Keep `pyproject.toml`,
-   `scgeo/__init__.py`, and the normalized version in `conda-recipe/meta.yaml`
-   consistent. The current `0.1.0-dev` version is not a stable release.
-4. Record the release commit, supported platforms and Python versions, changes,
-   dependency policy, and known limitations. Do not relabel a documentation or
-   packaging commit as the frozen manuscript analysis checkpoint.
+The registered pending publisher must be exactly:
 
-## PyPI
+| Field | Value |
+| --- | --- |
+| Project | `scgeo` |
+| GitHub owner | `liuifrec` |
+| Repository | `scgeo` |
+| Workflow filename | `publish.yml` |
+| Environment | `testpypi` |
 
-Build and inspect the distributions from the reviewed release commit:
+Use GitHub Settings > Environments > testpypi. Save `liuifrec` as a required
+reviewer and leave Prevent self-review unchecked for a solo maintainer. Under
+Selected branches and tags, add **Ref type: Tag**, **Name pattern: `v*`**.
+A branch rule named `v*` is not equivalent. Zero matching tags is normal before
+the first release. No password or API token belongs in repository secrets.
+Pending publishers do not reserve the package name; the first upload must
+succeed under the authorized owner's account.
+
+## Before creating a tag
+
+Review the release PR and require both the packaging checks and release checks
+to pass. `publish.yml` builds one source distribution and wheel, verifies their
+versions, package-source bytes, dependencies, license and required files, runs
+the complete default library suite on Linux/Python 3.9 and 3.12, checks selected
+optional-extra installations on Linux/Python 3.12, and builds/tests a native
+conda package from that exact sdist. Existing opt-in/network test skips remain
+visible in the test report; they are not silently treated as passed.
+
+Do not weaken tests to force a release. Inspect any failures and record any
+compatibility bounds supported by that evidence. Preserve the manuscript's
+frozen package checkpoint `9a0ed16cbaa57f935f9c9bc87d1643a25b51012c` and numerical
+outputs. This version is not a replacement manuscript-analysis checkpoint.
+
+Keep `pyproject.toml`, `scgeo/__init__.py`, and `conda-recipe/meta.yaml` versions
+consistent. The tag must exactly equal `v` plus that version. The tagged commit
+must already be reachable from `main`. Do not move a published tag or overwrite
+immutable release files.
+
+## Stage on TestPyPI
+
+After review and merge, the owner can create the first tag from the exact
+approved commit, for example in a clean local checkout:
 
 ```bash
-python -m pip install --upgrade build twine
-python -m build
-python -m twine check dist/*
+git switch main
+git pull --ff-only
+git status --short
+# Confirm this is the approved release commit before tagging:
+git log -1 --oneline
+git tag -a v0.1.0 -m "ScGeo 0.1.0"
+git push origin v0.1.0
 ```
 
-Configure a PyPI pending/trusted publisher for owner `liuifrec`, repository
-`scgeo`, a separately reviewed publishing workflow, and a protected GitHub
-environment. The PyPI account owner must authorize the publisher. Do not place
-API tokens or passwords in this repository or in a chat.
+The tag push runs **Release checks and TestPyPI**. Ordinary main-branch pushes
+and pull requests run its checks but cannot upload. A manual Actions run also
+requires selecting the release **tag**, not main, to reach the upload job.
 
-Test on TestPyPI first. TestPyPI is not a complete dependency mirror: test the
-uploaded ScGeo distribution against dependencies installed from the normal
-package index, rather than assuming every dependency exists on TestPyPI.
+After the checks pass, open the run in Actions, choose Review deployments,
+select `testpypi`, and approve. Do not bypass a failed gate. The publishing job
+only downloads the tested distributions and uses Trusted Publishing; it does
+not check out or build source code with an upload identity.
 
-After explicit approval, publish the tested distributions to PyPI. Verify a
-fresh `python -m pip install scgeo` outside the checkout before advertising that
-command. Update the installation docs only after the public package exists and
-its authorship, repository, and metadata have been checked.
+The following job downloads the uploaded wheel and sdist, checks both against
+the saved SHA256 hashes, installs core dependencies from normal PyPI, installs
+the verified ScGeo wheel with `--no-deps`, and runs the installed-package smoke
+test. A successful upload alone is not the end of staging: require this final
+verification job to pass as well.
 
-Official guide:
-https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/
+Save the run's `scgeo-distributions` and `scgeo-release-audit` artifacts; these
+expire after 30 days. The audit includes the source commit, tag ref, filenames,
+SHA256 checksums, dependency metadata and build environment. Test XML and
+resolved test/optional environments are separate artifacts. These records are
+not a software DOI and do not lock dependencies for later installations.
 
-## Native conda channel
+## Promote to production PyPI: a separate owner-approved step
 
-The local recipe deliberately uses `source.path: ..` to test the checkout. For
-public distribution, replace that local source with the exact released sdist URL
-and its verified SHA256. Keep the dependency list synchronized with the wheel
-metadata; do not add optional Census dependencies to the core recipe.
+Create and secure the real PyPI account, verify project-name ownership, and
+register its Trusted Publisher. TestPyPI accounts/publishers do not authorize
+production PyPI. Create a protected `pypi` environment before enabling production
+publishing. Do not add upload credentials to chat or source control.
 
-Choose one initial channel, such as Bioconda for bioinformatics software or
-conda-forge, and follow its recipe review process. A recipe in this repository
-does not make `conda install scgeo` available on that channel. Only advertise the
-channel-specific install command after the recipe has been accepted, built,
-uploaded, and tested in a fresh environment.
+Production publishing is deliberately not enabled in this first staging PR.
+A separately reviewed promotion step must retrieve the exact files from the
+successful TestPyPI run (or saved artifacts), verify their manifest and TestPyPI
+hashes, and upload those **same bytes** to PyPI after explicit approval. Do not
+silently rebuild or replace version 0.1.0 between staging and production.
 
-Official guides:
+Only after a clean installation of the real PyPI package succeeds should the
+README advertise `python -m pip install scgeo`.
+
+## Bioconda after the production release
+
+The repository recipe still uses `source.path: ..` for local developer builds.
+For `bioconda/bioconda-recipes`, use the exact production PyPI sdist URL and its
+verified SHA256 instead. Retain core dependencies, `noarch: python`, the license,
+and maintainer `liuifrec`; do not add optional Census packages to the base recipe.
+The release sdist includes `scripts/smoke_installation.py` for recipe testing.
+Adapt the recipe to current Bioconda lint/testing requirements and submit it
+under `recipes/scgeo/`. A tested local recipe is not a channel publication.
+
+Wait for Bioconda review, build, upload, and a fresh channel installation before
+advertising a Bioconda install command. Bioconda is for Linux/macOS; native
+Windows users retain the pip or conda-plus-pip route.
+
+## Official guidance
+
+- https://docs.pypi.org/trusted-publishers/adding-a-publisher/
+- https://docs.pypi.org/trusted-publishers/using-a-publisher/
+- https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/
+- https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments
+- https://packaging.python.org/en/latest/guides/using-testpypi/
 - https://bioconda.github.io/contributor/index.html
 - https://bioconda.github.io/contributor/guidelines.html
-- https://conda-forge.org/docs/maintainer/adding_pkgs/
-
-Do not overwrite an existing immutable release or move an existing version tag.
-Preserve the published paper's frozen checkpoints and numerical outputs.
