@@ -1,0 +1,120 @@
+name: Bioconda recipe preparation
+
+"on":
+  pull_request:
+    paths:
+      - "packaging/bioconda/**"
+      - ".github/workflows/bioconda-recipe.yml"
+  push:
+    branches: [main]
+    paths:
+      - "packaging/bioconda/**"
+      - ".github/workflows/bioconda-recipe.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bioconda-recipe-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MPLBACKEND: Agg
+  PYTHONNOUSERSITE: "1"
+
+jobs:
+  recipe:
+    name: Released sdist conda build / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: conda-incubator/setup-miniconda@fc2d68f6413eb2d87b895e92f8584b5b94a10167 # v3
+        with:
+          miniforge-version: latest
+          activate-environment: scgeo-bioconda-check
+          python-version: "3.12"
+          channels: conda-forge
+          channel-priority: strict
+          auto-activate-base: false
+      - name: Install recipe build tools
+        run: conda install -y --override-channels -c conda-forge conda-build pyyaml jinja2 packaging
+      - name: Verify production PyPI source, recipe metadata and channel name checks
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from urllib.request import urlopen
+          from urllib.error import HTTPError
+          from urllib.parse import urlparse
+          import hashlib, io, json, tarfile, tomllib
+          from jinja2 import Environment, StrictUndefined
+          from packaging.requirements import Requirement
+          import yaml
+
+          def fetch(url, hosts, limit=32 * 1024 * 1024):
+              with urlopen(url, timeout=60) as response:
+                  target = urlparse(response.geturl())
+                  assert target.scheme == 'https' and target.hostname in hosts, 'Unexpected redirect'
+                  data = response.read(limit + 1)
+              assert len(data) <= limit, 'Response too large'
+              return data
+
+          root = Path('packaging/bioconda/recipes/scgeo')
+          template = Environment(undefined=StrictUndefined).from_string((root / 'meta.yaml').read_text())
+          recipe = yaml.safe_load(template.render(
+              PYTHON='python', pin_subpackage=lambda name, max_pin: 'scgeo >=0.1.0,<0.2.0a0'))
+          expected = '87928f91cd5ecbe06347e5ea9f290602030e0af2a7f7a3fd831daaf488cea175'
+          record = json.loads(fetch('https://pypi.org/pypi/scgeo/0.1.0/json', {'pypi.org'}, 2 * 1024 * 1024))
+          assert record['info']['name'] == 'scgeo' and record['info']['version'] == '0.1.0'
+          entries = [f for f in record['urls'] if f['filename'] == 'scgeo-0.1.0.tar.gz']
+          assert len(entries) == 1 and not entries[0].get('yanked')
+          assert entries[0]['digests']['sha256'] == recipe['source']['sha256'] == expected
+          archive = fetch(recipe['source']['url'], {'pypi.org', 'files.pythonhosted.org'})
+          assert hashlib.sha256(archive).hexdigest() == expected, 'Source bytes changed'
+          with tarfile.open(fileobj=io.BytesIO(archive), mode='r:gz') as source:
+              prefix = 'scgeo-0.1.0/'
+              project = tomllib.loads(source.extractfile(prefix + 'pyproject.toml').read().decode())['project']
+              for name in ['LICENSE', 'scripts/smoke_installation.py']:
+                  assert source.getmember(prefix + name).isfile(), name
+          assert project['name'] == recipe['package']['name'] == 'scgeo'
+          assert project['version'] == str(recipe['package']['version']) == '0.1.0'
+          mapping = {'matplotlib': 'matplotlib-base'}
+          dependencies = []
+          for value in project['dependencies']:
+              req = Requirement(value)
+              assert req.marker is None and not req.specifier and req.url is None
+              dependencies.append(mapping.get(req.name, req.name))
+          assert set(recipe['requirements']['run']) == set(dependencies + ['python ' + project['requires-python']])
+          assert recipe['build']['noarch'] == 'python' and recipe['build']['number'] == 0
+          assert recipe['about']['license'] == project['license'] == 'MIT'
+          assert (root / 'run_test.sh').is_file()
+          print('PASS: released sdist, source URL, SHA256, version, core dependencies and license')
+          print('Canonical PyPI source URL:', entries[0]['url'])
+          for channel in ['bioconda', 'conda-forge', 'anaconda']:
+              url = f'https://api.anaconda.org/package/{channel}/scgeo'
+              try:
+                  info = json.loads(fetch(url, {'api.anaconda.org'}, 2 * 1024 * 1024))
+              except HTTPError as exc:
+                  if exc.code != 404:
+                      raise
+                  print(f'INFO: no scgeo record in {channel} namespace (HTTP 404)')
+              else:
+                  print(f'REVIEW: existing {channel}/scgeo record; check for a duplicate recipe', info.get('home'))
+          PY
+      - name: Build released ScGeo with conda and run recipe tests (no upload)
+        run: conda run -n scgeo-bioconda-check conda-build packaging/bioconda/recipes/scgeo --override-channels -c conda-forge -c bioconda --python 3.12 --no-anaconda-upload
+      - name: Summarize scope
+        run: |
+          echo '### ScGeo 0.1.0 Bioconda candidate' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Built from the published PyPI source archive with its fixed SHA256; recipe tests passed.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'No upload occurred. Official Bioconda lint, isolated-container CI and maintainer review remain required.' >> "$GITHUB_STEP_SUMMARY"
