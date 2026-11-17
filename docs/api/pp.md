@@ -2,6 +2,8 @@
 
 ScGeo 0.1.0 · [Complete reference](../api_reference.md) · [All modules](README.md) · [Quick start](../QUICKSTART.md)
 
+Current-checkout reference: [unreleased plotting additions](../../CHANGELOG.md) require the development checkout described in the [plotting guide](../PLOTTING.md).
+
 Signatures and docstrings match the public exports. I/O tables record a small synthetic probe; keys present before and after are not necessarily modified. [How this reference is generated](../contracts/README.md).
 **Reference preparation.** Build reference pools and query-to-reference neighbor graphs. Approximate reference-pool construction requires pynndescent.
 

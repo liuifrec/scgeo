@@ -9,7 +9,6 @@ import pandas as pd
 
 from .. import __version__
 
-
 _STATUS_VALUES = {
     "assessed",
     "not_computed",
@@ -751,6 +750,7 @@ def _metadata(
     rep_params = representation.get("params") if isinstance(representation, dict) else None
     if isinstance(rep_params, dict):
         consensus_rules = rep_params.get("consensus_label_rules")
+    robust_params = robust.get("params", {}) if isinstance(robust, dict) else {}
     return {
         "package_version": __version__,
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -764,6 +764,7 @@ def _metadata(
         "group0": g0,
         "group1": g1,
         "representations": reps,
+        "effect_representation": robust_params.get("rep"),
         "k_values": list(local_k_values),
         "sample_key": sample_key,
         "center": params.get("center"),

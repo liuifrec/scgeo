@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any, Optional
 
 import matplotlib.pyplot as plt
 
-from ._paga_shift_map import paga_shift_map
-from ._ood_landscape import ood_landscape
-from ._velocity_shift_alignment import velocity_shift_alignment
 from ._composition_drift import composition_drift
+from ._ood_landscape import ood_landscape
+from ._paga_shift_map import paga_shift_map
+from ._velocity_shift_alignment import velocity_shift_alignment
 
 
 def gallery_overview(
@@ -23,19 +24,35 @@ def gallery_overview(
     velocity_basis: Optional[str] = None,
     figsize: tuple[float, float] = (16.0, 12.0),
     title: Optional[str] = None,
+    axes: Optional[Mapping[str, Any]] = None,
+    state_order=None,
+    return_result: bool = False,
     show: bool = True,
 ):
-    """
-    Render a 2x2 overview gallery of core ScGeo plots:
-    - paga_shift_map
-    - ood_landscape
-    - velocity_shift_alignment
-    - composition_drift
-    """
-    fig = plt.figure(figsize=figsize)
-    gs = fig.add_gridspec(2, 2)
+    """Render four coordinated panels, including actual composition-change bars.
 
-    ax1 = fig.add_subplot(gs[0, 0])
+    ``axes`` may supply the named panels ``shift``, ``ood``, ``alignment``, and
+    ``composition``. The alignment panel is explicitly a display-space overlay;
+    use ``velocity_shift_alignment(mode='stored')`` for stored quantitative
+    alignment. The legacy return is ``(fig, (ax1, ax2, ax3, ax4))``.
+    """
+    from ._result import PlotResult
+
+    names = ("shift", "ood", "alignment", "composition")
+    owned = axes is None
+    if owned:
+        fig, aa = plt.subplots(2, 2, figsize=figsize)
+        panel_axes = dict(zip(names, aa.flat))
+    else:
+        if not isinstance(axes, Mapping) or any(name not in axes for name in names):
+            raise ValueError(f"axes must contain {names}.")
+        panel_axes = {name: axes[name] for name in names}
+        fig = panel_axes[names[0]].figure
+        if any(ax.figure is not fig for ax in panel_axes.values()):
+            raise ValueError("All supplied axes must belong to the same figure.")
+        if len({id(ax) for ax in panel_axes.values()}) != 4:
+            raise ValueError("Each panel requires a distinct axis.")
+    ax1, ax2, ax3, ax4 = (panel_axes[name] for name in names)
     paga_shift_map(
         adata,
         node_key=node_key,
@@ -48,19 +65,9 @@ def gallery_overview(
         show=False,
     )
     ax1.set_title("PAGA shift map")
-
-    ax2 = fig.add_subplot(gs[0, 1])
-    ood_landscape(
-        adata,
-        ood_key=ood_key,
-        basis=basis,
-        ax=ax2,
-        show=False,
-    )
+    ood_landscape(adata, ood_key=ood_key, basis=basis, ax=ax2, show=False)
     ax2.set_title("OOD landscape")
-
-    ax3 = fig.add_subplot(gs[1, 0])
-    velocity_shift_alignment(
+    alignment = velocity_shift_alignment(
         adata,
         node_key=node_key,
         condition_key=condition_key,
@@ -69,36 +76,43 @@ def gallery_overview(
         basis=basis,
         velocity_basis=velocity_basis,
         ax=ax3,
+        return_result=True,
         show=False,
     )
-    ax3.set_title("Velocity-shift alignment")
-
-    # composition_drift currently makes its own figure; embed as a simplified call
-    # by rendering it separately would complicate gallery. So use a minimal summary
-    # in its own subplot by reusing the returned axes is awkward.
-    # Better: draw composition_drift as a separate compact figure later if needed.
-    # For now, create the panel directly via the function in a fresh figure-like pattern.
-    ax4 = fig.add_subplot(gs[1, 1])
-    ax4.text(
-        0.5,
-        0.5,
-        "Use sg.pl.composition_drift(...)\\nfor the full 3-panel composition report.",
-        ha="center",
-        va="center",
-        fontsize=12,
+    ax3.set_title("Display-space velocity alignment")
+    composition = composition_drift(
+        adata,
+        node_key=node_key,
+        condition_key=condition_key,
+        group0=group0,
+        group1=group1,
+        basis=basis,
+        panels=("change",),
+        axes={"change": ax4},
+        state_order=state_order,
+        return_result=True,
+        show=False,
     )
-    ax4.set_xticks([])
-    ax4.set_yticks([])
-    for spine in ax4.spines.values():
-        spine.set_visible(False)
-    ax4.set_title("Composition drift")
-
-    if title is None:
-        title = f"ScGeo gallery overview: {group0} -> {group1}"
-    fig.suptitle(title, y=0.98)
-    fig.tight_layout()
-
+    ax4.set_title("Composition change (cell fractions)")
+    if owned:
+        fig.suptitle(title or f"ScGeo gallery overview: {group0} → {group1}")
+        fig.tight_layout()
+    elif title is not None:
+        ax1.set_title(title)
     if show:
         plt.show()
-
+    if return_result:
+        return PlotResult(
+            fig=fig,
+            axes=panel_axes,
+            data={"composition": composition.data, "display_alignment": alignment.data},
+            metadata={
+                "plot": "gallery_overview",
+                "basis": basis,
+                "group0": str(group0),
+                "group1": str(group1),
+                "alignment_mode": "display",
+                "composition_unit": "cells",
+            },
+        )
     return fig, (ax1, ax2, ax3, ax4)

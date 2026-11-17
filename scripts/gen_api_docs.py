@@ -119,6 +119,7 @@ def expected_outputs(root: Path = ROOT) -> dict[Path, str]:
         raise ValueError(f"Curated notes refer to missing public APIs: {stale}")
     version = api["scgeo_version"]
     overview = ["# API reference", "", f"Public API for **ScGeo {version}** · **{len(names)} exported callables**.", "",
+                "This reference describes the current checkout. Plotting additions marked [unreleased in the changelog](../CHANGELOG.md) require that development checkout; they are not included in the published 0.1.0 distribution.", "",
                 "[Quick start](QUICKSTART.md) · [Installation](INSTALLATION.md) · [Interpretation](RESULT_INTERPRETATION.md)", "",
                 "Start with `tl.robust_shift`, `get.state_report` and `pl.state_evidence_panel`. Add `tl.representation_stability` and `tl.local_geometry_stability` when the required representations are available.", "",
                 "| Namespace | Purpose | Browse separately |", "|---|---|---|"]
@@ -130,11 +131,13 @@ def expected_outputs(root: Path = ROOT) -> dict[Path, str]:
     overview += [_module(section, api[section], notes, io, prefix="../") for section in NAMESPACES]
     output = {root / "docs/api_reference.md": "\n".join(overview).rstrip() + "\n"}
     index = ["# Browse the ScGeo API", "", f"These module pages and the [complete API reference](../api_reference.md) are generated together for ScGeo {version}.", "",
+             "The current checkout includes [unreleased plotting additions](../../CHANGELOG.md); use the [plotting guide](../PLOTTING.md) for installation and examples.", "",
              "| Module | Purpose | Callables |", "|---|---|---|"]
     for section in NAMESPACES:
         rows = api[section]
         index.append(f"| [scgeo.{section}]({section}.md) | {MODULES[section][0]} | {len(rows)} |")
         header = [f"# scgeo.{section}", "", f"ScGeo {version} · [Complete reference](../api_reference.md) · [All modules](README.md) · [Quick start](../QUICKSTART.md)", "",
+                  "Current-checkout reference: [unreleased plotting additions](../../CHANGELOG.md) require the development checkout described in the [plotting guide](../PLOTTING.md).", "",
                   "Signatures and docstrings match the public exports. I/O tables record a small synthetic probe; keys present before and after are not necessarily modified. [How this reference is generated](../contracts/README.md).", ""]
         body = _module(section, rows, notes, io, prefix="../../").split("\n\n", 1)[1]
         output[root / f"docs/api/{section}.md"] = "\n".join(header) + body

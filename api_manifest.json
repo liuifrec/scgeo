@@ -110,7 +110,7 @@
       "name": "scgeo.tl.robust_shift",
       "signature": "(adata, rep: 'str' = 'X_pca', condition_key: 'str' = 'condition', group0: 'Any' = None, group1: 'Any' = None, by: 'Optional[str]' = None, sample_key: 'Optional[str]' = None, center: 'str' = 'geometric_median', trim_fraction: 'float' = 0.1, n_boot: 'int' = 500, bootstrap_unit: 'str' = 'auto', normalize_by: 'Optional[str]' = 'pooled_robust_scale', seed: 'int' = 0, store_key: 'str' = 'robust_shift') -> 'Dict[str, Any]'",
       "doc": "Robust condition displacement with sample-aware bootstrap uncertainty.",
-      "docstring": "Robust condition displacement with sample-aware bootstrap uncertainty.\n\nWhen ``sample_key`` is provided, per-condition centers are estimated from\nsample-level centers and bootstrap resampling uses samples by default.\n\nMinimal example\n---------------\n>>> out = sg.tl.robust_shift(\n...     adata,\n...     rep=\"X_pca\",\n...     condition_key=\"condition\",\n...     group0=\"control\",\n...     group1=\"treated\",\n...     sample_key=\"donor\",\n... )\n>>> out[\"global\"][\"delta_norm\"]\n\nStores results at ``adata.uns[\"scgeo\"][store_key]`` and returns the same\ndictionary.",
+      "docstring": "Robust condition displacement with sample-aware bootstrap uncertainty.\n\nWhen ``sample_key`` is provided, per-condition centers are estimated from\nsample-level centers and bootstrap resampling uses samples by default.\nThe exact sample centers are retained for ``sg.get.sample_centers`` and\ndescriptive replicate plots. This additive output does not change the\nestimator or bootstrap sequence.\n\nMinimal example\n---------------\n>>> out = sg.tl.robust_shift(\n...     adata,\n...     rep=\"X_pca\",\n...     condition_key=\"condition\",\n...     group0=\"control\",\n...     group1=\"treated\",\n...     sample_key=\"donor\",\n... )\n>>> out[\"global\"][\"delta_norm\"]\n\nStores results at ``adata.uns[\"scgeo\"][store_key]`` and returns the same\ndictionary.",
       "source": "scgeo/tl/_robust_shift.py"
     },
     {
@@ -144,6 +144,13 @@
   ],
   "pl": [
     {
+      "name": "scgeo.pl.PlotResult",
+      "signature": "(fig: 'Any', axes: 'dict', data: 'Any' = None, metadata: 'dict' = <factory>, warnings: 'list' = <factory>, artists: 'dict' = <factory>) -> None",
+      "doc": "A figure, named axes, plotted data, and interpretation metadata.",
+      "docstring": "A figure, named axes, plotted data, and interpretation metadata.\n\nObtain this opt-in result with ``return_result=True`` on supported plots.\nExisting default return values remain available. ``data`` holds the values\nused by the plot; metadata records its metric, ordering, and display choices.\nUse :meth:`save` to export figures, source tables, and a JSON manifest.\nThe result is editable: changing an artist does not update its source data.",
+      "source": "scgeo/pl/_result.py"
+    },
+    {
       "name": "scgeo.pl.alignment_panel",
       "signature": "(adata, score_key: 'str', *, basis: 'str' = 'umap', topk: 'Optional[int]' = 200, cmap: 'str' = 'viridis', figsize=(11, 5), title: 'Optional[str]' = None, show: 'bool' = True)",
       "doc": "1\u00d72 panel:   (A) embedding colored by alignment score   (B) histogram of alignment scores Optional: highlight top-k aligned cells.",
@@ -158,17 +165,24 @@
       "source": "scgeo/pl/_ambiguity_panel.py"
     },
     {
+      "name": "scgeo.pl.category_palette",
+      "signature": "(labels, palette=None)",
+      "doc": "Return a stable label-to-color mapping, independent of subset ordering.",
+      "docstring": "Return a stable label-to-color mapping, independent of subset ordering.\n\nDefault colors use a deterministic label hash. For publication, pass a\ncurated mapping; it must cover all requested labels. Keys in the returned\nmapping are strings. Colors alone cannot identify arbitrarily many groups,\nso retain labels and consider separate panels for large category sets.",
+      "source": "scgeo/pl/_style.py"
+    },
+    {
       "name": "scgeo.pl.composition_drift",
-      "signature": "(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', agg: 'str' = 'mean', bg_size: 'float' = 6.0, bg_alpha: 'float' = 0.1, centroid_size: 'float' = 320.0, centroid_scale_by_n: 'bool' = True, centroid_edgecolor: 'str' = 'white', centroid_lw: 'float' = 1.0, drift_cmap: 'str' = 'coolwarm', drift_vmax: 'Optional[float]' = None, bar_alpha: 'float' = 0.9, top_n: 'Optional[int]' = None, sort_by: 'str' = 'abs_delta_frac', palette: 'Optional[dict[str, Any]]' = None, title: 'Optional[str]' = None, figsize: 'tuple[float, float]' = (14.0, 5.2), return_data: 'bool' = False, show: 'bool' = True)",
-      "doc": "Plot a 3-panel composition drift report: 1) embedding centroids sized by abundance and colored by signed delta fraction 2) horizontal barplot of signed delta fraction 3) side-by-side proportion bars for group0 and group1",
-      "docstring": "Plot a 3-panel composition drift report:\n1) embedding centroids sized by abundance and colored by signed delta fraction\n2) horizontal barplot of signed delta fraction\n3) side-by-side proportion bars for group0 and group1",
+      "signature": "(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', agg: 'str' = 'mean', bg_size: 'float' = 6.0, bg_alpha: 'float' = 0.1, centroid_size: 'float' = 320.0, centroid_scale_by_n: 'bool' = True, centroid_edgecolor: 'str' = 'white', centroid_lw: 'float' = 1.0, drift_cmap: 'str' = 'coolwarm', drift_vmax: 'Optional[float]' = None, bar_alpha: 'float' = 0.9, top_n: 'Optional[int]' = None, sort_by: 'str' = 'abs_delta_frac', palette: 'Optional[dict[str, Any]]' = None, title: 'Optional[str]' = None, figsize: 'tuple[float, float]' = (14.0, 5.2), panels: 'Sequence[str]' = ('embedding', 'change', 'proportions'), axes: 'Optional[Mapping[str, Any]]' = None, subfigure=None, state_order: 'Optional[Sequence[str]]' = None, condition_palette: 'Optional[Mapping[str, Any]]' = None, return_data: 'bool' = False, return_result: 'bool' = False, show: 'bool' = True)",
+      "doc": "Plot descriptive cell-composition changes between two conditions.",
+      "docstring": "Plot descriptive cell-composition changes between two conditions.\n\nThe default three panels and legacy ``(fig, axes[, data])`` returns are\npreserved. ``panels`` selects any ordered subset of ``embedding``,\n``change``, and ``proportions``. Supply a matching named ``axes`` mapping\nor a Matplotlib ``subfigure`` to compose a larger figure. No global layout\nadjustment is made when the caller supplies the drawing surface.\n\nFractions use all observed cells in each condition, not biological-sample\nreplicates, and are descriptive. ``state_order`` controls the top-to-bottom\norder of the bar panels. ``condition_palette`` maps condition labels to\ncolors. ``return_result=True`` returns a :class:`PlotResult`.",
       "source": "scgeo/pl/_composition_drift.py"
     },
     {
       "name": "scgeo.pl.consensus_state_map",
-      "signature": "(adata, *, node_key, basis: 'str' = 'umap', store_key: 'str' = 'representation_stability', label_states: 'bool' = True, title=None, show: 'bool' = True)",
-      "doc": "Plot state-level consensus labels on a display embedding.",
-      "docstring": "Plot state-level consensus labels on a display embedding.\n\nThe display embedding is used only for visualization; consensus labels are\nread from ``representation_stability`` and are not recalculated here.",
+      "signature": "(adata, *, node_key, basis: 'str' = 'umap', store_key: 'str' = 'representation_stability', label_states: 'bool' = True, palette=None, max_points=None, random_state=0, required_indices=None, rasterized='auto', ax=None, figsize=(5.8, 4.8), title=None, return_data=False, return_result=False, show: 'bool' = True)",
+      "doc": "Display stored consensus labels; never recompute them in the embedding.",
+      "docstring": "Display stored consensus labels; never recompute them in the embedding.\n\n``max_points`` optionally samples display points reproducibly while retaining\neach state and every ``required_indices`` position. State-label positions\nuse the full data. The returned source table records which cells are shown.\n``rasterized='auto'`` rasterizes more than 5,000 displayed points.",
       "source": "scgeo/pl/_perturbation_report.py"
     },
     {
@@ -235,10 +249,24 @@
       "source": "scgeo/pl/_density.py"
     },
     {
+      "name": "scgeo.pl.evidence_comparison",
+      "signature": "(data, *, metric=None, state_order=None, contrast_order=None, palette=None, sharex='auto', axes=None, figsize=None, title=None, return_data=False, return_result=False, show=True)",
+      "doc": "Draw aligned state-by-contrast effect panels from a tidy results table.",
+      "docstring": "Draw aligned state-by-contrast effect panels from a tidy results table.\n\nRequired columns are ``state``, ``contrast``, ``metric``, and ``estimate``.\nSupply ``interval_low``, ``interval_high``, and ``interval_type`` together\nfor intervals; their endpoints are drawn independently of the estimate.\nLabels such as ``sample_bootstrap_ci95`` and ``representation_iqr`` remain\ndistinct in the legend. No intervals, tests, or composite scores are fitted.\n\nOptional ``representation`` and ``unit`` columns describe the effect scale.\n``sharex='auto'`` shares limits only when every finite estimate has the same\ndeclared representation and unit. Alternatively, a nonempty common\n``scale_id`` explicitly declares comparability across representations.\n``sharex=True`` rejects incompatible or unspecified scales. Missing state\nand contrast combinations stay visible. Duplicate state/contrast rows for\nthe selected metric are rejected rather than silently aggregated.\nOptional ``evidence_status`` (preferred) or ``status`` labels are preserved\nand displayed with distinct marker shapes; a finite estimate never promotes\nsupplied insufficient or unavailable evidence to ``'assessed'``.\n\n``axes`` is an optional mapping from contrast labels to distinct Axes in\none Figure. Orders must retain observed labels; filter the input explicitly\nto select a subset. Extra ordered labels create visible missing rows/panels.\nReturns a Figure by default, ``(Figure, plotted_table)`` with\n``return_data=True``, or a :class:`PlotResult` with ``return_result=True``.",
+      "source": "scgeo/pl/_evidence_comparison.py"
+    },
+    {
+      "name": "scgeo.pl.export_figure",
+      "signature": "(figure_or_result, filename, *, formats=('png', 'svg'), dpi=300, width_mm=None, height_mm=None, panel_labels=None, include_data=True, include_metadata=True, transparent=False, metadata=None, bbox_inches=None)",
+      "doc": "Export a Matplotlib figure or PlotResult with source-data provenance.",
+      "docstring": "Export a Matplotlib figure or PlotResult with source-data provenance.\n\nParameters\n----------\nfigure_or_result\n    A Matplotlib Figure or ``PlotResult``. Source CSVs require a PlotResult.\n    A result constructed from a SubFigure exports the full parent canvas.\nfilename\n    Output stem, optionally ending in .png, .svg or .pdf. ``formats`` selects\n    the outputs; a supplied suffix is removed before constructing names.\nformats\n    One or more of ``'png'``, ``'svg'``, ``'pdf'``.\ndpi\n    Resolution of PNG and rasterized artists in vector figures.\nwidth_mm, height_mm\n    Optional canvas dimensions in millimetres. If only one is supplied,\n    preserve the original aspect ratio. Original figure size is restored.\n    ``bbox_inches=None`` preserves that canvas size; ``'tight'`` crops it.\npanel_labels\n    Mapping from PlotResult axis names to labels, or a label sequence for\n    the result's axes. Labels are temporary and removed after exporting.\ninclude_data, include_metadata\n    Export source DataFrames/Series/arrays as CSVs and a strict JSON manifest.\n    Named indexes are retained. The manifest includes table schemas, hashes,\n    figure hashes, plotting metadata, warnings, and software versions.\nmetadata\n    Additional JSON-compatible provenance, merged over result metadata.\n\nReturns\n-------\ndict\n    ``figures`` and ``tables`` mappings and the ``metadata`` JSON path.\n\nNotes\n-----\nThe exporter records input metadata; it does not reconstruct analysis\nsettings that were never supplied or infer statistical significance.",
+      "source": "scgeo/pl/_result.py"
+    },
+    {
       "name": "scgeo.pl.gallery_overview",
-      "signature": "(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', paga_key: 'str' = 'paga', ood_key: 'str' = 'scgeo_ood', velocity_basis: 'Optional[str]' = None, figsize: 'tuple[float, float]' = (16.0, 12.0), title: 'Optional[str]' = None, show: 'bool' = True)",
-      "doc": "Render a 2x2 overview gallery of core ScGeo plots: - paga_shift_map - ood_landscape - velocity_shift_alignment - composition_drift",
-      "docstring": "Render a 2x2 overview gallery of core ScGeo plots:\n- paga_shift_map\n- ood_landscape\n- velocity_shift_alignment\n- composition_drift",
+      "signature": "(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', paga_key: 'str' = 'paga', ood_key: 'str' = 'scgeo_ood', velocity_basis: 'Optional[str]' = None, figsize: 'tuple[float, float]' = (16.0, 12.0), title: 'Optional[str]' = None, axes: 'Optional[Mapping[str, Any]]' = None, state_order=None, return_result: 'bool' = False, show: 'bool' = True)",
+      "doc": "Render four coordinated panels, including actual composition-change bars.",
+      "docstring": "Render four coordinated panels, including actual composition-change bars.\n\n``axes`` may supply the named panels ``shift``, ``ood``, ``alignment``, and\n``composition``. The alignment panel is explicitly a display-space overlay;\nuse ``velocity_shift_alignment(mode='stored')`` for stored quantitative\nalignment. The legacy return is ``(fig, (ax1, ax2, ax3, ax4))``.",
       "source": "scgeo/pl/_gallery.py"
     },
     {
@@ -257,9 +285,9 @@
     },
     {
       "name": "scgeo.pl.local_distortion_map",
-      "signature": "(adata, *, basis: 'str' = 'umap', store_key: 'str' = 'local_geometry_stability', rep_a=None, rep_b=None, metric: 'str' = 'local_shape_distortion', aggregation: 'str' = 'median', node_key=None, title=None, show: 'bool' = True)",
-      "doc": "Plot stored per-cell local distortion values on a display embedding.",
-      "docstring": "Plot stored per-cell local distortion values on a display embedding.",
+      "signature": "(adata, *, basis: 'str' = 'umap', store_key: 'str' = 'local_geometry_stability', rep_a=None, rep_b=None, metric: 'str' = 'local_shape_distortion', aggregation: 'str' = 'median', node_key=None, norm=None, vmin=None, vmax=None, cmap='magma', na_color='#BDBDBD', max_points=None, random_state=0, required_indices=None, rasterized='auto', ax=None, colorbar=True, cax=None, figsize=(5.8, 4.8), title=None, return_data=False, return_result=False, show: 'bool' = True)",
+      "doc": "Display stored distortion values with a shared scale and optional sampling.",
+      "docstring": "Display stored distortion values with a shared scale and optional sampling.\n\nSampling affects displayed cells only, with states preserved when node_key\nis supplied. Aggregation always uses the complete stored results. Missing\nvalues use ``na_color``. ``norm`` cannot be combined with ``vmin/vmax``.",
       "source": "scgeo/pl/_perturbation_report.py"
     },
     {
@@ -327,9 +355,9 @@
     },
     {
       "name": "scgeo.pl.perturbation_report",
-      "signature": "(adata, *, node_key, basis: 'str' = 'umap', report: 'Optional[pd.DataFrame]' = None, save_dir=None, prefix: 'str' = 'scgeo', comparison_label: 'Optional[str]' = None, local_k=None, pair_aggregation: 'str' = 'median', include_worst_case: 'bool' = True, show: 'bool' = True)",
-      "doc": "Create the standard ScGeo perturbation report bundle.",
-      "docstring": "Create the standard ScGeo perturbation report bundle.",
+      "signature": "(adata, *, node_key, basis: 'str' = 'umap', report: 'Optional[pd.DataFrame]' = None, save_dir=None, prefix: 'str' = 'scgeo', comparison_label: 'Optional[str]' = None, local_k=None, pair_aggregation: 'str' = 'median', include_worst_case: 'bool' = True, formats=('png', 'svg'), dpi=300, width_mm=None, height_mm=None, transparent=False, bbox_inches=None, strict=False, required_panels=None, panel_kwargs=None, show: 'bool' = True)",
+      "doc": "Create figures, source tables, and provenance for a perturbation report.",
+      "docstring": "Create figures, source tables, and provenance for a perturbation report.\n\nPartial bundles remain the default when optional evidence is absent.\n``strict=True`` requires all three standard panels unless a narrower\n``required_panels`` list is supplied. An explicitly required panel always\nraises if unavailable, before any files are written. Panel names are\n``consensus_state_map``, ``state_evidence_panel``, ``representation_heatmap``;\n``panel_kwargs`` maps these names to their plotting options.\n\n``formats`` accepts PNG/SVG/PDF; ``dpi`` also controls rasterized artists.\n``width_mm``/``height_mm`` specify export canvas dimensions. The default\n``bbox_inches=None`` preserves those dimensions. The bundle retains legacy\nFigure entries and adds ``plot_results`` with source data and metadata.",
       "source": "scgeo/pl/_perturbation_report.py"
     },
     {
@@ -340,24 +368,31 @@
       "source": "scgeo/pl/_recovery_compass.py"
     },
     {
+      "name": "scgeo.pl.replicate_effect",
+      "signature": "(data_or_adata, *, coordinate, store_key='robust_shift', scope='auto', state_order=None, condition_order=None, pair_key=None, summary='mean', palette=None, jitter=0.08, seed=0, axes=None, figsize=None, title=None, return_data=False, return_result=False, show=True)",
+      "doc": "Plot one biological sample center per point in an explicit coordinate.",
+      "docstring": "Plot one biological sample center per point in an explicit coordinate.\n\n``data_or_adata`` is an AnnData with sample-aware robust-shift results, the\nresult dictionary, or a tidy table from ``sg.get.sample_centers``. Required\ntable columns are ``state``, ``condition``, ``sample``, ``coordinate``,\n``value``, and ``representation``. ``coordinate`` is explicit and zero-based\nfor tables produced by the getter. Select one representation before plotting.\n\n``summary='mean'`` or ``'median'`` gives an equally weighted, descriptive\nsummary of the plotted sample coordinates; it is not necessarily the\nmultivariate robust condition center. ``summary=None`` hides it. No interval,\nhypothesis test, or cell-weighted estimate is computed. Pair lines are drawn\nonly when ``pair_key`` explicitly identifies matching biological samples.\nMissing pairs stay unconnected; ambiguous pairs are rejected.\n\n``axes`` is an optional mapping from state labels to Axes. Returns a Figure,\n``(Figure, data_dict)`` with ``return_data=True``, or a :class:`PlotResult`.",
+      "source": "scgeo/pl/_replicate_effect.py"
+    },
+    {
       "name": "scgeo.pl.representation_stability_heatmap",
-      "signature": "(adata, *, store_key: 'str' = 'representation_stability', metric: 'str' = 'normalized_delta_norm', annotate_consensus: 'bool' = True, cluster_states: 'bool' = False, cluster_reps: 'bool' = False, figsize=None, title=None, return_data: 'bool' = False, show: 'bool' = True)",
-      "doc": "Plot a state-by-representation heatmap from stored representation stability.",
-      "docstring": "Plot a state-by-representation heatmap from stored representation stability.",
+      "signature": "(adata, *, store_key: 'str' = 'representation_stability', metric: 'str' = 'normalized_delta_norm', annotate_consensus: 'bool' = True, cluster_states: 'bool' = False, cluster_reps: 'bool' = False, order_by='input', state_order=None, rep_order=None, norm=None, vmin=None, vmax=None, cmap=None, class_palette=None, na_color='#BDBDBD', show_colorbar=True, axes=None, figsize=None, title=None, return_data: 'bool' = False, return_result: 'bool' = False, show: 'bool' = True)",
+      "doc": "Plot stored state-by-representation values with metric-aware scales.",
+      "docstring": "Plot stored state-by-representation values with metric-aware scales.\n\nInput may be AnnData, a tidy ``per_rep_state`` DataFrame (``node``, ``rep``\nand metric columns), or a result mapping containing that table plus optional\n``consensus_state`` and ``representation_diagnostics`` tables. Table input\nmakes archived figure data reusable without loading AnnData.\n\nAlignment cosine defaults to a zero-centered [-1, 1] diverging scale;\ncoverage to [0, 1]; alignment classes use a discrete legend. Other numeric\nmetrics use a sequential scale. ``norm`` cannot be combined with bounds.\nExplicit orders move listed labels first and retain remaining labels.\n``order_by`` accepts 'input', 'mean', 'cluster', or separate ``states`` and\n``representations`` modes. Clustering uses average linkage and RMS distance\nover jointly finite entries; all-missing rows are appended. It never fills\nmissing plotted values. Legacy ``cluster_*`` flags retain mean sorting and\nemit a deprecation warning.\n\nSupplied axes use ``heatmap`` plus ``consensus`` and ``diagnostics`` when\napplicable; optional ``colorbar`` supplies a dedicated colorbar axis.",
       "source": "scgeo/pl/_perturbation_report.py"
     },
     {
       "name": "scgeo.pl.robustness_matrix",
-      "signature": "(data: 'pd.DataFrame', *, row_key: 'str' = 'feature', col_key: 'str' = 'setting', value_key: 'str' = 'value', annot_key: 'Optional[str]' = None, row_order: 'Optional[Sequence[str]]' = None, col_order: 'Optional[Sequence[str]]' = None, sort_rows_by: 'Optional[str]' = None, ascending: 'bool' = False, summary: 'Optional[str]' = 'mean', pass_threshold: 'Optional[float]' = None, cmap: 'str' = 'viridis', vmin: 'Optional[float]' = None, vmax: 'Optional[float]' = None, center: 'Optional[float]' = None, show_values: 'bool' = True, value_fmt: 'str' = '.2f', annot_fontsize: 'int' = 8, na_color: 'str' = '#d9d9d9', grid_lw: 'float' = 0.8, grid_color: 'str' = 'white', cbar_label: 'Optional[str]' = None, summary_label: 'Optional[str]' = None, figsize: 'tuple[float, float]' = (10.0, 6.0), title: 'Optional[str]' = None, return_data: 'bool' = False, show: 'bool' = True)",
+      "signature": "(data: 'pd.DataFrame', *, row_key: 'str' = 'feature', col_key: 'str' = 'setting', value_key: 'str' = 'value', annot_key: 'Optional[str]' = None, row_order: 'Optional[Sequence[str]]' = None, col_order: 'Optional[Sequence[str]]' = None, sort_rows_by: 'Optional[str]' = None, ascending: 'bool' = False, summary: 'Optional[str]' = 'mean', pass_threshold: 'Optional[float]' = None, missing_policy: 'str' = 'exclude', cmap: 'str' = 'viridis', vmin: 'Optional[float]' = None, vmax: 'Optional[float]' = None, center: 'Optional[float]' = None, show_values: 'bool' = True, value_fmt: 'str' = '.2f', annot_fontsize: 'int' = 8, na_color: 'str' = '#d9d9d9', grid_lw: 'float' = 0.8, grid_color: 'str' = 'white', cbar_label: 'Optional[str]' = None, summary_label: 'Optional[str]' = None, figsize: 'tuple[float, float]' = (10.0, 6.0), title: 'Optional[str]' = None, axes: 'Optional[Mapping[str, Any]]' = None, show_coverage: 'bool' = True, return_data: 'bool' = False, return_result: 'bool' = False, show: 'bool' = True)",
       "doc": "Plot a robustness heatmap with optional row-summary side bar.",
-      "docstring": "Plot a robustness heatmap with optional row-summary side bar.\n\nParameters\n----------\ndata\n    Either a tidy DataFrame with [row_key, col_key, value_key] columns,\n    or a wide DataFrame with rows as findings and columns as settings.\nsummary\n    Optional row summary shown in a right-side bar plot. One of\n    {'mean', 'median', 'min', 'max', 'pass_rate'} or None.\ncenter\n    Optional visual midpoint for diverging data. If provided, color scaling\n    is made symmetric around this value when vmin/vmax are not supplied.",
+      "docstring": "Plot a robustness heatmap with optional row-summary side bar.\n\nParameters\n----------\ndata\n    Either a tidy DataFrame with [row_key, col_key, value_key] columns,\n    or a wide DataFrame with rows as findings and columns as settings.\nsummary\n    Optional row summary shown in a right-side bar plot. One of\n    {'mean', 'median', 'min', 'max', 'pass_rate'} or None.\nmissing_policy\n    For pass rates, exclude unavailable settings from the denominator\n    (default) or count them as failures with ``\"fail\"`` (historical behavior).\n    Evaluation coverage is always returned separately. Rows without any\n    evaluated setting have NaN pass rate under ``\"exclude\"``.\naxes\n    Optional named mapping with ``heatmap`` and, when enabled, ``summary``.\ncenter\n    Optional visual midpoint for diverging data. If provided, color scaling\n    is made symmetric around this value when vmin/vmax are not supplied.",
       "source": "scgeo/pl/_robustness_matrix.py"
     },
     {
       "name": "scgeo.pl.score_embedding",
-      "signature": "(adata, score_key: 'str', basis: 'str' = 'umap', *, layer: 'Optional[str]' = None, ax: 'Optional[plt.Axes]' = None, title: 'Optional[str]' = None, size: 'float' = 6.0, alpha: 'float' = 0.8, cmap: 'str' = 'viridis', vmin=None, vmax=None, na_color: 'str' = 'lightgrey', figsize=None, show: 'bool' = True)",
-      "doc": "Plot an obs score on an embedding (UMAP/PCA/etc) with minimal dependencies. Returns (fig, ax).",
-      "docstring": "Plot an obs score on an embedding (UMAP/PCA/etc) with minimal dependencies.\nReturns (fig, ax).",
+      "signature": "(adata, score_key: 'str', basis: 'str' = 'umap', *, layer: 'Optional[str]' = None, ax: 'Optional[plt.Axes]' = None, title: 'Optional[str]' = None, size: 'float' = 6.0, alpha: 'float' = 0.8, cmap: 'str' = 'viridis', vmin=None, vmax=None, norm=None, palette: 'Optional[Mapping[str, str]]' = None, na_color: 'str' = 'lightgrey', figsize=None, max_points: 'Optional[int]' = None, stratify_by: 'Optional[str]' = None, random_state: 'int' = 0, required_indices=None, rasterized='auto', return_data: 'bool' = False, return_result: 'bool' = False, show: 'bool' = True)",
+      "doc": "Plot an observation score or category on the first two embedding axes.",
+      "docstring": "Plot an observation score or category on the first two embedding axes.\n\nBoth ``umap`` and ``X_umap`` resolve to the same coordinates. Continuous\ncolor limits use all finite input scores, even when ``max_points`` selects\na reproducible display subset. ``stratify_by`` preserves at least one point\nper observed state; a budget too small for those states raises an error.\n``required_indices`` preserves selected original cell positions when sampling;\nthese cells must have finite display coordinates. Categorical scores use a\nstable label-to-color mapping and no colorbar.\n\nThe legacy return is ``(fig, ax)``. ``return_data=True`` adds the full source\ntable with a ``displayed`` indicator; ``return_result=True`` supplies a\n:class:`PlotResult` with the original displayed indices and random seed.\nThe retained ``layer`` argument has no effect: scores come from ``obs``.",
       "source": "scgeo/pl/_score.py"
     },
     {
@@ -369,9 +404,9 @@
     },
     {
       "name": "scgeo.pl.state_evidence_panel",
-      "signature": "(report_or_adata, *, node_key=None, sort_by: 'str' = 'normalized_delta_norm', max_states: 'int' = 25, show_ci: 'bool' = True, show_coverage: 'bool' = True, figsize=None, title=None, return_data: 'bool' = False, show: 'bool' = True)",
-      "doc": "Plot a progressive-disclosure state evidence panel from a ScGeo report.",
-      "docstring": "Plot a progressive-disclosure state evidence panel from a ScGeo report.\n\nTracks are omitted when their source columns are unavailable. Effect,\nstability, local-neighborhood preservation, local distortion, dynamics,\nand coverage/warning indicators are drawn on separate axes.",
+      "signature": "(report_or_adata, *, node_key=None, effect_metric: 'str' = 'auto', representation=None, sort_by=None, state_order=None, max_states: 'Optional[int]' = 25, page: 'int' = 0, show_ci: 'bool' = True, show_coverage: 'bool' = True, show_sample_counts: 'bool' = False, show_inference: 'bool' = False, evidence_mode: 'str' = 'compact', axes=None, label_wrap: 'Optional[int]' = 32, figsize=None, title=None, return_data: 'bool' = False, return_result: 'bool' = False, show: 'bool' = True)",
+      "doc": "Plot effect estimates and independently assessed evidence by state.",
+      "docstring": "Plot effect estimates and independently assessed evidence by state.\n\n``effect_metric='auto'`` prefers raw ``delta_norm`` when finite values\nexist; otherwise it uses ``normalized_delta_norm``. Sorting defaults to\nthe displayed metric. Raw ``magnitude_ci95_low/high`` intervals are drawn\nonly with the raw metric. Normalized intervals require separately supplied\n``normalized_magnitude_ci95_low/high`` columns in the same units.\n\n``evidence_mode='full'`` adds an availability matrix and textual consensus\nlabels. Sample support is enabled with ``show_sample_counts``; inference\nlabels with ``show_inference``. Neither option performs a new analysis.\n``state_order`` moves specified states first and retains remaining states.\n``max_states=None`` displays all states; ``page`` is zero-based.\n\nSupplied ``axes`` use lowercase keys: ``effect``, ``samples``,\n``stability``, ``local_preservation``, ``local_distortion``, ``dynamics``,\n``coverage``, ``availability`` or ``summary``, as applicable. Supplied\nfigures are not resized or laid out. Legacy returns are preserved;\n``return_result=True`` returns a :class:`scgeo.pl.PlotResult`.",
       "source": "scgeo/pl/_perturbation_report.py"
     },
     {
@@ -389,10 +424,17 @@
       "source": "scgeo/pl/_state_flow_sankey.py"
     },
     {
+      "name": "scgeo.pl.style_context",
+      "signature": "(style='paper', *, width_mm=None, height_mm=None, overrides=None)",
+      "doc": "Temporarily apply a paper or presentation style without global changes.",
+      "docstring": "Temporarily apply a paper or presentation style without global changes.\n\n``width_mm`` and ``height_mm`` set the default canvas for plots that do not\nsupply their own figsize. Use ``export_figure`` to size an existing figure.\n``overrides`` accepts any Matplotlib rcParams mapping. SVG text remains text\nand PDF uses TrueType fonts; viewers need the selected font for SVG editing.",
+      "source": "scgeo/pl/_style.py"
+    },
+    {
       "name": "scgeo.pl.velocity_shift_alignment",
-      "signature": "(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', velocity_basis: 'Optional[str]' = None, min_cells: 'int' = 15, agg: 'str' = 'mean', bg_size: 'float' = 6.0, bg_alpha: 'float' = 0.1, node_size: 'float' = 180.0, shift_scale: 'float' = 1.0, velocity_scale: 'float' = 50.0, shift_color: 'str' = 'black', velocity_color: 'str' = 'cyan', shift_alpha: 'float' = 0.95, velocity_alpha: 'float' = 0.95, arrow_width: 'float' = 0.006, show_shift_arrow: 'bool' = True, show_velocity_arrow: 'bool' = True, color_by_alignment: 'bool' = True, alignment_cmap: 'str' = 'coolwarm', alignment_pos_thr: 'float' = 0.3, alignment_neg_thr: 'float' = -0.3, palette: 'Optional[dict[str, Any]]' = None, label: 'bool' = True, label_top_n: 'Optional[int]' = None, label_mode: 'str' = 'shift', label_fontsize: 'int' = 8, title: 'Optional[str]' = None, ax=None, figsize: 'tuple[float, float]' = (8.2, 7.0), return_data: 'bool' = False, show: 'bool' = True)",
-      "doc": "Plot node-wise observed shift vectors and mean velocity vectors on the same embedding.",
-      "docstring": "Plot node-wise observed shift vectors and mean velocity vectors on the same embedding.\n\nNode fill encodes cosine alignment between shift and velocity:\n  +1  aligned\n   0  unrelated\n  -1  discordant\n\nNotes\n-----\n`velocity_scale` is a display-only scaling factor. Velocity vectors are often\nmuch smaller than condition-shift vectors in embedding coordinates, so a larger\ndefault is used to keep the velocity arrows visible.\n\nReturns\n-------\nIf return_data is False:\n    (fig, ax) or ax\nIf return_data is True:\n    (fig, ax, align_df)",
+      "signature": "(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', velocity_basis: 'Optional[str]' = None, min_cells: 'int' = 15, agg: 'str' = 'mean', bg_size: 'float' = 6.0, bg_alpha: 'float' = 0.1, node_size: 'float' = 180.0, shift_scale: 'float' = 1.0, velocity_scale: 'float' = 50.0, shift_color: 'str' = 'black', velocity_color: 'str' = 'cyan', shift_alpha: 'float' = 0.95, velocity_alpha: 'float' = 0.95, arrow_width: 'float' = 0.006, show_shift_arrow: 'bool' = True, show_velocity_arrow: 'bool' = True, color_by_alignment: 'bool' = True, alignment_cmap: 'str' = 'coolwarm', alignment_pos_thr: 'float' = 0.3, alignment_neg_thr: 'float' = -0.3, palette: 'Optional[dict[str, Any]]' = None, label: 'bool' = True, label_top_n: 'Optional[int]' = None, label_mode: 'str' = 'shift', label_fontsize: 'int' = 8, title: 'Optional[str]' = None, ax=None, figsize: 'tuple[float, float]' = (8.2, 7.0), return_data: 'bool' = False, return_result: 'bool' = False, mode: 'str' = 'display', store_key: 'str' = 'representation_stability', analysis_rep: 'Optional[str]' = None, alignment_table: 'Optional[pd.DataFrame]' = None, axes: 'Optional[Mapping[str, Any]]' = None, state_order=None, show: 'bool' = True)",
+      "doc": "Plot display-space vectors or stored quantitative alignment with an overlay.",
+      "docstring": "Plot display-space vectors or stored quantitative alignment with an overlay.\n\n``mode=\"display\"`` preserves the legacy calculation in the first two display\ncoordinates and pools projected velocity over all observations in each state.\n``mode=\"stored\"`` renders stored alignment values on a separate\naxis and colors a display-only overlay by those fixed values. It reads\n``adata.uns['scgeo'][store_key]['per_rep_state']`` by default, or an explicit\n``alignment_table``. A representation must be selected with ``analysis_rep``\nwhen multiple representations exist or the table has no representation\nmetadata. Stored contrast metadata is checked against the requested groups.\n\nStored mode accepts an ``axes`` mapping with ``overlay`` and ``alignment``\nand returns ``(fig, (overlay_ax, alignment_ax)[, data])``. ``return_result``\nis an opt-in consistent result for either mode. High-dimensional analysis\nvectors are never used as display arrows; missing or incompatible projected\nvelocity leaves a condition-contrast overlay with an explanatory note. In\nstored mode, projected velocity is aggregated only over the selected two\nconditions, matching the contrast scope.\n\nNode fill encodes cosine alignment between shift and velocity:\n  +1  aligned\n   0  unrelated\n  -1  discordant\n\nNotes\n-----\n`velocity_scale` is a display-only scaling factor. Velocity vectors are often\nmuch smaller than condition-shift vectors in embedding coordinates, so a larger\ndefault is used to keep the velocity arrows visible.\n\nReturns\n-------\nIf return_data is False:\n    (fig, ax) or ax\nIf return_data is True:\n    (fig, ax, align_df)",
       "source": "scgeo/pl/_velocity_shift_alignment.py"
     }
   ],
@@ -438,6 +480,13 @@
       "doc": "",
       "docstring": "",
       "source": "scgeo/get/_figure_tables.py"
+    },
+    {
+      "name": "scgeo.get.sample_centers",
+      "signature": "(adata_or_result, *, store_key='robust_shift', scope='auto')",
+      "doc": "Return a tidy copy of the stored biological sample centers.",
+      "docstring": "Return a tidy copy of the stored biological sample centers.\n\nParameters\n----------\nadata_or_result\n    AnnData with a stored robust-shift result, or that result dictionary.\n    Old results without sample-center matrices are not recomputed silently.\nstore_key\n    Key inside ``adata.uns['scgeo']``; ignored for a result dictionary.\nscope\n    ``'state'`` selects stratified results, ``'global'`` selects the global\n    result, and ``'auto'`` selects states when available, otherwise global.\n\nReturns\n-------\npandas.DataFrame\n    Columns ``scope``, ``state``, ``condition``, ``sample``, ``coordinate``,\n    ``value``, ``cell_count``, ``representation``, and ``center``. Coordinates\n    are zero-based. Each sample has one row per representation coordinate;\n    ``cell_count`` is descriptive and must not be used as a replicate weight.\n    The global state label is ``'__global__'``. Provenance is in ``attrs``.",
+      "source": "scgeo/get/_sample_centers.py"
     },
     {
       "name": "scgeo.get.state_report",

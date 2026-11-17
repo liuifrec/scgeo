@@ -8,6 +8,7 @@ dist/
 .check_notebooks/
 # Outputs from the synthetic documentation example
 results/quickstart/
+results/plotting_gallery/
 notebooks/data/
 # Python / pytest
 .venv/

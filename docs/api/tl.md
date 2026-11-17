@@ -2,6 +2,8 @@
 
 ScGeo 0.1.0 · [Complete reference](../api_reference.md) · [All modules](README.md) · [Quick start](../QUICKSTART.md)
 
+Current-checkout reference: [unreleased plotting additions](../../CHANGELOG.md) require the development checkout described in the [plotting guide](../PLOTTING.md).
+
 Signatures and docstrings match the public exports. I/O tables record a small synthetic probe; keys present before and after are not necessarily modified. [How this reference is generated](../contracts/README.md).
 **Analysis.** Measure displacement, representation stability, local geometry, distributional change and dynamics agreement.
 
@@ -818,6 +820,9 @@ Robust condition displacement with sample-aware bootstrap uncertainty.
 
 When ``sample_key`` is provided, per-condition centers are estimated from
 sample-level centers and bootstrap resampling uses samples by default.
+The exact sample centers are retained for ``sg.get.sample_centers`` and
+descriptive replicate plots. This additive output does not change the
+estimator or bootstrap sequence.
 
 Minimal example
 ---------------
