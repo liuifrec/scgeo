@@ -99,6 +99,25 @@ igraph, leidenalg, and scikit-misc; `dev` installs pytest and Ruff. The legacy
 included in the core. Optional tools can have narrower Python/platform support
 than ScGeo itself.
 
+### Python 3.9 and PyNNDescent
+
+For Python 3.9 workflows that use PyNNDescent, including default reference-pool
+indexing, constrain the optional dependency to a compatible release:
+
+```bash
+python -m pip install "scgeo[scanpy]==0.1.0" "pynndescent<0.7; python_version < '3.10'"
+python -m pip check
+```
+
+As of 17 November 2026, PyNNDescent 0.7.0 fails during index compilation with
+Numba 0.60.0, the newest Numba available for Python 3.9. The problem and the
+compatible PyNNDescent 0.6.0 combination are documented in
+[upstream issue #288](https://github.com/lmcinnes/pynndescent/issues/288).
+Apply the same constraint when adding PyNNDescent to a Census environment.
+The Python 3.9 library CI uses this compatibility constraint and retains the
+reference-pool tests. Python 3.12 remains the recommended starting point for
+new analyses.
+
 ## Platform and verification scope
 
 Package metadata declares Python >=3.9. Release CI has checked core wheel
