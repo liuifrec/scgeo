@@ -120,6 +120,25 @@ magnitude intervals summarize resampling uncertainty and are not significance te
 See the [API reference](https://github.com/liuifrec/scgeo/blob/main/docs/api_reference.md)
 for parameters, optional dependencies, and public utilities.
 
+## Controlled benchmarks
+
+The `scgeo.bench` module tests displacement, abundance, distributional shape,
+local distortion, representation stability, uncertainty, and geometry–dynamics
+agreement under known simulated perturbations. Calibration and held-out seeds
+remain separate, with the protocol's frozen thresholds retained.
+
+Two sample-design scenarios are particularly useful for interpreting results:
+`balanced_replicate_heterogeneity` uses random sample offsets that are
+zero-centered within each condition, testing uncertainty without a systematic
+condition shift. `batch_condition_confounding` adds a systematic sample/batch
+offset correlated with condition; that contrast is **non-identifiable** without
+additional design information.
+
+These simulations assess behavior under stated failure modes. They do not
+establish biological truth. See the
+[frozen benchmark protocol](https://github.com/liuifrec/scgeo/blob/main/docs/revision/BENCHMARK_PROTOCOL.md)
+for scenarios, evaluation rules, and provenance.
+
 ## From the method to the paper
 
 The study begins with **post-irradiation hematopoietic recovery (GSE280305)**.
