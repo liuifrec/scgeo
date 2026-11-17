@@ -5,7 +5,7 @@ coordinates and sample identities. The figures demonstrate interfaces and
 interpretation, not biological findings.
 
 [Plotting guide](PLOTTING.md) · [API reference](api/pl.md) ·
-[Runnable source](../examples/plotting_gallery.py)
+[Runnable source](../examples/plotting_gallery.py) · [PAGA shift maps](PAGA_SHIFT_MAP.md)
 
 These additions are **unreleased**. Install the matching source checkout as
 described in the plotting guide, then run:
@@ -16,6 +16,16 @@ python examples/plotting_gallery.py --output-dir results/plotting_gallery --form
 
 Each figure has source CSVs and a JSON manifest with plotting configuration,
 software versions, available analysis metadata, and file hashes.
+
+## State connectivity, condition centres, and projected velocity
+
+![Constructed state connectivity on synthetic display coordinates, with distinct condition centres and projected velocity arrows.](assets/paga_shift_map_overview.png)
+
+The [PAGA shift-map gallery](PAGA_SHIFT_MAP.md) demonstrates the upgraded
+`paga_shift_map`, including stored alignment colours, composition pies, and
+matched displays. Its synthetic coordinates and connectivity fixture are
+declared explicitly; the graph is not an inferred biological trajectory.
+Run `examples/paga_shift_map_gallery.py` to reproduce these additional views.
 
 ## Which states differ, and what evidence is available?
 

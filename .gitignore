@@ -9,6 +9,7 @@ dist/
 # Outputs from the synthetic documentation example
 results/quickstart/
 results/plotting_gallery/
+results/paga_shift_map/
 notebooks/data/
 # Python / pytest
 .venv/

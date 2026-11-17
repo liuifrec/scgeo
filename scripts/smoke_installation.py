@@ -129,6 +129,27 @@ else:
             assert provenance["software"]["scgeo"] == sg.__version__
             assert "sample_centers" in exported["tables"]
             plt.close(plot.fig)
+            # A supplied connectivity fixture needs no optional Scanpy import.
+            adata.obs["state"] = pd.Categorical(
+                (["A"] * 8 + ["B"] * 4) * 2, categories=["A", "B"]
+            )
+            adata.uns["paga"] = {
+                "groups": "state",
+                "connectivities": np.array([[0.0, 0.6], [0.6, 0.0]]),
+            }
+            adata.obsm["velocity_pca"] = np.tile([0.02, 0.01], (adata.n_obs, 1))
+            paga = sg.pl.paga_shift_map(
+                adata, node_key="state", condition_key="condition",
+                group0="control", group1="treated", basis="pca",
+                graph_node_order=["A", "B"], min_cells=2,
+                show_velocity=True, return_result=True, show=False,
+            )
+            assert float(paga.axes["map"].get_aspect()) == 1.0
+            assert len(paga.data["edges"]) == 1
+            graph_export = paga.save(Path(temporary) / "paga", formats=("png", "svg"))
+            assert {"edge_table", "display_cells", "vectors"} <= set(graph_export["tables"])
+            assert all(Path(path).is_file() for path in graph_export["figures"].values())
+            plt.close(paga.fig)
     assert "cellxgene_census" not in sys.modules
     assert "tiledbsoma" not in sys.modules
     print(f"PASS: ScGeo {version('scgeo')} imported from {installed_from}")
@@ -136,6 +157,7 @@ else:
     print("PASS: core import and helpful DE error with optional Scanpy blocked")
     print("PASS: core import is independent of the Unix-only benchmark profiler")
     print("PASS: stored sample centers, plotting API, and source-data figure export")
+    print("PASS: supplied-graph PAGA map, projected velocity, and exported graph sources")
 
 
 if __name__ == "__main__":

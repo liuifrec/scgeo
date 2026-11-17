@@ -15,19 +15,23 @@ def paga_scgeo(
     basis: str = "umap",
     paga_key: str = "paga",
     pie_key: Optional[str] = "timepoint",
-    velocity_basis: Optional[str] = "umap",
+    velocity_basis: Optional[str] = None,
     show_velocity: bool = True,
     node_color_mode: str = "delta",
     highlight_nodes: Optional[list[str]] = None,
     **kwargs,
 ):
-    """
-    ScGeo-style PAGA summary:
-    - graph edges from PAGA
-    - node pies from pie_key (e.g. timepoint)
-    - black arrows = geometry shift
-    - optional cyan arrows = mean velocity
-    - node color by delta/alignment/palette/constant
+    """Draw the PAGA shift map with composition and projected velocity enabled.
+
+    Pies pool the two selected conditions; scalar colors remain visible as
+    reference rims and comparison fills. Dark arrows show display-coordinate
+    condition contrasts and teal arrows show mean projected velocity, with
+    separate display multipliers recorded in the legend. These arrows describe
+    geometry, not inferred trajectories. ``velocity_basis=None`` uses the same
+    basis as the display and requires its matching projected velocity array.
+
+    Other options, including axes, label placement, stored alignment coloring,
+    and ``return_result``, are forwarded to :func:`paga_shift_map`.
     """
     return paga_shift_map(
         adata,

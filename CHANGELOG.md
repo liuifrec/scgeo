@@ -1,5 +1,33 @@
 # Changelog
 
+## Unreleased PAGA shift-map upgrades
+
+The development `paga_shift_map` now brings state connectivity, condition
+centres, and supplied projected velocity into a consistent display. See the
+[PAGA guide and gallery](docs/PAGA_SHIFT_MAP.md).
+
+- Use equal coordinate scaling, optional shared limits, distinct reference and
+  comparison markers, readable labels with leader lines, and graphical legends.
+- Draw arrow heads and composition pies in display units by default. Existing
+  explicit `arrow_width` values retain the legacy data-unit arrow style;
+  the new default is `arrow_width=None`.
+- Add `alignment_source='stored'` with explicit representation selection and
+  contrast validation. Quantitative node colours use stored analysis results;
+  positions and condition arrows remain descriptive display-space summaries.
+- Restrict projected velocity and composition summaries to the selected two
+  conditions, and require velocity coordinates compatible with the display.
+- Validate connectivity matrices and their node identities before drawing.
+  `graph_node_order` declares matrix row labels for supplied or reordered graphs.
+- Add deterministic display sampling, shared colour scales, `PlotResult`, and
+  export tables for cells, centres, edges, vectors, and label placement.
+- Add an executable synthetic gallery and installation/CI coverage. The
+  `paga_scgeo` wrapper accepts the same new options.
+
+Default figure/axis and `return_data` contracts remain supported. The new
+condition scope deliberately excludes unrelated conditions from velocity and
+pie summaries; the background can still show all cells. Package version,
+published distribution files, and frozen manuscript analyses are unchanged.
+
 ## Unreleased plotting upgrades
 
 These changes are available in the development checkout and will accompany a
