@@ -1,95 +1,155 @@
 # scgeo.get
 
-## `scgeo.get.get_available_tables`
+ScGeo 0.1.0 · [Complete reference](../api_reference.md) · [All modules](README.md) · [Quick start](../QUICKSTART.md)
 
-**Signature**  
-`(adata, *, store_key: 'str' = 'shift') -> 'list[str]'`
+Signatures and docstrings match the public exports. I/O tables record a small synthetic probe; keys present before and after are not necessarily modified. [How this reference is generated](../contracts/README.md).
+**Reports and tables.** Retrieve analysis tables and combine available evidence into a state-level report.
 
-### I/O contract
+- [`get_available_tables`](#scgeogetget_available_tables)
+- [`get_composition_table`](#scgeogetget_composition_table)
+- [`get_ood_summary`](#scgeogetget_ood_summary)
+- [`get_robustness_table`](#scgeogetget_robustness_table)
+- [`get_shift_summary`](#scgeogetget_shift_summary)
+- [`get_velocity_alignment_summary`](#scgeogetget_velocity_alignment_summary)
+- [`state_report`](#scgeogetstate_report)
+- [`table`](#scgeogettable)
 
-_No I/O entry in `scgeo_io_manifest.json` for this function._
+### `scgeo.get.get_available_tables`
 
----
+Public ScGeo helper; inspect the signature and source for supported arguments.
 
-## `scgeo.get.get_composition_table`
+```text
+scgeo.get.get_available_tables(adata, *, store_key: 'str' = 'shift') -> 'list[str]'
+```
 
-**Signature**  
-`(adata, *, store_key: 'str' = 'shift') -> 'pd.DataFrame'`
+[View implementation](../../scgeo/get/_figure_tables.py)
 
-### I/O contract
+### `scgeo.get.get_composition_table`
 
-_No I/O entry in `scgeo_io_manifest.json` for this function._
+Public ScGeo helper; inspect the signature and source for supported arguments.
 
----
+```text
+scgeo.get.get_composition_table(adata, *, store_key: 'str' = 'shift') -> 'pd.DataFrame'
+```
 
-## `scgeo.get.get_ood_summary`
+[View implementation](../../scgeo/get/_figure_tables.py)
 
-**Signature**  
-`(adata, *, store_key: 'str' = 'shift') -> 'pd.DataFrame'`
+### `scgeo.get.get_ood_summary`
 
-### I/O contract
+Public ScGeo helper; inspect the signature and source for supported arguments.
 
-_No I/O entry in `scgeo_io_manifest.json` for this function._
+```text
+scgeo.get.get_ood_summary(adata, *, store_key: 'str' = 'shift') -> 'pd.DataFrame'
+```
 
----
+[View implementation](../../scgeo/get/_figure_tables.py)
 
-## `scgeo.get.get_robustness_table`
+### `scgeo.get.get_robustness_table`
 
-**Signature**  
-`(adata, *, store_key: 'str' = 'shift') -> 'pd.DataFrame'`
+Public ScGeo helper; inspect the signature and source for supported arguments.
 
-### I/O contract
+```text
+scgeo.get.get_robustness_table(adata, *, store_key: 'str' = 'shift') -> 'pd.DataFrame'
+```
 
-_No I/O entry in `scgeo_io_manifest.json` for this function._
+[View implementation](../../scgeo/get/_figure_tables.py)
 
----
+### `scgeo.get.get_shift_summary`
 
-## `scgeo.get.get_shift_summary`
+Public ScGeo helper; inspect the signature and source for supported arguments.
 
-**Signature**  
-`(adata, *, store_key: 'str' = 'shift') -> 'pd.DataFrame'`
+```text
+scgeo.get.get_shift_summary(adata, *, store_key: 'str' = 'shift') -> 'pd.DataFrame'
+```
 
-### I/O contract
+[View implementation](../../scgeo/get/_figure_tables.py)
 
-_No I/O entry in `scgeo_io_manifest.json` for this function._
+### `scgeo.get.get_velocity_alignment_summary`
 
----
+Public ScGeo helper; inspect the signature and source for supported arguments.
 
-## `scgeo.get.get_velocity_alignment_summary`
+```text
+scgeo.get.get_velocity_alignment_summary(adata, *, store_key: 'str' = 'shift') -> 'pd.DataFrame'
+```
 
-**Signature**  
-`(adata, *, store_key: 'str' = 'shift') -> 'pd.DataFrame'`
+[View implementation](../../scgeo/get/_figure_tables.py)
 
-### I/O contract
+### `scgeo.get.state_report`
 
-_No I/O entry in `scgeo_io_manifest.json` for this function._
-
----
-
-## `scgeo.get.state_report`
-
-**Signature**  
-`(adata, *, node_key=None, robust_shift_key: 'str' = 'robust_shift', representation_key: 'str' = 'representation_stability', local_geometry_key: 'str' = 'local_geometry_stability', local_k=None, pair_aggregation: 'str' = 'median', include_worst_case: 'bool' = True, comparison_label: 'Optional[str]' = None, condition_key: 'Optional[str]' = None, group0: 'Any' = None, group1: 'Any' = None, strict: 'bool' = False) -> 'pd.DataFrame'`
-
-**Docstring**  
 Build a canonical state-level ScGeo report from stored analysis results.
 
-### I/O contract
+```text
+scgeo.get.state_report(
+    adata,
+    *,
+    node_key=None,
+    robust_shift_key: 'str' = 'robust_shift',
+    representation_key: 'str' = 'representation_stability',
+    local_geometry_key: 'str' = 'local_geometry_stability',
+    local_k=None,
+    pair_aggregation: 'str' = 'median',
+    include_worst_case: 'bool' = True,
+    comparison_label: 'Optional[str]' = None,
+    condition_key: 'Optional[str]' = None,
+    group0: 'Any' = None,
+    group1: 'Any' = None,
+    strict: 'bool' = False,
+) -> 'pd.DataFrame'
+```
 
-_No I/O entry in `scgeo_io_manifest.json` for this function._
+[View implementation](../../scgeo/get/_state_report.py)
 
----
+- Read-only: consumes existing adata.uns["scgeo"] results and returns a pandas DataFrame.
+- The report combines displacement and rank summaries with `effect_status`, `stability_status`, `local_geometry_status`, `dynamics_status`, `coverage_status`, rule-based `reason_codes`, and a quantitative plain-language `summary`.
+- Local geometry reporting records k values used, valid representation-pair counts, median summaries, worst-case summaries, and across-k variability when available.
+- Metadata in `report.attrs` includes package version, source store keys, comparison identity, representations, k values, sample key, center estimator, bootstrap unit, consensus rules, global diagnostics, representation diagnostics, warnings, and creation timestamp.
+- State-graph summaries are kept as global diagnostics unless a stored analysis provides a genuinely state-specific transition-profile metric.
+- Missing-data behavior: `strict=False` returns available columns with warnings; `strict=True` raises if requested storage objects are absent.
 
-## `scgeo.get.table`
 
-**Signature**  
-`(adata, store_key: 'str' = 'scgeo', kind: 'str' = 'shift', level: 'str' = 'global') -> 'pd.DataFrame'`
+<details>
+<summary>Parameters, returns and usage notes</summary>
 
-**Docstring**  
+```text
+Build a canonical state-level ScGeo report from stored analysis results.
+
+The report reuses existing ``adata.uns['scgeo']`` outputs from robust shift,
+representation stability, and local-geometry stability. It does not
+recompute displacement, bootstrap, rank, neighborhood, or velocity metrics.
+
+With ``strict=False``, missing modules add warnings and leave unavailable
+columns as missing values. With ``strict=True``, each requested storage
+object must exist.
+```
+
+</details>
+
+### `scgeo.get.table`
+
 Return tidy table from adata.uns[store_key][kind].
 
-### I/O contract
+```text
+scgeo.get.table(
+    adata,
+    store_key: 'str' = 'scgeo',
+    kind: 'str' = 'shift',
+    level: 'str' = 'global',
+) -> 'pd.DataFrame'
+```
 
-_No I/O entry in `scgeo_io_manifest.json` for this function._
+[View implementation](../../scgeo/get/_table.py)
 
----
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Return tidy table from adata.uns[store_key][kind].
+
+Conventions:
+  - shift-like objects: expect keys: ["global"] and optionally ["by"], ["samples"].
+  - paga_composition_stats: expects obj["table"] as a DataFrame-like.
+  - map_query_to_ref: expects obj["global"] and either obj["per_label_dict"] or obj["per_label"].
+```
+
+</details>

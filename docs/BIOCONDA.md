@@ -1,8 +1,16 @@
 # Bioconda submission for ScGeo 0.1.0
 
-Status: recipe preparation only. A recipe in this repository is not a package
-published on the Bioconda channel. Do not advertise Bioconda availability until
-the upstream recipe is reviewed, merged, built, uploaded and verified.
+**Status checked 17 November 2026:** [PR #70318](https://github.com/bioconda/bioconda-recipes/pull/70318)
+is open, with successful technical checks and maintainer review/merge pending.
+The package is not yet present in the Bioconda registry. Use the released
+[pip or conda-managed installation](INSTALLATION.md) in the meantime.
+
+The [merge queue](https://github.com/bioconda/bioconda-recipes/runs/130368142817)
+requires an approving review. The author's earlier queue command was rejected
+because it requires upstream write permission. A Bioconda maintainer must
+approve and queue/merge the submission; do not open a duplicate PR.
+Advertise native availability after the channel upload and a fresh installation
+have both been verified.
 
 ## Exact release source
 
@@ -38,7 +46,10 @@ they are not made core conda dependencies. Test-only pip and packaging checks
 are in `run_test.sh`, because Bioconda's runtime-only container tests do not
 include dependencies listed in `test.requires`.
 
-## Submit through GitHub
+## Submission record and maintainer follow-up
+
+The existing PR was submitted using the following process; continue that PR for
+review and any requested corrections.
 
 1. Fork `bioconda/bioconda-recipes` into the `liuifrec` account. No separate
    Bioconda account, upload token or Trusted Publisher is needed for this route.
@@ -53,10 +64,14 @@ include dependencies listed in `test.requires`.
    Bioconda contribution guide. Maintainers merge approved recipes; the upstream
    infrastructure builds and uploads to its channel.
 
-The candidate's GitHub workflow builds from the real released sdist on Linux and
-macOS with Python 3.12. Consult the actual Actions results for the checked commit.
-These are standard conda-build checks, not a claim of official Bioconda lint or
-isolated-container approval. They do not rerun manuscript analyses.
+The upstream [recipe workflow](https://github.com/liuifrec/scgeo/actions/runs/38693957389)
+built and tested the released sdist on Linux and macOS. Its build-tools
+environment selects Python 3.12, while conda-build resolves the package test
+environment separately; use the logs to identify the actual runtime version.
+The [Bioconda Linux job](https://github.com/bioconda/bioconda-recipes/actions/runs/42973817032/job/130368679807)
+also built the native package and passed its dependency, smoke, and runtime
+container tests. The green Bioconda OSX-64 job skips this noarch build, so it is
+not an independent macOS runtime test. These checks do not rerun manuscript analyses.
 
 ## Installation after channel publication
 

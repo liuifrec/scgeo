@@ -1,5 +1,5 @@
 {
-  "scgeo_version": "0.1.0-dev",
+  "scgeo_version": "0.1.0",
   "tl": {
     "scgeo.tl.density_overlap": {
       "signature": "(adata, rep: 'str' = 'X_umap', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, *, by: 'Optional[str]' = None, k: 'int' = 30, eval_on: 'str' = 'union', store_key: 'str' = 'scgeo') -> 'None'",
@@ -26,7 +26,9 @@
         "layers_keys": {
           "added": [],
           "removed": [],
-          "touched": []
+          "touched": [
+            null
+          ]
         },
         "uns_keys": {
           "added": [
@@ -62,7 +64,9 @@
         "layers_keys": {
           "added": [],
           "removed": [],
-          "touched": []
+          "touched": [
+            null
+          ]
         },
         "uns_keys": {
           "added": [
@@ -98,7 +102,9 @@
         "layers_keys": {
           "added": [],
           "removed": [],
-          "touched": []
+          "touched": [
+            null
+          ]
         },
         "uns_keys": {
           "added": [
@@ -136,7 +142,9 @@
         "layers_keys": {
           "added": [],
           "removed": [],
-          "touched": []
+          "touched": [
+            null
+          ]
         },
         "uns_keys": {
           "added": [
@@ -172,7 +180,9 @@
         "layers_keys": {
           "added": [],
           "removed": [],
-          "touched": []
+          "touched": [
+            null
+          ]
         },
         "uns_keys": {
           "added": [
@@ -208,7 +218,9 @@
         "layers_keys": {
           "added": [],
           "removed": [],
-          "touched": []
+          "touched": [
+            null
+          ]
         },
         "uns_keys": {
           "added": [
@@ -244,7 +256,9 @@
         "layers_keys": {
           "added": [],
           "removed": [],
-          "touched": []
+          "touched": [
+            null
+          ]
         },
         "uns_keys": {
           "added": [
@@ -280,7 +294,9 @@
         "layers_keys": {
           "added": [],
           "removed": [],
-          "touched": []
+          "touched": [
+            null
+          ]
         },
         "uns_keys": {
           "added": [
@@ -318,7 +334,9 @@
         "layers_keys": {
           "added": [],
           "removed": [],
-          "touched": []
+          "touched": [
+            null
+          ]
         },
         "uns_keys": {
           "added": [],
@@ -352,7 +370,9 @@
         "layers_keys": {
           "added": [],
           "removed": [],
-          "touched": []
+          "touched": [
+            null
+          ]
         },
         "uns_keys": {
           "added": [],
@@ -386,7 +406,9 @@
         "layers_keys": {
           "added": [],
           "removed": [],
-          "touched": []
+          "touched": [
+            null
+          ]
         },
         "uns_keys": {
           "added": [],
@@ -420,7 +442,9 @@
         "layers_keys": {
           "added": [],
           "removed": [],
-          "touched": []
+          "touched": [
+            null
+          ]
         },
         "uns_keys": {
           "added": [],
@@ -454,7 +478,9 @@
         "layers_keys": {
           "added": [],
           "removed": [],
-          "touched": []
+          "touched": [
+            null
+          ]
         },
         "uns_keys": {
           "added": [],
@@ -488,7 +514,9 @@
         "layers_keys": {
           "added": [],
           "removed": [],
-          "touched": []
+          "touched": [
+            null
+          ]
         },
         "uns_keys": {
           "added": [],
@@ -522,7 +550,9 @@
         "layers_keys": {
           "added": [],
           "removed": [],
-          "touched": []
+          "touched": [
+            null
+          ]
         },
         "uns_keys": {
           "added": [],
@@ -532,7 +562,7 @@
       }
     },
     "scgeo.tl.map_query_to_ref_pool_census": {
-      "signature": "(adata_q, *, pool=None, census=None, rep: 'str' = 'X_emb', embedding_name: 'Optional[str]' = None, organism: 'str' = 'homo_sapiens', label_key: 'str' = 'cell_type', obs_columns: 'Optional[Sequence[str]]' = None, k: 'int' = 50, max_refs: 'int' = 200000, dedup: 'bool' = True, index_metric: 'str' = 'euclidean', index_seed: 'int' = 0, census_obs_filter: 'Optional[str]' = None, store_key: 'str' = 'map_query_to_ref', pred_key: 'str' = 'scgeo_pred', conf_key: 'str' = 'scgeo_conf', conf_entropy_key: 'str' = 'scgeo_conf_entropy', conf_margin_key: 'str' = 'scgeo_conf_margin', ood_key: 'str' = 'scgeo_ood', reject_key: 'str' = 'scgeo_reject', conf_method: 'str' = 'entropy_margin', ood_method: 'str' = 'distance', reject_conf: 'Optional[float]' = None, reject_ood: 'Optional[float]' = None, return_probs: 'bool' = False, probs_key: 'str' = 'X_map_probs', label_order_key: 'str' = 'map_label_order') -> 'None'",
+      "signature": "(adata_q, *, pool=None, census=None, rep: 'str' = 'X_emb', embedding_name: 'str' = 'scvi', organism: 'str' = 'Homo sapiens', label_key: 'str' = 'cell_type', obs_value_filter: 'Optional[str]' = None, obs_columns: 'Optional[Sequence[str]]' = None, max_refs: 'int' = 200000, index_metric: 'str' = 'euclidean', index_seed: 'int' = 0, n_neighbors: 'int' = 30, k: 'Optional[int]' = None, dedup: 'Optional[bool]' = None, census_obs_filter: 'Optional[str]' = None, store_key: 'str' = 'map_query_to_ref', pred_key: 'str' = 'scgeo_pred', conf_key: 'str' = 'scgeo_conf', conf_entropy_key: 'str' = 'scgeo_conf_entropy', conf_margin_key: 'str' = 'scgeo_conf_margin', ood_key: 'str' = 'scgeo_ood', reject_key: 'str' = 'scgeo_reject', conf_method: 'str' = 'entropy_margin', ood_method: 'str' = 'distance', reject_conf: 'Optional[float]' = None, reject_ood: 'Optional[float]' = None, return_probs: 'bool' = False, probs_key: 'str' = 'X_map_probs', label_order_key: 'str' = 'map_label_order') -> 'None'",
       "ok": false,
       "note": "needs domain-specific inputs",
       "writes": {
@@ -556,7 +586,9 @@
         "layers_keys": {
           "added": [],
           "removed": [],
-          "touched": []
+          "touched": [
+            null
+          ]
         },
         "uns_keys": {
           "added": [],
@@ -590,7 +622,9 @@
         "layers_keys": {
           "added": [],
           "removed": [],
-          "touched": []
+          "touched": [
+            null
+          ]
         },
         "uns_keys": {
           "added": [],
@@ -624,7 +658,9 @@
         "layers_keys": {
           "added": [],
           "removed": [],
-          "touched": []
+          "touched": [
+            null
+          ]
         },
         "uns_keys": {
           "added": [],
@@ -658,7 +694,9 @@
         "layers_keys": {
           "added": [],
           "removed": [],
-          "touched": []
+          "touched": [
+            null
+          ]
         },
         "uns_keys": {
           "added": [],
@@ -692,7 +730,9 @@
         "layers_keys": {
           "added": [],
           "removed": [],
-          "touched": []
+          "touched": [
+            null
+          ]
         },
         "uns_keys": {
           "added": [],

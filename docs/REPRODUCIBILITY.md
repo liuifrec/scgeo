@@ -1,61 +1,87 @@
-# Reproducibility
+# Reproducibility and version provenance
 
-## Published study and software provenance
+[Citation guide](CITING.md) · [Companion workflows](https://github.com/liuifrec/scgeo-notebooks) · [Installation](INSTALLATION.md)
 
-The associated study is Liu Y-C, Yoshida K (2026), *Bioinformatics Advances*
-6(1):vbag266, [doi:10.1093/bioadv/vbag266](https://doi.org/10.1093/bioadv/vbag266).
-The complete citation and BibTeX are in the [package README](../README.md#12-citation).
+## Choose the right starting point
 
-The article DOI identifies the paper, not a separately archived software
-release. Record the exact Git commit, package and environment versions,
-configuration, and numerical input checksums when reporting an analysis.
-Documentation updates do not change the frozen checkpoint recorded below.
+| Task | Starting point | Record with the analysis |
+| --- | --- | --- |
+| New analysis using the released API | PyPI ScGeo 0.1.0 | Package/dependency versions, inputs, representations and settings |
+| Development against current source | A specified Git commit | Full commit, local changes, resolved environment and tests |
+| Reproduction of the published evidence | Frozen package and companion checkpoints below | Recorded workflow environments, numerical inputs/checksums, configurations and execution metadata |
 
-## Frozen package checkpoint
+The [published study](https://doi.org/10.1093/bioadv/vbag266) identifies the
+scientific framework. Its article DOI and the software version have different
+roles: cite the paper and record the exact code and environment used.
 
-The package checkpoint used by the major-revision evidence package is commit
-[`9a0ed16cbaa57f935f9c9bc87d1643a25b51012c`](https://github.com/liuifrec/scgeo/tree/9a0ed16cbaa57f935f9c9bc87d1643a25b51012c).
-Check the active checkout before reproducing a frozen analysis.
+## Frozen manuscript checkpoints
+
+- ScGeo package:
+  [`9a0ed16cbaa57f935f9c9bc87d1643a25b51012c`](https://github.com/liuifrec/scgeo/tree/9a0ed16cbaa57f935f9c9bc87d1643a25b51012c).
+- Companion merge checkpoint:
+  [`958a0ada568c53e78864ede022c050830cb55a36`](https://github.com/liuifrec/scgeo-notebooks/tree/958a0ada568c53e78864ede022c050830cb55a36).
+- Dataset-specific inputs, outputs, and settings: the recorded execution metadata,
+  validation reports, and evidence ledgers in the companion workflows.
+
+These checkpoints remain the reproduction anchors for the manuscript evidence.
+The later PyPI release and documentation improvements do not replace them.
+Begin with the companion's
+[reproducibility guide](https://github.com/liuifrec/scgeo-notebooks/blob/main/docs/REPRODUCIBILITY_GUIDE.md)
+before executing a dataset workflow; some scripts retain documented workstation
+paths and interpreter requirements.
+
+## Capture the environment for a new analysis
+
+```bash
+python -c "import sys, scgeo; print(sys.version); print(scgeo.__version__); print(scgeo.__file__)"
+python -m pip freeze > requirements-resolved.txt
+```
+
+For a source checkout, also record:
 
 ```bash
 git rev-parse HEAD
 git status --short
 ```
 
-## Test command
+Preserve input accessions and checksums, preprocessing and representation
+settings, sample/state/condition mappings, random seeds, bootstrap settings,
+comparison units, and output tables. A Git commit or a `pip freeze` listing alone
+does not capture the complete analytical provenance.
 
-From the package repository:
+## Package tests and documentation checks
+
+In a development environment installed with `.[dev,scanpy]`:
 
 ```bash
-python -m pytest -q
+python -m pytest -q -m "not integration"
+python scripts/validate_manifests.py
+python scripts/gen_api_docs.py --check
 ```
 
-The revision checkpoint is expected to run the complete test suite; warnings
-should be recorded separately from failures.
+Record any skipped network/integration tests and warnings separately from
+failures. Package tests and installation smoke checks establish implementation
+behavior; reproducing the paper also requires its data, workflow settings, and
+recorded execution environments.
 
-## Benchmark protocol
+## Benchmarks and generated artifacts
 
-The frozen synthetic protocol is defined in
-[`docs/revision/BENCHMARK_PROTOCOL.md`](revision/BENCHMARK_PROTOCOL.md). It
-separates calibration seeds from held-out evaluation seeds, keeps thresholds
-fixed for final evaluation, and treats one simulation job/seed as the
-independent unit.
+The [frozen synthetic protocol](revision/BENCHMARK_PROTOCOL.md) separates
+calibration from held-out evaluation seeds, fixes thresholds for final
+evaluation, and treats simulation jobs/seeds as the independent units.
 
-## Companion repository
+Source notebooks are tracked without embedded outputs or execution counts.
+Executed notebooks, manuscript figures and figure-source tables, logs, large
+data objects, and models belong in the workflow's ignored result or local data
+directories. The small PNG under `docs/assets/quickstart_displacement.png` is a
+reproducible synthetic documentation illustration from
+[`examples/quickstart.py`](../examples/quickstart.py), not a manuscript figure.
 
-The [`scgeo-notebooks`](https://github.com/liuifrec/scgeo-notebooks) repository
-contains source notebooks, execution scripts, environment descriptions, public
-validation workflows, manuscript assembly, and reviewer evidence ledgers. Its
-documentation pins package commits and numerical input checksums where needed.
+## Release and historical tag names
 
-## Source and generated artifacts
-
-Source notebooks are tracked with zero embedded outputs and null execution
-counts. Clean-kernel execution produces review copies, figures, figure-source
-tables, alt text, logs, models, and large data artifacts under ignored result
-or workstation data directories. Those generated artifacts are validated by
-checksums but are not part of the installable package.
-
-Generated API contracts in this repository are documented in
-[`docs/api_reference.md`](api_reference.md); the library API remains the source
-of truth for function names.
+The published package release is `v0.1.0`, with source commit
+`6ab8a8ea4144f66613812b7b79976b1a67ad29d1`. The earlier tag
+`v0.2.0-geometry-core` identifies a March development checkpoint whose package
+metadata was `0.1.0-dev`; it is not a newer published package release.
+Historical tags are retained for provenance. See the
+[release record](RELEASING.md) and [PyPI publication record](PYPI_PUBLICATION.md).

@@ -1,7 +1,12 @@
-# Legacy split API docs (archived)
+# Browse the ScGeo API
 
-These per-module API pages were removed to keep a single canonical API reference.
+These module pages and the [complete API reference](../api_reference.md) are generated together for ScGeo 0.1.0.
 
-- Canonical API reference: [`../api_reference.md`](../api_reference.md)
-
-If you need provenance for generated contracts, use manifests in the repository root (`api_manifest.json`, `scgeo_io_manifest.json`).
+| Module | Purpose | Callables |
+|---|---|---|
+| [scgeo.tl](tl.md) | Analysis | 20 |
+| [scgeo.pl](pl.md) | Figures | 36 |
+| [scgeo.get](get.md) | Reports and tables | 8 |
+| [scgeo.pp](pp.md) | Reference preparation | 6 |
+| [scgeo.data](data.md) | Census access | 12 |
+| [scgeo.bench](bench.md) | Synthetic benchmarks | 5 |

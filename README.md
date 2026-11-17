@@ -1,89 +1,77 @@
 <p align="center">
-  <img src="docs/assets/ScGeo_logo.png" width="420" alt="ScGeo logo">
+  <img src="https://raw.githubusercontent.com/liuifrec/scgeo/main/docs/assets/ScGeo_logo.png" width="340" alt="ScGeo logo">
 </p>
 
 <h1 align="center">ScGeo</h1>
+<p align="center"><strong>Quantify cell-state shifts across conditions and representations.</strong></p>
 
-<p align="center">Geometry-aware analysis of single-cell representations</p>
+[![PyPI](https://img.shields.io/pypi/v/scgeo)](https://pypi.org/project/scgeo/)
+[![Paper DOI](https://img.shields.io/badge/paper-10.1093%2Fbioadv%2Fvbag266-blue)](https://doi.org/10.1093/bioadv/vbag266)
+[![Python](https://img.shields.io/badge/Python-3.9%2B-blue)](https://github.com/liuifrec/scgeo/blob/main/docs/INSTALLATION.md)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](https://github.com/liuifrec/scgeo/blob/main/LICENSE)
 
-[![DOI](https://img.shields.io/badge/DOI-10.1093%2Fbioadv%2Fvbag266-blue)](https://doi.org/10.1093/bioadv/vbag266)
+**[Quick start](https://github.com/liuifrec/scgeo/blob/main/docs/QUICKSTART.md) ·
+[Installation](https://github.com/liuifrec/scgeo/blob/main/docs/INSTALLATION.md) ·
+[API reference](https://github.com/liuifrec/scgeo/blob/main/docs/api_reference.md) ·
+[Paper workflows](https://github.com/liuifrec/scgeo-notebooks) ·
+[Cite ScGeo](https://github.com/liuifrec/scgeo/blob/main/docs/CITING.md)**
 
-**Published study:** Liu Y-C, Yoshida K (2026). *Bioinformatics Advances*,
-**6**(1), vbag266. [Read the paper](https://doi.org/10.1093/bioadv/vbag266).
+ScGeo turns existing single-cell representations into quantitative comparisons
+of cell states. Estimate displacement between conditions, quantify uncertainty
+across biological samples, examine agreement across prespecified representations,
+and compare geometric shifts with supplied dynamics such as RNA velocity.
 
-[Quick start](docs/QUICKSTART.md) | [API reference](docs/api_reference.md) |
-[Reproducibility](docs/REPRODUCIBILITY.md) |
-[Companion workflows](https://github.com/liuifrec/scgeo-notebooks)
+The Python library works with **AnnData** and the **Scanpy** ecosystem. Its
+outputs are inspectable state-level tables and figures, with separate evidence
+for displacement, representation stability, local geometry, and dynamics.
 
-## 1. What ScGeo is
+**Published in Bioinformatics Advances:**
+[Liu and Yoshida (2026), vbag266](https://doi.org/10.1093/bioadv/vbag266).
 
-ScGeo is an installable Python library for quantifying perturbation-associated
-geometry in low-dimensional single-cell representations. It organizes robust
-state displacement, biological-sample uncertainty, representation stability,
-local geometry, dynamics agreement, abundance, and distributional change as
-separate evidence layers.
+## Start here
 
-Start with the [framework overview](docs/OVERVIEW.md), then follow the
-[quick start](docs/QUICKSTART.md).
+| Your goal | Best starting point |
+| --- | --- |
+| Analyze your own AnnData object | [Quick start](https://github.com/liuifrec/scgeo/blob/main/docs/QUICKSTART.md) |
+| Try ScGeo without downloading a dataset | [Runnable synthetic example](https://github.com/liuifrec/scgeo/blob/main/examples/quickstart.py) |
+| Understand the framework and outputs | [Overview](https://github.com/liuifrec/scgeo/blob/main/docs/OVERVIEW.md) and [analysis layers](https://github.com/liuifrec/scgeo/blob/main/docs/ANALYSIS_LAYERS.md) |
+| Explore the paper's datasets and figures | [Companion workflows](https://github.com/liuifrec/scgeo-notebooks/blob/main/docs/START_HERE.md) |
+| Reproduce the published analyses | [Frozen provenance](https://github.com/liuifrec/scgeo/blob/main/docs/REPRODUCIBILITY.md) |
+| Cite the method or report your analysis | [Citation and Methods guide](https://github.com/liuifrec/scgeo/blob/main/docs/CITING.md) |
 
-## 2. What ScGeo is not
+## Install
 
-ScGeo is not a batch-correction or integration algorithm, and it does not make
-cells into biological replicates. It does not make UMAP a quantitative
-coordinate system, turn agreement among nested PCA dimensions into independent
-confirmation, or convert descriptive geometry into causal evidence. ScGeo uses
-standard geometric and statistical primitives; its contribution is the
-auditable framework that connects those primitives across evidence layers.
-
-## 3. Core analysis layers
-
-| Layer | Main question | Typical output |
-|---|---|---|
-| Robust shift | How far and in what direction did a state move? | displacement, normalized effect, direction stability |
-| Sample uncertainty | Is the shift stable across biological samples? | sample bootstrap interval and coverage |
-| Representation stability | Does the conclusion persist across prespecified representations? | consensus status and sensitivity diagnostics |
-| Local geometry | Are neighborhoods and local shapes preserved? | overlap, Jaccard, and distortion metrics |
-| Dynamics agreement | Does displacement align with an available dynamics estimate? | aligned, discordant, neutral, or unavailable evidence |
-| Abundance and distribution | Did composition or within-state shape also change? | separate proportions and distribution distances |
-
-See [Analysis layers](docs/ANALYSIS_LAYERS.md) for estimands and interpretation.
-
-## 4. Installation
-
-Use a fresh environment (Python 3.12 recommended). Install the development
-package directly from GitHub; no manual clone or Git installation is needed:
+For a standard Scanpy workflow, start in a fresh Python 3.12 environment:
 
 ```bash
-python -m pip install "scgeo @ https://github.com/liuifrec/scgeo/archive/refs/heads/main.zip"
+python -m pip install "scgeo[scanpy]==0.1.0"
+python -m pip check
 ```
 
-For a conda-managed environment with Scanpy and an IPython kernel:
+For core geometry and plotting, use `python -m pip install scgeo==0.1.0`.
+Optional `notebook`, `scvelo`, and `census` extras support additional workflows.
+The [installation guide](https://github.com/liuifrec/scgeo/blob/main/docs/INSTALLATION.md)
+explains feature dependencies, Windows/macOS/Linux use, and development installs.
+
+Prefer conda? Create the environment with conda and install the released package
+with pip:
 
 ```bash
-conda env create -f https://raw.githubusercontent.com/liuifrec/scgeo/main/environment-user.yml
+conda create -n scgeo -c conda-forge python=3.12 pip
 conda activate scgeo
+python -m pip install "scgeo[scanpy]==0.1.0"
 ```
 
-The conda environment installs ScGeo with pip after installing its scientific
-stack from conda-forge. This is not yet an advertised `conda install scgeo`
-channel release. A bare `pip install scgeo` requires a verified PyPI release;
-the commands above deliberately identify this repository instead.
+**Native Bioconda publication is pending** as of 17 November 2026;
+[follow PR #70318](https://github.com/bioconda/bioconda-recipes/pull/70318).
+The command above is the supported conda-managed route to the PyPI release.
 
-The default package includes geometry and plotting dependencies. Optional
-`scanpy`, `scvelo`, `census`, and `notebook` extras install workflow-specific
-packages. See [Installation](docs/INSTALLATION.md) for examples, developer
-installs, smoke checks, and local native conda builds.
+## A first analysis
 
-The frozen package checkpoint used for the major-revision evidence package is
-[`9a0ed16`](https://github.com/liuifrec/scgeo/tree/9a0ed16cbaa57f935f9c9bc87d1643a25b51012c).
-Use its recorded environment to reproduce the paper; a current development
-installation does not replace that environment.
-
-## 5. Minimal sample-aware example
-
-The biological sample identifier belongs in `adata.obs`; it should identify an
-independently sampled unit rather than a cell, condition, or artificial
-partition.
+For an existing `adata`, this example expects `condition`, `cell_type`, and
+`sample` in `adata.obs`, plus quantitative coordinates in `adata.obsm["X_pca"]`.
+Here `sample` identifies independent biological samples, and `condition` contains
+`control` and `treated`. Replace these keys and labels with your own.
 
 ```python
 import scgeo as sg
@@ -95,119 +83,89 @@ sg.tl.robust_shift(
     group0="control",
     group1="treated",
     by="cell_type",
-    sample_key="donor",
+    sample_key="sample",
     n_boot=500,
-)
-
-sg.tl.representation_stability(
-    adata,
-    reps=["X_pca", "X_scvi"],
-    node_key="cell_type",
-    condition_key="condition",
-    group0="control",
-    group1="treated",
-    sample_key="donor",
 )
 
 report = sg.get.state_report(adata, node_key="cell_type")
 sg.pl.state_evidence_panel(report)
 ```
 
-Required fields and expected outputs are listed in
-[Quick start](docs/QUICKSTART.md).
+This first step estimates displacement and sample-level uncertainty in one
+representation. Add representation stability, local geometry, and dynamics
+when their inputs are available; the report keeps missing evidence visible.
+The [full quick start](https://github.com/liuifrec/scgeo/blob/main/docs/QUICKSTART.md)
+includes synthetic input, expected output, and the next analysis steps.
 
-## 6. How to interpret results
+### Example output
 
-Read effect size, uncertainty, representation stability, local geometry, and
-coverage together. `stable_effect`, `stable_neutral`,
-`representation_unstable`, and `insufficient_coverage` describe evidence under
-the stored rules; they are not interchangeable with population-level causal
-claims. Bootstrap magnitude intervals summarize resampling uncertainty around a
-nonnegative norm and are not automatically null-hypothesis tests.
+![ScGeo synthetic example: State A has a larger estimated displacement than State B and State C, with sample-bootstrap interval displays.](https://raw.githubusercontent.com/liuifrec/scgeo/d9d731817977d5f05cf3ce3bbd19a8a60ce21dad/docs/assets/quickstart_displacement.png)
 
-See [Result interpretation](docs/RESULT_INTERPRETATION.md) for status-specific
-language and warnings.
+*Actual output from the [synthetic example](https://github.com/liuifrec/scgeo/blob/main/examples/quickstart.py):
+720 simulated cells, three states, four samples per condition, and one supplied
+representation. This illustrates the API, not a biological result. Bootstrap
+magnitude intervals summarize resampling uncertainty and are not significance tests.*
 
-## 7. Representation robustness
+## Questions ScGeo can help answer
 
-Representations must be prespecified as primary or sensitivity views. Related
-PCA20, PCA30, and PCA50 views share a basis and should not be counted as three
-independent confirmations. UMAP should ordinarily remain display-only.
-Condition mixing is a descriptive diagnostic when condition is biological, not
-an integration objective. See [Analysis layers](docs/ANALYSIS_LAYERS.md).
+| Question | Main function | Output to inspect |
+| --- | --- | --- |
+| Which states moved between conditions? | `tl.robust_shift` | displacement, normalized effect, sample-bootstrap uncertainty |
+| Does the conclusion persist across representations? | `tl.representation_stability` | agreement, coverage, leave-one-representation-out sensitivity |
+| How much did local neighborhoods change? | `tl.local_geometry_stability` | overlap, Jaccard, local distortion |
+| Do shifts agree with supplied RNA-velocity estimates? | `tl.velocity_shift_alignment` | alignment, discordance, unavailable evidence |
+| Did composition or within-state distributions change? | `tl.paga_composition_stats`, `tl.distribution_test` | separate abundance and distribution summaries |
+| How can these results be reviewed together? | `get.state_report`, `pl.state_evidence_panel` | one state-level report and separate evidence tracks |
 
-## 8. Synthetic validation
+See the [API reference](https://github.com/liuifrec/scgeo/blob/main/docs/api_reference.md)
+for parameters, optional dependencies, and public utilities.
 
-The `scgeo.bench` module provides controlled simulations for effect magnitude,
-abundance, distributional shape, local distortion, representation stability,
-uncertainty, and geometry–dynamics agreement. Calibration and held-out seeds are
-kept separate, and frozen thresholds are not automatically tuned by the suite.
+## From the method to the paper
 
-The `balanced_replicate_heterogeneity` scenario uses random sample offsets that
-are zero-centered within condition and is intended to test uncertainty without a
-systematic condition shift. The separate `batch_condition_confounding` scenario
-applies a systematic sample/batch offset correlated with condition and is
-non-identifiable without additional design information.
+The study begins with **post-irradiation hematopoietic recovery (GSE280305)**.
+Controlled simulations and public pancreas, inflammatory HSPC, and mouse-lung
+radiation workflows examine complementary aspects of the framework.
+The [companion repository](https://github.com/liuifrec/scgeo-notebooks)
+provides dataset entry points, analysis scripts, output maps, and evidence records.
 
-Synthetic results validate behavior under their stated perturbations and
-failure modes; they do not establish biological truth. The frozen protocol is
-documented in [BENCHMARK_PROTOCOL.md](docs/revision/BENCHMARK_PROTOCOL.md).
+For new analyses, use the released package and record its version. For paper
+reproduction, use the recorded environments and frozen package checkpoint
+[`9a0ed16`](https://github.com/liuifrec/scgeo/tree/9a0ed16cbaa57f935f9c9bc87d1643a25b51012c).
+See [Reproducibility](https://github.com/liuifrec/scgeo/blob/main/docs/REPRODUCIBILITY.md).
 
-## 9. Public validation
+## Interpretation that follows the study design
 
-Public-data workflows live in the companion repository. They cover the public
-pancreatic-development workflow; GSE249479, a public human HSPC inflammatory
-xenograft dataset with no recoverable biological-replicate identity; and
-GSE211713, a public mouse-lung radiation dataset with 20 independent mouse
-libraries. The GSE211713 analysis is replicate-aware and cross-sectional, not
-longitudinal. Their inference scopes are not interchangeable. See
-[Companion notebooks](docs/COMPANION_NOTEBOOKS.md).
+ScGeo analyzes representations you supply. Prespecify the biological contrast,
+sample unit, and quantitative representations; keep UMAP for display and treat
+nested PCA views as related sensitivity analyses. Read displacement, abundance,
+distributional change, and dynamics as distinct evidence. Analyses without valid
+biological-sample identities remain descriptive.
 
-## 10. Reproducibility and companion repository
+The labels `stable_effect`, `stable_neutral`, `representation_unstable`, and
+`insufficient_coverage` describe the stored evidence rules. Their interpretation
+depends on the design and available layers. See
+[Result interpretation](https://github.com/liuifrec/scgeo/blob/main/docs/RESULT_INTERPRETATION.md).
 
-The library code is maintained here. Source notebooks, execution wrappers,
-figure assembly, evidence ledgers, and ignored large artifacts are maintained
-in [`scgeo-notebooks`](https://github.com/liuifrec/scgeo-notebooks). Source
-notebooks are kept output-free; executed review copies are generated locally.
-
-See [Reproducibility](docs/REPRODUCIBILITY.md) and the generated
-[API reference](docs/api_reference.md).
-
-## 11. Limitations
-
-- Geometry depends on the chosen representation and its coverage.
-- Biological-sample inference requires genuine independent sample identifiers.
-- Abundance, displacement, and distributional change answer different questions.
-- Dynamics agreement depends on the assumptions of the supplied dynamics model.
-- Weak reference support is an unsupported-state warning, not general
-  out-of-distribution detection.
-- Public validations cannot establish causality beyond their experimental design.
-
-## 12. Citation
-
-If you use ScGeo, please cite the published paper:
+## Cite ScGeo
 
 Liu Y-C, Yoshida K. **ScGeo reveals non-canonical trajectories beyond RNA
 velocity in radiation-induced hematopoietic recovery.** *Bioinformatics Advances*.
 2026;6(1):vbag266. [doi:10.1093/bioadv/vbag266](https://doi.org/10.1093/bioadv/vbag266).
 
-```bibtex
-@article{Liu2026ScGeo,
-  author = {Liu, Yu-Chen and Yoshida, Kengo},
-  title = {{ScGeo} reveals non-canonical trajectories beyond {RNA} velocity in radiation-induced hematopoietic recovery},
-  journal = {Bioinformatics Advances},
-  year = {2026},
-  volume = {6},
-  number = {1},
-  pages = {vbag266},
-  doi = {10.1093/bioadv/vbag266},
-  url = {https://doi.org/10.1093/bioadv/vbag266}
-}
-```
+**[BibTeX](https://github.com/liuifrec/scgeo/blob/main/CITATION.bib) ·
+[RIS for reference managers](https://github.com/liuifrec/scgeo/blob/main/CITATION.ris) ·
+[CITATION.cff](https://github.com/liuifrec/scgeo/blob/main/CITATION.cff) ·
+[Methods reporting guide](https://github.com/liuifrec/scgeo/blob/main/docs/CITING.md)**
 
-Machine-readable citation metadata is provided in [CITATION.cff](CITATION.cff).
+Please cite the paper when using ScGeo and record the exact package version or
+commit, input provenance, and analysis settings. Cite the original datasets and
+upstream methods used in your workflow as well. The article DOI identifies the
+paper; no separate software-archive DOI is asserted here.
 
-For reproducibility, also report the exact package commit or tag, analysis
-configuration, and environment. The article DOI identifies the paper, not a
-separately archived software release. See [Reproducibility](docs/REPRODUCIBILITY.md)
-for the documented frozen analysis checkpoint and provenance requirements.
+## Questions and contributions
+
+Use [GitHub Issues](https://github.com/liuifrec/scgeo/issues) for reproducible
+problems, documentation improvements, and feature suggestions. Include the
+ScGeo/Python versions, a minimal example, and the relevant AnnData keys and
+shapes. Small synthetic examples are especially useful for resolving problems.
+ScGeo is distributed under the [MIT license](https://github.com/liuifrec/scgeo/blob/main/LICENSE).
