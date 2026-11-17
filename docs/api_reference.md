@@ -2256,7 +2256,7 @@ Highlights top_k by smallest p/q then largest |effect|.
 
 ### `scgeo.pl.paga_scgeo`
 
-ScGeo-style PAGA summary: - graph edges from PAGA - node pies from pie_key (e.g. timepoint) - black arrows = geometry shift - optional cyan arrows = mean velocity - node color by delta/alignment/palette/constant
+Convenience wrapper for the PAGA shift map with composition pies and optional projected velocity.
 
 ```text
 scgeo.pl.paga_scgeo(
@@ -2269,7 +2269,7 @@ scgeo.pl.paga_scgeo(
     basis: 'str' = 'umap',
     paga_key: 'str' = 'paga',
     pie_key: 'Optional[str]' = 'timepoint',
-    velocity_basis: 'Optional[str]' = 'umap',
+    velocity_basis: 'Optional[str]' = None,
     show_velocity: 'bool' = True,
     node_color_mode: 'str' = 'delta',
     highlight_nodes: 'Optional[list[str]]' = None,
@@ -2279,24 +2279,32 @@ scgeo.pl.paga_scgeo(
 
 [View implementation](../scgeo/pl/_paga_scgeo.py)
 
+- Additional keyword arguments are forwarded to paga_shift_map, including stored alignment, shared limits, label placement, and return_result.
+- Composition pies show the selected conditions. Numeric node colour is retained in the pie rim; the composition sectors and quantitative rim have separate legends.
+
 
 <details>
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-ScGeo-style PAGA summary:
-- graph edges from PAGA
-- node pies from pie_key (e.g. timepoint)
-- black arrows = geometry shift
-- optional cyan arrows = mean velocity
-- node color by delta/alignment/palette/constant
+Draw the PAGA shift map with composition and projected velocity enabled.
+
+Pies pool the two selected conditions; scalar colors remain visible as
+reference rims and comparison fills. Dark arrows show display-coordinate
+condition contrasts and teal arrows show mean projected velocity, with
+separate display multipliers recorded in the legend. These arrows describe
+geometry, not inferred trajectories. ``velocity_basis=None`` uses the same
+basis as the display and requires its matching projected velocity array.
+
+Other options, including axes, label placement, stored alignment coloring,
+and ``return_result``, are forwarded to :func:`paga_shift_map`.
 ```
 
 </details>
 
 ### `scgeo.pl.paga_shift_map`
 
-Overlay a PAGA graph anchored on group0 centroids in embedding space, with arrows pointing from group0 -> group1 centroids for each node.
+Display stored state connectivity, condition centres, and optional projected velocity on an embedding, with explicit quantitative evidence and source exports.
 
 ```text
 scgeo.pl.paga_shift_map(
@@ -2312,12 +2320,12 @@ scgeo.pl.paga_shift_map(
     connectivity_threshold: 'float' = 0.05,
     agg: 'str' = 'mean',
     background_size: 'float' = 6.0,
-    background_alpha: 'float' = 0.15,
+    background_alpha: 'float' = 0.12,
     node_size: 'float' = 220.0,
     node_scale_by_n: 'bool' = True,
     edge_lw: 'float' = 2.0,
-    edge_alpha: 'float' = 0.55,
-    arrow_width: 'float' = 0.008,
+    edge_alpha: 'float' = 0.32,
+    arrow_width: 'Optional[float]' = None,
     arrow_alpha: 'float' = 0.95,
     arrow_scale: 'float' = 1.0,
     label: 'bool' = True,
@@ -2330,7 +2338,7 @@ scgeo.pl.paga_shift_map(
     pie_size_scale: 'float' = 1.0,
     velocity_basis: 'Optional[str]' = None,
     show_velocity: 'bool' = False,
-    velocity_color: 'str' = 'cyan',
+    velocity_color: 'str' = '#008C95',
     velocity_scale: 'float' = 50.0,
     velocity_alpha: 'float' = 0.95,
     node_color_mode: 'str' = 'palette',
@@ -2342,28 +2350,98 @@ scgeo.pl.paga_shift_map(
     highlight_edgecolor: 'str' = 'black',
     highlight_lw: 'float' = 2.0,
     ax=None,
-    figsize: 'tuple[float, float]' = (8.0, 7.0),
+    figsize: 'tuple[float, float]' = (9.0, 6.4),
     title: 'Optional[str]' = None,
     return_data: 'bool' = False,
     show: 'bool' = True,
+    aspect='equal',
+    xlim=None,
+    ylim=None,
+    show_endpoints: 'bool' = True,
+    endpoint_size: 'float' = 46.0,
+    arrow_linewidth: 'float' = 1.6,
+    arrow_head_size: 'float' = 9.0,
+    label_mode: 'str' = 'auto',
+    label_offsets=None,
+    legend: 'bool' = True,
+    legend_loc: 'str' = 'outside',
+    graph_node_order=None,
+    background: 'str' = 'all',
+    max_points=None,
+    random_state: 'int' = 0,
+    required_indices=None,
+    alignment_source: 'str' = 'provided',
+    store_key: 'str' = 'representation_stability',
+    analysis_rep: 'Optional[str]' = None,
+    cmap=None,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    show_colorbar: 'bool' = True,
+    cax=None,
+    return_result: 'bool' = False,
 )
 ```
 
 [View implementation](../scgeo/pl/_paga_shift_map.py)
+
+- These upgrades are unreleased development features; see the [PAGA shift-map guide](https://github.com/liuifrec/scgeo/blob/main/docs/PAGA_SHIFT_MAP.md) and install the matching checkout.
+- Node positions and condition arrows are descriptive mean/median summaries in the chosen display. Use alignment_source="stored" and analysis_rep to colour nodes from stored quantitative alignment; display coordinates do not redefine those values.
+- PAGA connectivity is undirected. Supply graph_node_order when matrix labels differ from the current category order; graph shape, weights, symmetry, and group identity are validated.
+- Projected velocity must match the display basis. Velocity and composition summaries use only group0/group1; background="all" can retain other cells as context.
+- Equal aspect, distinct condition endpoints, point-sized glyphs, automatic labels, and graphical legends are the new defaults. Explicit arrow_width retains the legacy data-unit style.
+- return_result=True returns PlotResult with named map axis and full cell/edge/vector sources. Legacy owned (fig, ax), supplied ax, and (fig, ax, data) returns remain supported.
 
 
 <details>
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Overlay a PAGA graph anchored on group0 centroids in embedding space,
-with arrows pointing from group0 -> group1 centroids for each node.
+Draw undirected PAGA topology and condition contrasts on an embedding.
 
-Optional upgrades:
-- pie_key: draw node pies for composition (e.g. timepoint)
-- show_velocity: overlay node-level mean velocity arrows
-- node_color_mode: color nodes by palette / alignment / delta / constant
-- highlight_nodes: emphasize selected nodes
+Positions, mean/median cell centers, and arrows describe the first two
+display coordinates. They are not inferred cell trajectories. Reference
+anchors are open markers; comparison endpoints are filled and remain at
+their actual centers even when ``arrow_scale`` changes the displayed vector.
+States present in only one condition or below ``min_cells`` remain visible.
+Graph edges require usable reference anchors at both ends.
+
+Velocity and pie summaries use only ``group0`` and ``group1``. Projected
+velocity must use the matching ``velocity_<basis>`` key and match the
+embedding shape. Selected, labeled cells with nonfinite display coordinates
+are rejected before drawing; nonfinite background rows are omitted. Missing
+velocity rows are excluded jointly and their support counts are exported.
+Explicit ``pie_categories`` must include every observed selected category;
+missing values use a separate ``(missing)`` category (escaped if that literal
+label already exists). Retained slices are never silently renormalized.
+
+``graph_node_order`` labels matrix rows/columns explicitly, including graph
+states absent from a subset. Without it, a labeled matrix, stored node_order,
+or current categorical order is used. The plot cannot recover historical
+category order that was not stored. Connectivity must be finite, nonnegative,
+symmetric, and the exact declared size. No edges or centers are synthesized.
+
+Alignment coloring accepts an ``alignment_df`` or reads stored analysis with
+``alignment_source='stored'`` and ``analysis_rep``. Quantitative values are
+never recalculated from the display embedding. Known source metadata must
+match the requested contrast; unknown provenance is labeled explicitly.
+``alignment_source`` is inactive for other color modes. Scalar colorbars
+describe numeric reference rims and comparison fills, including with pies.
+
+Default arrows and pies use point-sized graphics. An explicit ``arrow_width``
+retains legacy data-unit arrow widths. Labels use deterministic point-space
+placement, with ``label_offsets={state: (dx, dy)}`` overrides or
+``label_mode='on_data'``. Label placement never changes centers or values.
+``aspect='equal'`` preserves display-coordinate angles. Supplied axes own
+their layout and figure size; ``xlim``/``ylim`` support matched canvases.
+
+Background sampling affects drawing only, preserving state-by-condition
+strata and ``required_indices``. Source tables retain all input cells with
+display flags, all positive graph edges with omission reasons, scaled vector
+endpoints, pie counts, source alignment, and label offsets. Cell fractions
+and support counts are descriptive; they do not substitute for sample-level
+inference. ``return_result=True`` returns a :class:`PlotResult`; historical
+tuple/axis returns and ``return_data`` keys remain available.
 ```
 
 </details>

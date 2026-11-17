@@ -134,5 +134,23 @@
     "notes": [
       "Backward-compatible alias; prefer the corresponding census_-prefixed function in new workflows."
     ]
+  },
+  "scgeo.pl.paga_shift_map": {
+    "summary": "Display stored state connectivity, condition centres, and optional projected velocity on an embedding, with explicit quantitative evidence and source exports.",
+    "notes": [
+      "These upgrades are unreleased development features; see the [PAGA shift-map guide](https://github.com/liuifrec/scgeo/blob/main/docs/PAGA_SHIFT_MAP.md) and install the matching checkout.",
+      "Node positions and condition arrows are descriptive mean/median summaries in the chosen display. Use alignment_source=\"stored\" and analysis_rep to colour nodes from stored quantitative alignment; display coordinates do not redefine those values.",
+      "PAGA connectivity is undirected. Supply graph_node_order when matrix labels differ from the current category order; graph shape, weights, symmetry, and group identity are validated.",
+      "Projected velocity must match the display basis. Velocity and composition summaries use only group0/group1; background=\"all\" can retain other cells as context.",
+      "Equal aspect, distinct condition endpoints, point-sized glyphs, automatic labels, and graphical legends are the new defaults. Explicit arrow_width retains the legacy data-unit style.",
+      "return_result=True returns PlotResult with named map axis and full cell/edge/vector sources. Legacy owned (fig, ax), supplied ax, and (fig, ax, data) returns remain supported."
+    ]
+  },
+  "scgeo.pl.paga_scgeo": {
+    "summary": "Convenience wrapper for the PAGA shift map with composition pies and optional projected velocity.",
+    "notes": [
+      "Additional keyword arguments are forwarded to paga_shift_map, including stored alignment, shared limits, label placement, and return_result.",
+      "Composition pies show the selected conditions. Numeric node colour is retained in the pie rim; the composition sectors and quantitative rim have separate legends."
+    ]
   }
 }
