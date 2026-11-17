@@ -63,6 +63,7 @@ or unresolved; they do not create causal evidence.
 ## Learn, reproduce, and publish
 
 - [Quick start](QUICKSTART.md): a small synthetic run and an AnnData example.
+- [Plotting guide](PLOTTING.md) and [gallery](PLOTTING_GALLERY.md): development evidence figures, contrast comparisons, biological samples, and source-data exports.
 - [Analysis layers](ANALYSIS_LAYERS.md): quantities and comparison units.
 - [Result interpretation](RESULT_INTERPRETATION.md): evidence labels and reporting language.
 - [Companion workflows](COMPANION_NOTEBOOKS.md): the paper's applications and validation settings.

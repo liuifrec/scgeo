@@ -6,7 +6,6 @@ import numpy as np
 
 from .._utils import _as_2d_array, _mask_from_obs
 
-
 _CENTER_ESTIMATORS = {"mean", "median", "trimmed_mean", "geometric_median"}
 _BOOTSTRAP_UNITS = {"auto", "cell", "sample"}
 _NORMALIZERS = {"pooled_robust_scale", "none", None}
@@ -333,13 +332,24 @@ def _calculate_shift(
         else:
             n_samples0 = len(_unique_in_order(sample_values[mask0])) if n0 else 0
             n_samples1 = len(_unique_in_order(sample_values[mask1])) if n1 else 0
-        return _empty_result(
+        out = _empty_result(
             n0=n0,
             n1=n1,
             n_samples0=n_samples0,
             n_samples1=n_samples1,
             estimator_params=estimator_params,
         )
+        if sample_values is not None:
+            # Retain available biological samples even when this state has no
+            # cells in the other condition. This does not estimate a contrast.
+            for suffix, mask in (("0", mask0), ("1", mask1)):
+                centers, ids, counts = _sample_level_centers(
+                    X, mask, sample_values, center=center, trim_fraction=trim_fraction,
+                )
+                out[f"sample_centers{suffix}"] = centers.copy()
+                out[f"sample_ids{suffix}"] = ids
+                out[f"sample_cell_counts{suffix}"] = counts
+        return out
 
     if sample_values is None:
         X0 = _check_matrix(X[mask0])
@@ -451,6 +461,10 @@ def _calculate_shift(
         out["sample_ids1"] = sample_ids1
         out["sample_cell_counts0"] = sample_cell_counts0
         out["sample_cell_counts1"] = sample_cell_counts1
+        # Exact matrices used above, before resampling; these are sample-level
+        # centers, not cells, bootstrap draws, or an independently fitted result.
+        out["sample_centers0"] = X0.copy()
+        out["sample_centers1"] = X1.copy()
     return out
 
 
@@ -475,6 +489,9 @@ def robust_shift(
 
     When ``sample_key`` is provided, per-condition centers are estimated from
     sample-level centers and bootstrap resampling uses samples by default.
+    The exact sample centers are retained for ``sg.get.sample_centers`` and
+    descriptive replicate plots. This additive output does not change the
+    estimator or bootstrap sequence.
 
     Minimal example
     ---------------
@@ -571,6 +588,9 @@ def robust_shift(
                 rng=rng,
             )
         out["by"] = out_by
+
+    if sample_values is not None:
+        out["sample_center_schema_version"] = 1
 
     adata.uns.setdefault("scgeo", {})
     adata.uns["scgeo"][store_key] = out

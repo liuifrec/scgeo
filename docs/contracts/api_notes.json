@@ -4,7 +4,7 @@
       "Read-only: consumes existing adata.uns[\"scgeo\"] results and returns a pandas DataFrame.",
       "The report combines displacement and rank summaries with `effect_status`, `stability_status`, `local_geometry_status`, `dynamics_status`, `coverage_status`, rule-based `reason_codes`, and a quantitative plain-language `summary`.",
       "Local geometry reporting records k values used, valid representation-pair counts, median summaries, worst-case summaries, and across-k variability when available.",
-      "Metadata in `report.attrs` includes package version, source store keys, comparison identity, representations, k values, sample key, center estimator, bootstrap unit, consensus rules, global diagnostics, representation diagnostics, warnings, and creation timestamp.",
+      "Metadata in `report.attrs` includes package version, source store keys, comparison identity, the effect representation from robust_shift, the representation ensemble, k values, sample key, center estimator, bootstrap unit, consensus rules, global diagnostics, representation diagnostics, warnings, and creation timestamp.",
       "State-graph summaries are kept as global diagnostics unless a stored analysis provides a genuinely state-specific transition-profile metric.",
       "Missing-data behavior: `strict=False` returns available columns with warnings; `strict=True` raises if requested storage objects are absent."
     ]
@@ -55,17 +55,55 @@
   },
   "scgeo.pl.representation_stability_heatmap": {
     "notes": [
-      "Supported metrics: normalized displacement, displacement rank, alignment cosine, and alignment class.",
+      "Supported metrics: normalized displacement, displacement rank, alignment cosine, alignment class, and supplied coverage metrics. Cosine/coverage values are validated against their domains; categories use a discrete legend.",
+      "Choose explicit state/representation orders or order_by='input', 'mean', or 'cluster'. Legacy cluster_* flags retain mean sorting with a deprecation warning.",
       "When local-geometry representation diagnostics are available, a diagnostic strip shows neighborhood, distortion, state-graph, and coverage outlier flags; missing values are visually distinct from numerical zero."
     ]
   },
   "scgeo.pl.perturbation_report": {
     "notes": [
-      "Export bundle: state report CSV, representation diagnostics CSV, metadata JSON, warnings text, alt-text text, and PNG/SVG figures."
+      "Export bundle: state report CSV, representation diagnostics CSV, metadata JSON, warnings text, alt-text text, figure-source CSVs and configurable PNG/SVG/PDF figures.",
+      "Use strict=True or required_panels to reject incomplete requested figures before export. panel_kwargs configures individual panels."
     ]
   },
   "scgeo.pl.mapping_confidence_umap": {
     "summary": "Display reference-mapping confidence on an embedding."
+  },
+  "scgeo.pl.PlotResult": {
+    "notes": [
+      "Opt-in return type for upgraded plotting functions. Existing default returns remain supported. Holds fig, named axes, artists, source data, metadata, and warnings; save() delegates to export_figure.",
+      "SubFigure results reference and export the root parent canvas; source tables cover the named result axes, not independently added sibling panels."
+    ]
+  },
+  "scgeo.pl.state_evidence_panel": {
+    "notes": [
+      "Raw and normalized effect intervals remain separate. Stored endpoints are drawn independently of the point estimate; reversed finite intervals fail before drawing.",
+      "Full evidence mode shows availability separately from scientific consensus. Optional sample counts and inference labels reflect stored analysis, without fitting new statistics."
+    ]
+  },
+  "scgeo.get.sample_centers": {
+    "notes": [
+      "Reads exact biological sample centers retained by updated sample-aware robust_shift runs. Coordinates are zero-based; cell counts are descriptive, not replicate weights.",
+      "Old aggregate-only results raise an actionable error rather than reconstructing sample-level values."
+    ]
+  },
+  "scgeo.pl.replicate_effect": {
+    "notes": [
+      "One point per biological sample in an explicitly selected coordinate. Descriptive mean/median summaries give equal weight to samples; no CI or test is fitted.",
+      "Pair lines require an explicit real pairing key. Independent cross-sectional samples remain unconnected."
+    ]
+  },
+  "scgeo.pl.evidence_comparison": {
+    "notes": [
+      "Plots tidy stored effects without recomputing inference. Intervals require explicit interval_type; sample-bootstrap uncertainty and across-representation sensitivity remain distinct.",
+      "Shared axes require declared comparable representation/units or a common scale_id. Missing combinations remain visible and duplicate state/contrast records are rejected."
+    ]
+  },
+  "scgeo.pl.velocity_shift_alignment": {
+    "notes": [
+      "mode='display' retains the legacy calculation in display coordinates. mode='stored' renders selected quantitative alignment separately from the display overlay.",
+      "Stored-mode projected velocities pool only the two requested conditions. Changing display coordinates does not change quantitative alignment."
+    ]
   },
   "scgeo.pl.mapping_qc_panel": {
     "summary": "Display reference-label predictions, confidence and reference-deviation scores together."

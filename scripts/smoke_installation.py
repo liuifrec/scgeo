@@ -7,11 +7,11 @@ check is an installation test, not a rerun of manuscript validation.
 from __future__ import annotations
 
 import argparse
+import subprocess
+import sys
 from importlib.metadata import version
 from importlib.util import find_spec
 from pathlib import Path
-import sys
-import subprocess
 
 
 def main() -> None:
@@ -23,6 +23,7 @@ def main() -> None:
     import pandas as pd
     from anndata import AnnData
     from packaging.version import Version
+
     import scgeo as sg
 
     installed_from = Path(sg.__file__).resolve()
@@ -111,12 +112,30 @@ else:
     assert result["global"]["n_samples0"] == 3
     assert result["global"]["n_samples1"] == 3
     assert adata.uns["scgeo"]["robust_shift"] is result
+    sample_table = sg.get.sample_centers(result)
+    assert sample_table["sample"].nunique() == 6
+    assert set(sample_table["coordinate"]) == {0, 1}
+    # Exercise the installed plotting additions and packaged source exporter.
+    import json
+    from tempfile import TemporaryDirectory
+
+    import matplotlib.pyplot as plt
+    with TemporaryDirectory(prefix="scgeo-plot-smoke-") as temporary:
+        with sg.pl.style_context("paper"):
+            plot = sg.pl.replicate_effect(sample_table, coordinate=0, return_result=True, show=False)
+            exported = plot.save(Path(temporary) / "replicates", formats=("png", "svg"))
+            assert all(Path(path).is_file() for path in exported["figures"].values())
+            provenance = json.loads(Path(exported["metadata"]).read_text())
+            assert provenance["software"]["scgeo"] == sg.__version__
+            assert "sample_centers" in exported["tables"]
+            plt.close(plot.fig)
     assert "cellxgene_census" not in sys.modules
     assert "tiledbsoma" not in sys.modules
     print(f"PASS: ScGeo {version('scgeo')} imported from {installed_from}")
     print("PASS: sample-aware displacement on tiny synthetic input; no Census access")
     print("PASS: core import and helpful DE error with optional Scanpy blocked")
     print("PASS: core import is independent of the Unix-only benchmark profiler")
+    print("PASS: stored sample centers, plotting API, and source-data figure export")
 
 
 if __name__ == "__main__":

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from typing import Any, Optional
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 
 def _get_basis_xy(adata, basis: str) -> np.ndarray:
@@ -18,7 +19,7 @@ def _get_basis_xy(adata, basis: str) -> np.ndarray:
 
 
 def _as_str_series(s: pd.Series) -> pd.Series:
-    if pd.api.types.is_categorical_dtype(s):
+    if isinstance(s.dtype, pd.CategoricalDtype):
         return s.astype(str)
     return s.astype("category").astype(str)
 
@@ -150,16 +151,41 @@ def composition_drift(
     palette: Optional[dict[str, Any]] = None,
     title: Optional[str] = None,
     figsize: tuple[float, float] = (14.0, 5.2),
+    panels: Sequence[str] = ("embedding", "change", "proportions"),
+    axes: Optional[Mapping[str, Any]] = None,
+    subfigure=None,
+    state_order: Optional[Sequence[str]] = None,
+    condition_palette: Optional[Mapping[str, Any]] = None,
     return_data: bool = False,
+    return_result: bool = False,
     show: bool = True,
 ):
+    """Plot descriptive cell-composition changes between two conditions.
+
+    The default three panels and legacy ``(fig, axes[, data])`` returns are
+    preserved. ``panels`` selects any ordered subset of ``embedding``,
+    ``change``, and ``proportions``. Supply a matching named ``axes`` mapping
+    or a Matplotlib ``subfigure`` to compose a larger figure. No global layout
+    adjustment is made when the caller supplies the drawing surface.
+
+    Fractions use all observed cells in each condition, not biological-sample
+    replicates, and are descriptive. ``state_order`` controls the top-to-bottom
+    order of the bar panels. ``condition_palette`` maps condition labels to
+    colors. ``return_result=True`` returns a :class:`PlotResult`.
     """
-    Plot a 3-panel composition drift report:
-    1) embedding centroids sized by abundance and colored by signed delta fraction
-    2) horizontal barplot of signed delta fraction
-    3) side-by-side proportion bars for group0 and group1
-    """
-    xy = _get_basis_xy(adata, basis)
+    from ._result import PlotResult
+    from ._style import category_palette
+
+    names = list(panels)
+    allowed = {"embedding", "change", "proportions"}
+    if not names or len(set(names)) != len(names) or not set(names) <= allowed:
+        raise ValueError(
+            "panels must be a nonempty unique subset of embedding, change, proportions."
+        )
+    if axes is not None and subfigure is not None:
+        raise ValueError("Supply axes or subfigure, not both.")
+    if str(group0) == str(group1):
+        raise ValueError("group0 and group1 must identify different conditions.")
     comp = _compute_group_condition_table(
         adata,
         node_key=node_key,
@@ -167,150 +193,215 @@ def composition_drift(
         group0=group0,
         group1=group1,
     )
-    cent = _compute_node_centroids(
-        adata,
-        node_key=node_key,
-        basis=basis,
-        agg=agg,
-    )
-
-    plot_df = comp.merge(cent, on=node_key, how="left")
-    node_names = list(plot_df[node_key].astype(str))
-    if palette is None:
-        palette = _get_palette(adata, node_key, node_names)
-
-    if sort_by == "abs_delta_frac":
-        plot_df = plot_df.sort_values("delta_frac", key=np.abs, ascending=False)
-    elif sort_by == "delta_frac":
-        plot_df = plot_df.sort_values("delta_frac", ascending=False)
-    elif sort_by == "frac1":
-        plot_df = plot_df.sort_values("frac1", ascending=False)
-    elif sort_by == "frac0":
-        plot_df = plot_df.sort_values("frac0", ascending=False)
+    xy = _get_basis_xy(adata, basis) if "embedding" in names else None
+    if xy is not None:
+        cent = _compute_node_centroids(adata, node_key=node_key, basis=basis, agg=agg)
+        plot_df = comp.merge(cent, on=node_key, how="left")
     else:
-        raise ValueError("sort_by must be one of {'abs_delta_frac', 'delta_frac', 'frac1', 'frac0'}.")
-
+        plot_df = comp.copy()
+    if state_order is not None:
+        order = [str(x) for x in state_order]
+        if len(order) != len(set(order)) or not order:
+            raise ValueError("state_order must contain unique state labels.")
+        indexed = plot_df.assign(**{node_key: plot_df[node_key].astype(str)}).set_index(
+            node_key
+        )
+        missing = [x for x in order if x not in indexed.index]
+        if missing:
+            raise ValueError(f"state_order contains unknown states: {missing}")
+        plot_df = indexed.loc[order].reset_index()
+    elif sort_by == "abs_delta_frac":
+        plot_df = plot_df.sort_values(
+            "delta_frac", key=np.abs, ascending=False, kind="stable"
+        )
+    elif sort_by in {"delta_frac", "frac1", "frac0"}:
+        plot_df = plot_df.sort_values(sort_by, ascending=False, kind="stable")
+    else:
+        raise ValueError(
+            "sort_by must be one of {'abs_delta_frac', 'delta_frac', 'frac1', 'frac0'}."
+        )
     if top_n is not None:
+        if isinstance(top_n, bool) or int(top_n) != top_n or int(top_n) < 1:
+            raise ValueError("top_n must be a positive integer or None.")
         plot_df = plot_df.head(int(top_n)).copy()
-
-    fig, (ax0, ax1, ax2) = plt.subplots(
-        1,
-        3,
-        figsize=figsize,
-        gridspec_kw={"width_ratios": [1.35, 1.0, 1.0]},
+    if plot_df.empty:
+        raise ValueError("No states available to plot.")
+    condition_colors = category_palette(
+        [str(group0), str(group1)], palette=condition_palette
     )
-
-    # Panel 1: embedding + centroid drift coloring
-    ax0.scatter(
-        xy[:, 0],
-        xy[:, 1],
-        s=bg_size,
-        c="lightgrey",
-        alpha=bg_alpha,
-        linewidths=0,
-        rasterized=True,
-        zorder=0,
+    if drift_vmax is not None and (not np.isfinite(drift_vmax) or drift_vmax <= 0):
+        raise ValueError("drift_vmax must be finite and positive.")
+    vmax = (
+        float(drift_vmax)
+        if drift_vmax is not None
+        else max(float(plot_df.delta_frac.abs().max()), 1e-6)
     )
-
-    vmax = drift_vmax
-    if vmax is None:
-        vmax = float(np.nanmax(np.abs(plot_df["delta_frac"].to_numpy(dtype=float)))) if not plot_df.empty else 1.0
-        vmax = max(vmax, 1e-6)
-
     norm = plt.Normalize(vmin=-vmax, vmax=vmax)
     cmap_obj = plt.get_cmap(drift_cmap)
 
-    max_n = max(float(plot_df["n1"].max()) if not plot_df.empty else 1.0, 1.0)
-
-    for _, row in plot_df.iterrows():
-        size = centroid_size
-        if centroid_scale_by_n:
-            frac = np.sqrt(max(float(row["n1"]), 1.0) / max_n)
-            size = centroid_size * (0.55 + 0.45 * frac)
-
-        ax0.scatter(
-            float(row["x"]),
-            float(row["y"]),
-            s=size,
-            color=cmap_obj(norm(float(row["delta_frac"]))),
-            edgecolor=centroid_edgecolor,
-            linewidth=centroid_lw,
-            alpha=0.98,
-            zorder=3,
+    owned = axes is None and subfigure is None
+    if axes is not None:
+        if not isinstance(axes, Mapping) or any(name not in axes for name in names):
+            raise ValueError(f"axes must map each requested panel name: {names}")
+        panel_axes = {name: axes[name] for name in names}
+        fig = panel_axes[names[0]].figure
+        if any(ax.figure is not fig for ax in panel_axes.values()):
+            raise ValueError(
+                "All supplied axes must belong to the same figure or subfigure."
+            )
+        if len({id(ax) for ax in panel_axes.values()}) != len(names):
+            raise ValueError("Each panel requires a distinct axis.")
+    elif subfigure is not None:
+        aa = subfigure.subplots(1, len(names), squeeze=False)
+        fig = subfigure
+        panel_axes = dict(zip(names, aa[0]))
+    else:
+        fig, aa = plt.subplots(
+            1,
+            len(names),
+            figsize=figsize,
+            squeeze=False,
+            gridspec_kw={
+                "width_ratios": [1.35 if name == "embedding" else 1.0 for name in names]
+            },
         )
-        ax0.text(
-            float(row["x"]),
-            float(row["y"]),
-            str(row[node_key]),
-            ha="center",
-            va="center",
-            fontsize=8,
-            zorder=4,
-            bbox=dict(boxstyle="round,pad=0.18", fc="white", ec="none", alpha=0.72),
+        panel_axes = dict(zip(names, aa[0]))
+    artists = {}
+    if "embedding" in panel_axes:
+        ax = panel_axes["embedding"]
+        artists["background"] = ax.scatter(
+            xy[:, 0],
+            xy[:, 1],
+            s=bg_size,
+            c="lightgrey",
+            alpha=bg_alpha,
+            linewidths=0,
+            rasterized=True,
+            zorder=0,
         )
-
-    sm = plt.cm.ScalarMappable(norm=norm, cmap=cmap_obj)
-    sm.set_array([])
-    cbar = fig.colorbar(sm, ax=ax0, fraction=0.046, pad=0.04)
-    cbar.set_label(f"Δ fraction ({group1} - {group0})")
-
-    basis_name = basis[2:] if basis.startswith("X_") else basis
-    ax0.set_xlabel(f"{basis_name.upper()}1")
-    ax0.set_ylabel(f"{basis_name.upper()}2")
-    ax0.set_xticks([])
-    ax0.set_yticks([])
-    for spine in ax0.spines.values():
-        spine.set_visible(False)
-    ax0.set_title("Embedding-level composition drift")
-
-    # Panel 2: signed delta fractions
-    bar_df = plot_df.iloc[::-1].copy()
-    bar_colors = [cmap_obj(norm(float(v))) for v in bar_df["delta_frac"]]
-    ax1.barh(bar_df[node_key].astype(str), bar_df["delta_frac"], color=bar_colors, alpha=bar_alpha)
-    ax1.axvline(0.0, color="black", linewidth=1.0, alpha=0.8)
-    ax1.set_xlabel(f"Δ fraction ({group1} - {group0})")
-    ax1.set_title("Signed abundance change")
-    ax1.grid(axis="x", alpha=0.25)
-    for spine in ("top", "right"):
-        ax1.spines[spine].set_visible(False)
-
-    # Panel 3: side-by-side proportions
-    y = np.arange(len(bar_df))
-    h = 0.38
-    ax2.barh(
-        y - h / 2,
-        bar_df["frac0"],
-        height=h,
-        color="dimgray",
-        alpha=0.85,
-        label=str(group0),
-    )
-    ax2.barh(
-        y + h / 2,
-        bar_df["frac1"],
-        height=h,
-        color="tab:blue",
-        alpha=0.85,
-        label=str(group1),
-    )
-    ax2.set_yticks(y)
-    ax2.set_yticklabels(bar_df[node_key].astype(str))
-    ax2.set_xlabel("Fraction")
-    ax2.set_title("Condition-specific composition")
-    ax2.legend(frameon=False)
-    ax2.grid(axis="x", alpha=0.25)
-    for spine in ("top", "right"):
-        ax2.spines[spine].set_visible(False)
-
-    if title is None:
-        title = f"ScGeo: composition drift ({group0} → {group1})"
-    fig.suptitle(title, y=1.02)
-
-    fig.tight_layout()
-
+        max_n = max(float(plot_df.n1.max()), 1.0)
+        for _, row in plot_df.iterrows():
+            size = centroid_size
+            if centroid_scale_by_n:
+                size *= 0.55 + 0.45 * np.sqrt(max(float(row.n1), 1.0) / max_n)
+            ax.scatter(
+                float(row.x),
+                float(row.y),
+                s=size,
+                color=cmap_obj(norm(float(row.delta_frac))),
+                edgecolor=centroid_edgecolor,
+                linewidth=centroid_lw,
+                alpha=0.98,
+                zorder=3,
+            )
+            ax.text(
+                float(row.x),
+                float(row.y),
+                str(row[node_key]),
+                ha="center",
+                va="center",
+                fontsize=8,
+                zorder=4,
+                bbox={
+                    "boxstyle": "round,pad=0.18",
+                    "fc": "white",
+                    "ec": "none",
+                    "alpha": 0.72,
+                },
+            )
+        sm = plt.cm.ScalarMappable(norm=norm, cmap=cmap_obj)
+        fig.colorbar(sm, ax=ax, fraction=0.046, pad=0.04).set_label(
+            f"Δ cell fraction ({group1} − {group0})"
+        )
+        basis_name = basis.removeprefix("X_")
+        ax.set(
+            xlabel=f"{basis_name.upper()}1",
+            ylabel=f"{basis_name.upper()}2",
+            xticks=[],
+            yticks=[],
+            title="Composition on display embedding",
+        )
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+    bar_df = plot_df.iloc[::-1]
+    if "change" in panel_axes:
+        ax = panel_axes["change"]
+        artists["change"] = ax.barh(
+            bar_df[node_key].astype(str),
+            bar_df.delta_frac,
+            color=[cmap_obj(norm(float(v))) for v in bar_df.delta_frac],
+            alpha=bar_alpha,
+        )
+        ax.axvline(0, color="0.3", linewidth=1)
+        ax.set(
+            xlabel=f"Δ cell fraction ({group1} − {group0})",
+            title="Signed abundance change",
+        )
+    if "proportions" in panel_axes:
+        ax = panel_axes["proportions"]
+        y = np.arange(len(bar_df))
+        h = 0.38
+        artists["group0"] = ax.barh(
+            y - h / 2,
+            bar_df.frac0,
+            height=h,
+            color=condition_colors[str(group0)],
+            alpha=bar_alpha,
+            label=str(group0),
+        )
+        artists["group1"] = ax.barh(
+            y + h / 2,
+            bar_df.frac1,
+            height=h,
+            color=condition_colors[str(group1)],
+            alpha=bar_alpha,
+            label=str(group1),
+        )
+        ax.set(
+            yticks=y,
+            yticklabels=bar_df[node_key].astype(str),
+            xlabel="Cell fraction",
+            title="Condition-specific composition",
+        )
+        ax.legend(frameon=False)
+    for name in ("change", "proportions"):
+        if name in panel_axes:
+            panel_axes[name].grid(axis="x", alpha=0.2)
+            for spine in ("top", "right"):
+                panel_axes[name].spines[spine].set_visible(False)
+    if owned or subfigure is not None:
+        fig.suptitle(title or f"ScGeo: descriptive composition ({group0} → {group1})")
+    elif title is not None:
+        panel_axes[names[0]].set_title(title)
+    if owned:
+        fig.tight_layout()
     if show:
         plt.show()
-
+    if return_result:
+        return PlotResult(
+            fig=fig,
+            axes=panel_axes,
+            data=plot_df.copy(),
+            artists=artists,
+            metadata={
+                "plot": "composition_drift",
+                "basis": basis,
+                "group0": str(group0),
+                "group1": str(group1),
+                "condition_key": condition_key,
+                "node_key": node_key,
+                "inference_level": "descriptive_cell_fractions",
+                "panels": names,
+                "state_order": plot_df[node_key].astype(str).tolist(),
+                "condition_palette": condition_colors,
+                "drift_limits": [-vmax, vmax],
+                "drift_cmap": cmap_obj.name,
+                "aggregation": agg,
+                "top_n": top_n,
+                "sort_by": sort_by,
+            },
+        )
+    legacy_axes = tuple(panel_axes[name] for name in names)
     if return_data:
-        return fig, (ax0, ax1, ax2), plot_df
-    return fig, (ax0, ax1, ax2)
+        return fig, legacy_axes, plot_df
+    return fig, legacy_axes

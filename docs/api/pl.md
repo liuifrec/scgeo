@@ -2,11 +2,15 @@
 
 ScGeo 0.1.0 · [Complete reference](../api_reference.md) · [All modules](README.md) · [Quick start](../QUICKSTART.md)
 
+Current-checkout reference: [unreleased plotting additions](../../CHANGELOG.md) require the development checkout described in the [plotting guide](../PLOTTING.md).
+
 Signatures and docstrings match the public exports. I/O tables record a small synthetic probe; keys present before and after are not necessarily modified. [How this reference is generated](../contracts/README.md).
 **Figures.** Visualize stored results and assemble evidence panels, reports and figure-source exports.
 
+- [`PlotResult`](#scgeoplplotresult)
 - [`alignment_panel`](#scgeoplalignment_panel)
 - [`ambiguity_panel`](#scgeoplambiguity_panel)
+- [`category_palette`](#scgeoplcategory_palette)
 - [`composition_drift`](#scgeoplcomposition_drift)
 - [`consensus_state_map`](#scgeoplconsensus_state_map)
 - [`consensus_structure`](#scgeoplconsensus_structure)
@@ -18,6 +22,8 @@ Signatures and docstrings match the public exports. I/O tables record a small sy
 - [`distribution_test`](#scgeopldistribution_test)
 - [`distribution_test_volcano`](#scgeopldistribution_test_volcano)
 - [`embedding_density`](#scgeoplembedding_density)
+- [`evidence_comparison`](#scgeoplevidence_comparison)
+- [`export_figure`](#scgeoplexport_figure)
 - [`gallery_overview`](#scgeoplgallery_overview)
 - [`highlight_topk_cells`](#scgeoplhighlight_topk_cells)
 - [`legend_from_data`](#scgeopllegend_from_data)
@@ -33,6 +39,7 @@ Signatures and docstrings match the public exports. I/O tables record a small sy
 - [`paga_shift_map`](#scgeoplpaga_shift_map)
 - [`perturbation_report`](#scgeoplperturbation_report)
 - [`recovery_compass`](#scgeoplrecovery_compass)
+- [`replicate_effect`](#scgeoplreplicate_effect)
 - [`representation_stability_heatmap`](#scgeoplrepresentation_stability_heatmap)
 - [`robustness_matrix`](#scgeoplrobustness_matrix)
 - [`score_embedding`](#scgeoplscore_embedding)
@@ -40,7 +47,44 @@ Signatures and docstrings match the public exports. I/O tables record a small sy
 - [`state_evidence_panel`](#scgeoplstate_evidence_panel)
 - [`state_flow_alluvial`](#scgeoplstate_flow_alluvial)
 - [`state_flow_sankey`](#scgeoplstate_flow_sankey)
+- [`style_context`](#scgeoplstyle_context)
 - [`velocity_shift_alignment`](#scgeoplvelocity_shift_alignment)
+
+### `scgeo.pl.PlotResult`
+
+A figure, named axes, plotted data, and interpretation metadata.
+
+```text
+scgeo.pl.PlotResult(
+    fig: 'Any',
+    axes: 'dict',
+    data: 'Any' = None,
+    metadata: 'dict' = <factory>,
+    warnings: 'list' = <factory>,
+    artists: 'dict' = <factory>,
+) -> None
+```
+
+[View implementation](../../scgeo/pl/_result.py)
+
+- Opt-in return type for upgraded plotting functions. Existing default returns remain supported. Holds fig, named axes, artists, source data, metadata, and warnings; save() delegates to export_figure.
+- SubFigure results reference and export the root parent canvas; source tables cover the named result axes, not independently added sibling panels.
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+A figure, named axes, plotted data, and interpretation metadata.
+
+Obtain this opt-in result with ``return_result=True`` on supported plots.
+Existing default return values remain available. ``data`` holds the values
+used by the plot; metadata records its metric, ordering, and display choices.
+Use :meth:`save` to export figures, source tables, and a JSON manifest.
+The result is editable: changing an artist does not update its source data.
+```
+
+</details>
 
 ### `scgeo.pl.alignment_panel`
 
@@ -108,9 +152,34 @@ Optional: highlight top-k ambiguous cells.
 
 </details>
 
+### `scgeo.pl.category_palette`
+
+Return a stable label-to-color mapping, independent of subset ordering.
+
+```text
+scgeo.pl.category_palette(labels, palette=None)
+```
+
+[View implementation](../../scgeo/pl/_style.py)
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Return a stable label-to-color mapping, independent of subset ordering.
+
+Default colors use a deterministic label hash. For publication, pass a
+curated mapping; it must cover all requested labels. Keys in the returned
+mapping are strings. Colors alone cannot identify arbitrarily many groups,
+so retain labels and consider separate panels for large category sets.
+```
+
+</details>
+
 ### `scgeo.pl.composition_drift`
 
-Plot a 3-panel composition drift report: 1) embedding centroids sized by abundance and colored by signed delta fraction 2) horizontal barplot of signed delta fraction 3) side-by-side proportion bars for group0 and group1
+Plot descriptive cell-composition changes between two conditions.
 
 ```text
 scgeo.pl.composition_drift(
@@ -136,7 +205,13 @@ scgeo.pl.composition_drift(
     palette: 'Optional[dict[str, Any]]' = None,
     title: 'Optional[str]' = None,
     figsize: 'tuple[float, float]' = (14.0, 5.2),
+    panels: 'Sequence[str]' = ('embedding', 'change', 'proportions'),
+    axes: 'Optional[Mapping[str, Any]]' = None,
+    subfigure=None,
+    state_order: 'Optional[Sequence[str]]' = None,
+    condition_palette: 'Optional[Mapping[str, Any]]' = None,
     return_data: 'bool' = False,
+    return_result: 'bool' = False,
     show: 'bool' = True,
 )
 ```
@@ -148,17 +223,25 @@ scgeo.pl.composition_drift(
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Plot a 3-panel composition drift report:
-1) embedding centroids sized by abundance and colored by signed delta fraction
-2) horizontal barplot of signed delta fraction
-3) side-by-side proportion bars for group0 and group1
+Plot descriptive cell-composition changes between two conditions.
+
+The default three panels and legacy ``(fig, axes[, data])`` returns are
+preserved. ``panels`` selects any ordered subset of ``embedding``,
+``change``, and ``proportions``. Supply a matching named ``axes`` mapping
+or a Matplotlib ``subfigure`` to compose a larger figure. No global layout
+adjustment is made when the caller supplies the drawing surface.
+
+Fractions use all observed cells in each condition, not biological-sample
+replicates, and are descriptive. ``state_order`` controls the top-to-bottom
+order of the bar panels. ``condition_palette`` maps condition labels to
+colors. ``return_result=True`` returns a :class:`PlotResult`.
 ```
 
 </details>
 
 ### `scgeo.pl.consensus_state_map`
 
-Plot state-level consensus labels on a display embedding.
+Display stored consensus labels; never recompute them in the embedding.
 
 ```text
 scgeo.pl.consensus_state_map(
@@ -168,7 +251,16 @@ scgeo.pl.consensus_state_map(
     basis: 'str' = 'umap',
     store_key: 'str' = 'representation_stability',
     label_states: 'bool' = True,
+    palette=None,
+    max_points=None,
+    random_state=0,
+    required_indices=None,
+    rasterized='auto',
+    ax=None,
+    figsize=(5.8, 4.8),
     title=None,
+    return_data=False,
+    return_result=False,
     show: 'bool' = True,
 )
 ```
@@ -180,10 +272,12 @@ scgeo.pl.consensus_state_map(
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Plot state-level consensus labels on a display embedding.
+Display stored consensus labels; never recompute them in the embedding.
 
-The display embedding is used only for visualization; consensus labels are
-read from ``representation_stability`` and are not recalculated here.
+``max_points`` optionally samples display points reproducibly while retaining
+each state and every ``required_indices`` position. State-label positions
+use the full data. The returned source table records which cells are shown.
+``rasterized='auto'`` rasterizes more than 5,000 displayed points.
 ```
 
 </details>
@@ -565,9 +659,139 @@ transparent_background
 
 </details>
 
+### `scgeo.pl.evidence_comparison`
+
+Draw aligned state-by-contrast effect panels from a tidy results table.
+
+```text
+scgeo.pl.evidence_comparison(
+    data,
+    *,
+    metric=None,
+    state_order=None,
+    contrast_order=None,
+    palette=None,
+    sharex='auto',
+    axes=None,
+    figsize=None,
+    title=None,
+    return_data=False,
+    return_result=False,
+    show=True,
+)
+```
+
+[View implementation](../../scgeo/pl/_evidence_comparison.py)
+
+- Plots tidy stored effects without recomputing inference. Intervals require explicit interval_type; sample-bootstrap uncertainty and across-representation sensitivity remain distinct.
+- Shared axes require declared comparable representation/units or a common scale_id. Missing combinations remain visible and duplicate state/contrast records are rejected.
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Draw aligned state-by-contrast effect panels from a tidy results table.
+
+Required columns are ``state``, ``contrast``, ``metric``, and ``estimate``.
+Supply ``interval_low``, ``interval_high``, and ``interval_type`` together
+for intervals; their endpoints are drawn independently of the estimate.
+Labels such as ``sample_bootstrap_ci95`` and ``representation_iqr`` remain
+distinct in the legend. No intervals, tests, or composite scores are fitted.
+
+Optional ``representation`` and ``unit`` columns describe the effect scale.
+``sharex='auto'`` shares limits only when every finite estimate has the same
+declared representation and unit. Alternatively, a nonempty common
+``scale_id`` explicitly declares comparability across representations.
+``sharex=True`` rejects incompatible or unspecified scales. Missing state
+and contrast combinations stay visible. Duplicate state/contrast rows for
+the selected metric are rejected rather than silently aggregated.
+Optional ``evidence_status`` (preferred) or ``status`` labels are preserved
+and displayed with distinct marker shapes; a finite estimate never promotes
+supplied insufficient or unavailable evidence to ``'assessed'``.
+
+``axes`` is an optional mapping from contrast labels to distinct Axes in
+one Figure. Orders must retain observed labels; filter the input explicitly
+to select a subset. Extra ordered labels create visible missing rows/panels.
+Returns a Figure by default, ``(Figure, plotted_table)`` with
+``return_data=True``, or a :class:`PlotResult` with ``return_result=True``.
+```
+
+</details>
+
+### `scgeo.pl.export_figure`
+
+Export a Matplotlib figure or PlotResult with source-data provenance.
+
+```text
+scgeo.pl.export_figure(
+    figure_or_result,
+    filename,
+    *,
+    formats=('png', 'svg'),
+    dpi=300,
+    width_mm=None,
+    height_mm=None,
+    panel_labels=None,
+    include_data=True,
+    include_metadata=True,
+    transparent=False,
+    metadata=None,
+    bbox_inches=None,
+)
+```
+
+[View implementation](../../scgeo/pl/_result.py)
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Export a Matplotlib figure or PlotResult with source-data provenance.
+
+Parameters
+----------
+figure_or_result
+    A Matplotlib Figure or ``PlotResult``. Source CSVs require a PlotResult.
+    A result constructed from a SubFigure exports the full parent canvas.
+filename
+    Output stem, optionally ending in .png, .svg or .pdf. ``formats`` selects
+    the outputs; a supplied suffix is removed before constructing names.
+formats
+    One or more of ``'png'``, ``'svg'``, ``'pdf'``.
+dpi
+    Resolution of PNG and rasterized artists in vector figures.
+width_mm, height_mm
+    Optional canvas dimensions in millimetres. If only one is supplied,
+    preserve the original aspect ratio. Original figure size is restored.
+    ``bbox_inches=None`` preserves that canvas size; ``'tight'`` crops it.
+panel_labels
+    Mapping from PlotResult axis names to labels, or a label sequence for
+    the result's axes. Labels are temporary and removed after exporting.
+include_data, include_metadata
+    Export source DataFrames/Series/arrays as CSVs and a strict JSON manifest.
+    Named indexes are retained. The manifest includes table schemas, hashes,
+    figure hashes, plotting metadata, warnings, and software versions.
+metadata
+    Additional JSON-compatible provenance, merged over result metadata.
+
+Returns
+-------
+dict
+    ``figures`` and ``tables`` mappings and the ``metadata`` JSON path.
+
+Notes
+-----
+The exporter records input metadata; it does not reconstruct analysis
+settings that were never supplied or infer statistical significance.
+```
+
+</details>
+
 ### `scgeo.pl.gallery_overview`
 
-Render a 2x2 overview gallery of core ScGeo plots: - paga_shift_map - ood_landscape - velocity_shift_alignment - composition_drift
+Render four coordinated panels, including actual composition-change bars.
 
 ```text
 scgeo.pl.gallery_overview(
@@ -583,6 +807,9 @@ scgeo.pl.gallery_overview(
     velocity_basis: 'Optional[str]' = None,
     figsize: 'tuple[float, float]' = (16.0, 12.0),
     title: 'Optional[str]' = None,
+    axes: 'Optional[Mapping[str, Any]]' = None,
+    state_order=None,
+    return_result: 'bool' = False,
     show: 'bool' = True,
 )
 ```
@@ -594,11 +821,12 @@ scgeo.pl.gallery_overview(
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Render a 2x2 overview gallery of core ScGeo plots:
-- paga_shift_map
-- ood_landscape
-- velocity_shift_alignment
-- composition_drift
+Render four coordinated panels, including actual composition-change bars.
+
+``axes`` may supply the named panels ``shift``, ``ood``, ``alignment``, and
+``composition``. The alignment panel is explicitly a display-space overlay;
+use ``velocity_shift_alignment(mode='stored')`` for stored quantitative
+alignment. The legacy return is ``(fig, (ax1, ax2, ax3, ax4))``.
 ```
 
 </details>
@@ -687,7 +915,7 @@ legend_data items:
 
 ### `scgeo.pl.local_distortion_map`
 
-Plot stored per-cell local distortion values on a display embedding.
+Display stored distortion values with a shared scale and optional sampling.
 
 ```text
 scgeo.pl.local_distortion_map(
@@ -700,7 +928,22 @@ scgeo.pl.local_distortion_map(
     metric: 'str' = 'local_shape_distortion',
     aggregation: 'str' = 'median',
     node_key=None,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    cmap='magma',
+    na_color='#BDBDBD',
+    max_points=None,
+    random_state=0,
+    required_indices=None,
+    rasterized='auto',
+    ax=None,
+    colorbar=True,
+    cax=None,
+    figsize=(5.8, 4.8),
     title=None,
+    return_data=False,
+    return_result=False,
     show: 'bool' = True,
 )
 ```
@@ -712,7 +955,11 @@ scgeo.pl.local_distortion_map(
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Plot stored per-cell local distortion values on a display embedding.
+Display stored distortion values with a shared scale and optional sampling.
+
+Sampling affects displayed cells only, with states preserved when node_key
+is supplied. Aggregation always uses the complete stored results. Missing
+values use ``na_color``. ``norm`` cannot be combined with ``vmin/vmax``.
 ```
 
 </details>
@@ -1060,7 +1307,7 @@ Optional upgrades:
 
 ### `scgeo.pl.perturbation_report`
 
-Create the standard ScGeo perturbation report bundle.
+Create figures, source tables, and provenance for a perturbation report.
 
 ```text
 scgeo.pl.perturbation_report(
@@ -1075,20 +1322,42 @@ scgeo.pl.perturbation_report(
     local_k=None,
     pair_aggregation: 'str' = 'median',
     include_worst_case: 'bool' = True,
+    formats=('png', 'svg'),
+    dpi=300,
+    width_mm=None,
+    height_mm=None,
+    transparent=False,
+    bbox_inches=None,
+    strict=False,
+    required_panels=None,
+    panel_kwargs=None,
     show: 'bool' = True,
 )
 ```
 
 [View implementation](../../scgeo/pl/_perturbation_report.py)
 
-- Export bundle: state report CSV, representation diagnostics CSV, metadata JSON, warnings text, alt-text text, and PNG/SVG figures.
+- Export bundle: state report CSV, representation diagnostics CSV, metadata JSON, warnings text, alt-text text, figure-source CSVs and configurable PNG/SVG/PDF figures.
+- Use strict=True or required_panels to reject incomplete requested figures before export. panel_kwargs configures individual panels.
 
 
 <details>
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Create the standard ScGeo perturbation report bundle.
+Create figures, source tables, and provenance for a perturbation report.
+
+Partial bundles remain the default when optional evidence is absent.
+``strict=True`` requires all three standard panels unless a narrower
+``required_panels`` list is supplied. An explicitly required panel always
+raises if unavailable, before any files are written. Panel names are
+``consensus_state_map``, ``state_evidence_panel``, ``representation_heatmap``;
+``panel_kwargs`` maps these names to their plotting options.
+
+``formats`` accepts PNG/SVG/PDF; ``dpi`` also controls rasterized artists.
+``width_mm``/``height_mm`` specify export canvas dimensions. The default
+``bbox_inches=None`` preserves those dimensions. The bundle retains legacy
+Figure entries and adds ``plot_results`` with source data and metadata.
 ```
 
 </details>
@@ -1165,9 +1434,67 @@ If return_data is True:
 
 </details>
 
+### `scgeo.pl.replicate_effect`
+
+Plot one biological sample center per point in an explicit coordinate.
+
+```text
+scgeo.pl.replicate_effect(
+    data_or_adata,
+    *,
+    coordinate,
+    store_key='robust_shift',
+    scope='auto',
+    state_order=None,
+    condition_order=None,
+    pair_key=None,
+    summary='mean',
+    palette=None,
+    jitter=0.08,
+    seed=0,
+    axes=None,
+    figsize=None,
+    title=None,
+    return_data=False,
+    return_result=False,
+    show=True,
+)
+```
+
+[View implementation](../../scgeo/pl/_replicate_effect.py)
+
+- One point per biological sample in an explicitly selected coordinate. Descriptive mean/median summaries give equal weight to samples; no CI or test is fitted.
+- Pair lines require an explicit real pairing key. Independent cross-sectional samples remain unconnected.
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Plot one biological sample center per point in an explicit coordinate.
+
+``data_or_adata`` is an AnnData with sample-aware robust-shift results, the
+result dictionary, or a tidy table from ``sg.get.sample_centers``. Required
+table columns are ``state``, ``condition``, ``sample``, ``coordinate``,
+``value``, and ``representation``. ``coordinate`` is explicit and zero-based
+for tables produced by the getter. Select one representation before plotting.
+
+``summary='mean'`` or ``'median'`` gives an equally weighted, descriptive
+summary of the plotted sample coordinates; it is not necessarily the
+multivariate robust condition center. ``summary=None`` hides it. No interval,
+hypothesis test, or cell-weighted estimate is computed. Pair lines are drawn
+only when ``pair_key`` explicitly identifies matching biological samples.
+Missing pairs stay unconnected; ambiguous pairs are rejected.
+
+``axes`` is an optional mapping from state labels to Axes. Returns a Figure,
+``(Figure, data_dict)`` with ``return_data=True``, or a :class:`PlotResult`.
+```
+
+</details>
+
 ### `scgeo.pl.representation_stability_heatmap`
 
-Plot a state-by-representation heatmap from stored representation stability.
+Plot stored state-by-representation values with metric-aware scales.
 
 ```text
 scgeo.pl.representation_stability_heatmap(
@@ -1178,16 +1505,29 @@ scgeo.pl.representation_stability_heatmap(
     annotate_consensus: 'bool' = True,
     cluster_states: 'bool' = False,
     cluster_reps: 'bool' = False,
+    order_by='input',
+    state_order=None,
+    rep_order=None,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    cmap=None,
+    class_palette=None,
+    na_color='#BDBDBD',
+    show_colorbar=True,
+    axes=None,
     figsize=None,
     title=None,
     return_data: 'bool' = False,
+    return_result: 'bool' = False,
     show: 'bool' = True,
 )
 ```
 
 [View implementation](../../scgeo/pl/_perturbation_report.py)
 
-- Supported metrics: normalized displacement, displacement rank, alignment cosine, and alignment class.
+- Supported metrics: normalized displacement, displacement rank, alignment cosine, alignment class, and supplied coverage metrics. Cosine/coverage values are validated against their domains; categories use a discrete legend.
+- Choose explicit state/representation orders or order_by='input', 'mean', or 'cluster'. Legacy cluster_* flags retain mean sorting with a deprecation warning.
 - When local-geometry representation diagnostics are available, a diagnostic strip shows neighborhood, distortion, state-graph, and coverage outlier flags; missing values are visually distinct from numerical zero.
 
 
@@ -1195,7 +1535,25 @@ scgeo.pl.representation_stability_heatmap(
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Plot a state-by-representation heatmap from stored representation stability.
+Plot stored state-by-representation values with metric-aware scales.
+
+Input may be AnnData, a tidy ``per_rep_state`` DataFrame (``node``, ``rep``
+and metric columns), or a result mapping containing that table plus optional
+``consensus_state`` and ``representation_diagnostics`` tables. Table input
+makes archived figure data reusable without loading AnnData.
+
+Alignment cosine defaults to a zero-centered [-1, 1] diverging scale;
+coverage to [0, 1]; alignment classes use a discrete legend. Other numeric
+metrics use a sequential scale. ``norm`` cannot be combined with bounds.
+Explicit orders move listed labels first and retain remaining labels.
+``order_by`` accepts 'input', 'mean', 'cluster', or separate ``states`` and
+``representations`` modes. Clustering uses average linkage and RMS distance
+over jointly finite entries; all-missing rows are appended. It never fills
+missing plotted values. Legacy ``cluster_*`` flags retain mean sorting and
+emit a deprecation warning.
+
+Supplied axes use ``heatmap`` plus ``consensus`` and ``diagnostics`` when
+applicable; optional ``colorbar`` supplies a dedicated colorbar axis.
 ```
 
 </details>
@@ -1218,6 +1576,7 @@ scgeo.pl.robustness_matrix(
     ascending: 'bool' = False,
     summary: 'Optional[str]' = 'mean',
     pass_threshold: 'Optional[float]' = None,
+    missing_policy: 'str' = 'exclude',
     cmap: 'str' = 'viridis',
     vmin: 'Optional[float]' = None,
     vmax: 'Optional[float]' = None,
@@ -1232,7 +1591,10 @@ scgeo.pl.robustness_matrix(
     summary_label: 'Optional[str]' = None,
     figsize: 'tuple[float, float]' = (10.0, 6.0),
     title: 'Optional[str]' = None,
+    axes: 'Optional[Mapping[str, Any]]' = None,
+    show_coverage: 'bool' = True,
     return_data: 'bool' = False,
+    return_result: 'bool' = False,
     show: 'bool' = True,
 )
 ```
@@ -1254,6 +1616,13 @@ data
 summary
     Optional row summary shown in a right-side bar plot. One of
     {'mean', 'median', 'min', 'max', 'pass_rate'} or None.
+missing_policy
+    For pass rates, exclude unavailable settings from the denominator
+    (default) or count them as failures with ``"fail"`` (historical behavior).
+    Evaluation coverage is always returned separately. Rows without any
+    evaluated setting have NaN pass rate under ``"exclude"``.
+axes
+    Optional named mapping with ``heatmap`` and, when enabled, ``summary``.
 center
     Optional visual midpoint for diverging data. If provided, color scaling
     is made symmetric around this value when vmin/vmax are not supplied.
@@ -1263,7 +1632,7 @@ center
 
 ### `scgeo.pl.score_embedding`
 
-Plot an obs score on an embedding (UMAP/PCA/etc) with minimal dependencies. Returns (fig, ax).
+Plot an observation score or category on the first two embedding axes.
 
 ```text
 scgeo.pl.score_embedding(
@@ -1279,8 +1648,17 @@ scgeo.pl.score_embedding(
     cmap: 'str' = 'viridis',
     vmin=None,
     vmax=None,
+    norm=None,
+    palette: 'Optional[Mapping[str, str]]' = None,
     na_color: 'str' = 'lightgrey',
     figsize=None,
+    max_points: 'Optional[int]' = None,
+    stratify_by: 'Optional[str]' = None,
+    random_state: 'int' = 0,
+    required_indices=None,
+    rasterized='auto',
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
     show: 'bool' = True,
 )
 ```
@@ -1292,8 +1670,20 @@ scgeo.pl.score_embedding(
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Plot an obs score on an embedding (UMAP/PCA/etc) with minimal dependencies.
-Returns (fig, ax).
+Plot an observation score or category on the first two embedding axes.
+
+Both ``umap`` and ``X_umap`` resolve to the same coordinates. Continuous
+color limits use all finite input scores, even when ``max_points`` selects
+a reproducible display subset. ``stratify_by`` preserves at least one point
+per observed state; a budget too small for those states raises an error.
+``required_indices`` preserves selected original cell positions when sampling;
+these cells must have finite display coordinates. Categorical scores use a
+stable label-to-color mapping and no colorbar.
+
+The legacy return is ``(fig, ax)``. ``return_data=True`` adds the full source
+table with a ``displayed`` indicator; ``return_result=True`` supplies a
+:class:`PlotResult` with the original displayed indices and random seed.
+The retained ``layer`` argument has no effect: scores come from ``obs``.
 ```
 
 </details>
@@ -1310,36 +1700,63 @@ scgeo.pl.score_umap(adata, score_key: 'str', **kwargs)
 
 ### `scgeo.pl.state_evidence_panel`
 
-Plot a progressive-disclosure state evidence panel from a ScGeo report.
+Plot effect estimates and independently assessed evidence by state.
 
 ```text
 scgeo.pl.state_evidence_panel(
     report_or_adata,
     *,
     node_key=None,
-    sort_by: 'str' = 'normalized_delta_norm',
-    max_states: 'int' = 25,
+    effect_metric: 'str' = 'auto',
+    representation=None,
+    sort_by=None,
+    state_order=None,
+    max_states: 'Optional[int]' = 25,
+    page: 'int' = 0,
     show_ci: 'bool' = True,
     show_coverage: 'bool' = True,
+    show_sample_counts: 'bool' = False,
+    show_inference: 'bool' = False,
+    evidence_mode: 'str' = 'compact',
+    axes=None,
+    label_wrap: 'Optional[int]' = 32,
     figsize=None,
     title=None,
     return_data: 'bool' = False,
+    return_result: 'bool' = False,
     show: 'bool' = True,
 )
 ```
 
 [View implementation](../../scgeo/pl/_perturbation_report.py)
 
+- Raw and normalized effect intervals remain separate. Stored endpoints are drawn independently of the point estimate; reversed finite intervals fail before drawing.
+- Full evidence mode shows availability separately from scientific consensus. Optional sample counts and inference labels reflect stored analysis, without fitting new statistics.
+
 
 <details>
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Plot a progressive-disclosure state evidence panel from a ScGeo report.
+Plot effect estimates and independently assessed evidence by state.
 
-Tracks are omitted when their source columns are unavailable. Effect,
-stability, local-neighborhood preservation, local distortion, dynamics,
-and coverage/warning indicators are drawn on separate axes.
+``effect_metric='auto'`` prefers raw ``delta_norm`` when finite values
+exist; otherwise it uses ``normalized_delta_norm``. Sorting defaults to
+the displayed metric. Raw ``magnitude_ci95_low/high`` intervals are drawn
+only with the raw metric. Normalized intervals require separately supplied
+``normalized_magnitude_ci95_low/high`` columns in the same units.
+
+``evidence_mode='full'`` adds an availability matrix and textual consensus
+labels. Sample support is enabled with ``show_sample_counts``; inference
+labels with ``show_inference``. Neither option performs a new analysis.
+``state_order`` moves specified states first and retains remaining states.
+``max_states=None`` displays all states; ``page`` is zero-based.
+
+Supplied ``axes`` use lowercase keys: ``effect``, ``samples``,
+``stability``, ``local_preservation``, ``local_distortion``, ``dynamics``,
+``coverage``, ``availability`` or ``summary``, as applicable. Supplied
+figures are not resized or laid out. Legacy returns are preserved;
+``return_result=True`` returns a :class:`scgeo.pl.PlotResult`.
 ```
 
 </details>
@@ -1459,9 +1876,34 @@ across timepoints, alignment classes, clusters, macrostates, annotations, or OOD
 
 </details>
 
+### `scgeo.pl.style_context`
+
+Temporarily apply a paper or presentation style without global changes.
+
+```text
+scgeo.pl.style_context(style='paper', *, width_mm=None, height_mm=None, overrides=None)
+```
+
+[View implementation](../../scgeo/pl/_style.py)
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Temporarily apply a paper or presentation style without global changes.
+
+``width_mm`` and ``height_mm`` set the default canvas for plots that do not
+supply their own figsize. Use ``export_figure`` to size an existing figure.
+``overrides`` accepts any Matplotlib rcParams mapping. SVG text remains text
+and PDF uses TrueType fonts; viewers need the selected font for SVG editing.
+```
+
+</details>
+
 ### `scgeo.pl.velocity_shift_alignment`
 
-Plot node-wise observed shift vectors and mean velocity vectors on the same embedding.
+Plot display-space vectors or stored quantitative alignment with an overlay.
 
 ```text
 scgeo.pl.velocity_shift_alignment(
@@ -1500,18 +1942,45 @@ scgeo.pl.velocity_shift_alignment(
     ax=None,
     figsize: 'tuple[float, float]' = (8.2, 7.0),
     return_data: 'bool' = False,
+    return_result: 'bool' = False,
+    mode: 'str' = 'display',
+    store_key: 'str' = 'representation_stability',
+    analysis_rep: 'Optional[str]' = None,
+    alignment_table: 'Optional[pd.DataFrame]' = None,
+    axes: 'Optional[Mapping[str, Any]]' = None,
+    state_order=None,
     show: 'bool' = True,
 )
 ```
 
 [View implementation](../../scgeo/pl/_velocity_shift_alignment.py)
 
+- mode='display' retains the legacy calculation in display coordinates. mode='stored' renders selected quantitative alignment separately from the display overlay.
+- Stored-mode projected velocities pool only the two requested conditions. Changing display coordinates does not change quantitative alignment.
+
 
 <details>
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Plot node-wise observed shift vectors and mean velocity vectors on the same embedding.
+Plot display-space vectors or stored quantitative alignment with an overlay.
+
+``mode="display"`` preserves the legacy calculation in the first two display
+coordinates and pools projected velocity over all observations in each state.
+``mode="stored"`` renders stored alignment values on a separate
+axis and colors a display-only overlay by those fixed values. It reads
+``adata.uns['scgeo'][store_key]['per_rep_state']`` by default, or an explicit
+``alignment_table``. A representation must be selected with ``analysis_rep``
+when multiple representations exist or the table has no representation
+metadata. Stored contrast metadata is checked against the requested groups.
+
+Stored mode accepts an ``axes`` mapping with ``overlay`` and ``alignment``
+and returns ``(fig, (overlay_ax, alignment_ax)[, data])``. ``return_result``
+is an opt-in consistent result for either mode. High-dimensional analysis
+vectors are never used as display arrows; missing or incompatible projected
+velocity leaves a condition-contrast overlay with an explanatory note. In
+stored mode, projected velocity is aggregated only over the selected two
+conditions, matching the contrast scope.
 
 Node fill encodes cosine alignment between shift and velocity:
   +1  aligned

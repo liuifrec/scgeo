@@ -2,6 +2,8 @@
 
 ScGeo 0.1.0 · [Complete reference](../api_reference.md) · [All modules](README.md) · [Quick start](../QUICKSTART.md)
 
+Current-checkout reference: [unreleased plotting additions](../../CHANGELOG.md) require the development checkout described in the [plotting guide](../PLOTTING.md).
+
 Signatures and docstrings match the public exports. I/O tables record a small synthetic probe; keys present before and after are not necessarily modified. [How this reference is generated](../contracts/README.md).
 **Reports and tables.** Retrieve analysis tables and combine available evidence into a state-level report.
 
@@ -11,6 +13,7 @@ Signatures and docstrings match the public exports. I/O tables record a small sy
 - [`get_robustness_table`](#scgeogetget_robustness_table)
 - [`get_shift_summary`](#scgeogetget_shift_summary)
 - [`get_velocity_alignment_summary`](#scgeogetget_velocity_alignment_summary)
+- [`sample_centers`](#scgeogetsample_centers)
 - [`state_report`](#scgeogetstate_report)
 - [`table`](#scgeogettable)
 
@@ -74,6 +77,49 @@ scgeo.get.get_velocity_alignment_summary(adata, *, store_key: 'str' = 'shift') -
 
 [View implementation](../../scgeo/get/_figure_tables.py)
 
+### `scgeo.get.sample_centers`
+
+Return a tidy copy of the stored biological sample centers.
+
+```text
+scgeo.get.sample_centers(adata_or_result, *, store_key='robust_shift', scope='auto')
+```
+
+[View implementation](../../scgeo/get/_sample_centers.py)
+
+- Reads exact biological sample centers retained by updated sample-aware robust_shift runs. Coordinates are zero-based; cell counts are descriptive, not replicate weights.
+- Old aggregate-only results raise an actionable error rather than reconstructing sample-level values.
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Return a tidy copy of the stored biological sample centers.
+
+Parameters
+----------
+adata_or_result
+    AnnData with a stored robust-shift result, or that result dictionary.
+    Old results without sample-center matrices are not recomputed silently.
+store_key
+    Key inside ``adata.uns['scgeo']``; ignored for a result dictionary.
+scope
+    ``'state'`` selects stratified results, ``'global'`` selects the global
+    result, and ``'auto'`` selects states when available, otherwise global.
+
+Returns
+-------
+pandas.DataFrame
+    Columns ``scope``, ``state``, ``condition``, ``sample``, ``coordinate``,
+    ``value``, ``cell_count``, ``representation``, and ``center``. Coordinates
+    are zero-based. Each sample has one row per representation coordinate;
+    ``cell_count`` is descriptive and must not be used as a replicate weight.
+    The global state label is ``'__global__'``. Provenance is in ``attrs``.
+```
+
+</details>
+
 ### `scgeo.get.state_report`
 
 Build a canonical state-level ScGeo report from stored analysis results.
@@ -102,7 +148,7 @@ scgeo.get.state_report(
 - Read-only: consumes existing adata.uns["scgeo"] results and returns a pandas DataFrame.
 - The report combines displacement and rank summaries with `effect_status`, `stability_status`, `local_geometry_status`, `dynamics_status`, `coverage_status`, rule-based `reason_codes`, and a quantitative plain-language `summary`.
 - Local geometry reporting records k values used, valid representation-pair counts, median summaries, worst-case summaries, and across-k variability when available.
-- Metadata in `report.attrs` includes package version, source store keys, comparison identity, representations, k values, sample key, center estimator, bootstrap unit, consensus rules, global diagnostics, representation diagnostics, warnings, and creation timestamp.
+- Metadata in `report.attrs` includes package version, source store keys, comparison identity, the effect representation from robust_shift, the representation ensemble, k values, sample key, center estimator, bootstrap unit, consensus rules, global diagnostics, representation diagnostics, warnings, and creation timestamp.
 - State-graph summaries are kept as global diagnostics unless a stored analysis provides a genuinely state-specific transition-profile metric.
 - Missing-data behavior: `strict=False` returns available columns with warnings; `strict=True` raises if requested storage objects are absent.
 
