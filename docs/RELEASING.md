@@ -1,12 +1,25 @@
 # Distribution release checklist
 
-## Current scope
+## Current release status
 
-Version 0.1.0 is prepared for release review. The existing `packaging.yml`
-workflow checks installation. The new `publish.yml` performs additional release
-checks and can upload to **TestPyPI only**, after the owner creates a version tag
-and approves the `testpypi` environment deployment. It has no production PyPI
-upload job. Merging a pull request does not publish a package.
+ScGeo 0.1.0 was published on [PyPI](https://pypi.org/project/scgeo/0.1.0/) on
+15 October 2026. Native Bioconda publication is pending in
+[PR #70318](https://github.com/bioconda/bioconda-recipes/pull/70318) as of
+17 November 2026. User-facing commands are in [Installation](INSTALLATION.md).
+
+The procedure below records the first release's TestPyPI staging controls.
+Production promotion was implemented separately in `publish-pypi.yml`; its
+fixed provenance and approval requirements are retained in
+[the publication record](PYPI_PUBLICATION.md). The first release and tag already
+exist: do not rerun the historical tagging/promotion steps to update documentation.
+Future release versions need their own reviewed version and publication changes.
+
+## First-release staging configuration
+
+The `packaging.yml` workflow checks installation. The `publish.yml` workflow
+runs release checks and uploads to **TestPyPI only**, after a matching version
+tag and the `testpypi` environment approval. Production publishing remains a
+separate protected workflow. Merging documentation does not publish a package.
 
 The registered pending publisher must be exactly:
 
@@ -48,8 +61,9 @@ immutable release files.
 
 ## Stage on TestPyPI
 
-After review and merge, the owner can create the first tag from the exact
-approved commit, for example in a clean local checkout:
+The historical first-release tag was created from the exact approved commit.
+The example below is retained as a record; **`v0.1.0` already exists and these
+commands must not be repeated for the documentation update**:
 
 ```bash
 git switch main
@@ -89,14 +103,15 @@ register its Trusted Publisher. TestPyPI accounts/publishers do not authorize
 production PyPI. Create a protected `pypi` environment before enabling production
 publishing. Do not add upload credentials to chat or source control.
 
-Production publishing is deliberately not enabled in this first staging PR.
-A separately reviewed promotion step must retrieve the exact files from the
+Production publishing was added after the first staging PR through the separately
+reviewed workflow documented in [PYPI_PUBLICATION.md](PYPI_PUBLICATION.md).
+That promotion step must retrieve the exact files from the
 successful TestPyPI run (or saved artifacts), verify their manifest and TestPyPI
 hashes, and upload those **same bytes** to PyPI after explicit approval. Do not
 silently rebuild or replace version 0.1.0 between staging and production.
 
-Only after a clean installation of the real PyPI package succeeds should the
-README advertise `python -m pip install scgeo`.
+Production verification completed for 0.1.0, and the README now advertises the
+released package. Keep the same verification requirement for future releases.
 
 ## Bioconda after the production release
 

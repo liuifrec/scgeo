@@ -1,140 +1,164 @@
+#!/usr/bin/env python3
+"""Generate the complete API reference and module pages from checked manifests.
+
+Run after rebuild_manifests.py. --check detects stale generated pages without
+writing files. Curated scientific notes live in docs/contracts/api_notes.json;
+signatures and exported names always come from the runtime-derived manifest.
+"""
+from __future__ import annotations
+
+import argparse
 import json
 from pathlib import Path
 
-API = Path("api_manifest.json")
-IO  = Path("scgeo_io_manifest.json")
-OUT = Path("docs/api")
-OUT.mkdir(parents=True, exist_ok=True)
+ROOT = Path(__file__).resolve().parents[1]
+NAMESPACES = ("tl", "pl", "get", "pp", "data", "bench")
+MODULES = {
+    "tl": ("Analysis", "Measure displacement, representation stability, local geometry, distributional change and dynamics agreement."),
+    "pl": ("Figures", "Visualize stored results and assemble evidence panels, reports and figure-source exports."),
+    "get": ("Reports and tables", "Retrieve analysis tables and combine available evidence into a state-level report."),
+    "pp": ("Reference preparation", "Build reference pools and query-to-reference neighbor graphs. Approximate reference-pool construction requires pynndescent."),
+    "data": ("Census access", "Access CELLxGENE Census data and embeddings with the optional Census dependencies. Data requests require network access; importing ScGeo does not download data."),
+    "bench": ("Synthetic benchmarks", "Simulate controlled perturbations and evaluate stored outputs against known truth. The benchmark profiler requires Linux, WSL or macOS."),
+}
 
-def _load_json(p: Path):
-    return json.loads(p.read_text()) if p.exists() else None
 
-def _io_lookup():
-    """
-    Supports 2 IO formats:
-    (1) Old: flat list of dicts with keys: function, mode, path, type, note
-    (2) New v2: dict with keys: tl, skipped (each maps full fn -> entry)
-    """
-    io = _load_json(IO)
-    if io is None:
-        return {"format": "none", "lookup": {}, "flat": []}
+def _load(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
 
-    # v2 format
-    if isinstance(io, dict) and ("tl" in io or "skipped" in io):
-        lk = {}
-        for section in ["tl", "pl", "pp", "get", "bench", "data"]:
-            if section in io and isinstance(io[section], dict):
-                lk.update(io[section])
-        if "skipped" in io and isinstance(io["skipped"], dict):
-            lk.update(io["skipped"])
-        return {"format": "v2", "lookup": lk, "flat": []}
 
-    # old flat list format
-    if isinstance(io, list):
-        return {"format": "flat", "lookup": {}, "flat": io}
+def _anchor(name: str) -> str:
+    return name.replace(".", "").lower()
 
-    # unknown
-    return {"format": "unknown", "lookup": {}, "flat": []}
 
-def _fmt_writes_v2(writes: dict) -> str:
-    def fmt_block(title, d):
-        if not d:
-            return f"**{title}**\n- —\n"
-        lines = [f"**{title}**"]
-        for k in ["obs_cols", "obsm_keys", "layers_keys", "uns_keys"]:
-            if k not in d:
-                continue
-            added   = d[k].get("added", [])
-            touched = d[k].get("touched", [])
-            removed = d[k].get("removed", [])
-            lines.append(f"- `{k}`:")
-            lines.append(f"  - added: {', '.join([f'`{x}`' for x in added]) if added else '—'}")
-            lines.append(f"  - touched: {', '.join([f'`{x}`' for x in touched]) if touched else '—'}")
-            lines.append(f"  - removed: {', '.join([f'`{x}`' for x in removed]) if removed else '—'}")
-        return "\n".join(lines) + "\n"
+def _signature(name: str, signature: str) -> str:
+    """Wrap a literal signature at top-level commas without changing its text."""
+    if len(name + signature) <= 100:
+        return name + signature
+    parts, start, depth = [], 1, 0
+    quote, escaped, end = None, False, None
+    for index, char in enumerate(signature):
+        if quote:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == quote:
+                quote = None
+            continue
+        if char in "\"'":
+            quote = char
+        elif char in "([{":
+            depth += 1
+        elif char in ")]}":
+            depth -= 1
+            if depth == 0:
+                parts.append(signature[start:index].strip())
+                end = index
+                break
+        elif char == "," and depth == 1:
+            parts.append(signature[start:index].strip())
+            start = index + 1
+    if end is None:
+        raise ValueError(f"Cannot format signature: {name}{signature}")
+    return name + "(\n" + "\n".join("    " + part + "," for part in parts if part) + "\n" + signature[end:]
 
-    return fmt_block("Writes / touches (key-level)", writes)
 
-def _fmt_io_for_function(fn_full: str, io_state: dict) -> str:
-    """
-    Render IO contract text for one function.
-    """
-    if io_state["format"] == "v2":
-        entry = io_state["lookup"].get(fn_full)
-        if entry is None:
-            return "_No I/O entry in `scgeo_io_manifest.json` for this function._\n"
-        ok = entry.get("ok", False)
-        note = entry.get("note", "")
-        sig = entry.get("signature", "")
-        writes = entry.get("writes", {})
+def _keys(values: list[str]) -> str:
+    return ", ".join(f"`{value}`" for value in values) or "—"
 
-        lines = []
-        lines.append(f"**Manifest status:** `{'ok' if ok else 'skipped'}`")
-        if sig:
-            lines.append(f"**Probed signature:** `{sig}`")
-        if note:
-            lines.append(f"**Note:** {note}")
-        lines.append("")
-        lines.append(_fmt_writes_v2(writes))
-        return "\n".join(lines).strip() + "\n"
 
-    if io_state["format"] == "flat":
-        # old behavior: filter list entries by function name
-        entries = [e for e in io_state["flat"] if e.get("function") == fn_full]
-        if not entries:
-            return "_No I/O entries found in `scgeo_io_manifest.json`._\n"
-        reads = [e for e in entries if e.get("mode") == "read"]
-        writes = [e for e in entries if e.get("mode") == "write"]
+def _io_summary(name: str, io: dict) -> list[str]:
+    entry = io.get("tl", {}).get(name)
+    if entry is None:
+        skipped = io.get("skipped", {}).get(name)
+        if skipped is None:
+            return []
+        return ["**I/O probe:** requires workflow-specific inputs. The small synthetic probe did not execute this function.",
+                "", f"Probe note: {skipped.get('note', 'not assessed')}"]
+    lines = ["**Observed AnnData keys in the synthetic I/O probe**", "",
+             "| Field | Added | Present before and after | Removed |",
+             "|---|---|---|---|"]
+    for field, values in entry.get("writes", {}).items():
+        lines.append(f"| `{field}` | {_keys(values.get('added', []))} | {_keys(values.get('touched', []))} | {_keys(values.get('removed', []))} |")
+    return lines
 
-        lines = []
-        if reads:
-            lines.append("**Reads**")
-            for e in reads:
-                lines.append(f"- `{e.get('path','')}`")
-            lines.append("")
-        if writes:
-            lines.append("**Writes**")
-            for e in writes:
-                lines.append(f"- `{e.get('path','')}`")
-            lines.append("")
-        return "\n".join(lines).strip() + "\n"
 
-    return "_No I/O entries found in `scgeo_io_manifest.json`._\n"
+def _entry(row: dict, notes: dict, io: dict, *, prefix: str) -> str:
+    name = row["name"]
+    curated = notes.get(name, {})
+    summary = curated.get("summary") or row.get("doc") or "Public ScGeo helper; inspect the signature and source for supported arguments."
+    lines = [f"### `{name}`", "", summary, "", "```text", _signature(name, row["signature"]), "```", ""]
+    if row.get("source"):
+        lines += [f"[View implementation]({prefix}{row['source']})", ""]
+    extra = curated.get("notes", [])
+    if extra:
+        lines += [f"- {note}" for note in extra] + [""]
+    lines += _io_summary(name, io)
+    if row.get("docstring"):
+        lines += ["", "<details>", "<summary>Parameters, returns and usage notes</summary>", "",
+                  "```text", row["docstring"], "```", "", "</details>"]
+    return "\n".join(lines).rstrip() + "\n"
 
-def render_section(section_name, items, io_state):
-    lines = [f"# scgeo.{section_name}\n"]
-    for it in items:
-        name = it["name"]  # e.g. "scgeo.tl.shift"
-        sig = it.get("signature", "")
-        doc = (it.get("doc", "") or "").strip()
 
-        lines += [
-            f"## `{name}`\n",
-            f"**Signature**  \n`{sig}`\n",
-        ]
-        if doc:
-            lines += [f"**Docstring**  \n{doc}\n"]
+def _module(section: str, rows: list[dict], notes: dict, io: dict, *, prefix: str) -> str:
+    label, purpose = MODULES[section]
+    lines = [f"## scgeo.{section}", "", f"**{label}.** {purpose}", ""]
+    lines += [f"- [`{row['name'].split('.')[-1]}`](#{_anchor(row['name'])})" for row in rows]
+    lines += [""] + [_entry(row, notes, io, prefix=prefix) for row in rows]
+    return "\n".join(lines).rstrip() + "\n"
 
-        lines += ["### I/O contract\n"]
-        lines += [_fmt_io_for_function(name, io_state)]
-        lines += ["---\n"]
 
-    return "\n".join(lines)
+def expected_outputs(root: Path = ROOT) -> dict[Path, str]:
+    api = _load(root / "api_manifest.json")
+    io = _load(root / "scgeo_io_manifest.json")
+    notes = _load(root / "docs/contracts/api_notes.json")
+    names = {row["name"] for section in NAMESPACES for row in api[section]}
+    stale = sorted(set(notes) - names)
+    if stale:
+        raise ValueError(f"Curated notes refer to missing public APIs: {stale}")
+    version = api["scgeo_version"]
+    overview = ["# API reference", "", f"Public API for **ScGeo {version}** · **{len(names)} exported callables**.", "",
+                "[Quick start](QUICKSTART.md) · [Installation](INSTALLATION.md) · [Interpretation](RESULT_INTERPRETATION.md)", "",
+                "Start with `tl.robust_shift`, `get.state_report` and `pl.state_evidence_panel`. Add `tl.representation_stability` and `tl.local_geometry_stability` when the required representations are available.", "",
+                "| Namespace | Purpose | Browse separately |", "|---|---|---|"]
+    overview += [f"| [`scgeo.{section}`](#{_anchor('scgeo.' + section)}) | {MODULES[section][0]} | [{len(api[section])} callables](api/{section}.md) |" for section in NAMESPACES]
+    overview += ["", "## Reading this reference", "",
+                 "Signatures, type annotations and defaults are generated from the package's public exports. Expand each function's usage notes for its docstring. Use `help(scgeo.tl.robust_shift)` (or another public symbol) for the documentation of your installed version.", "",
+                 "The I/O tables describe key presence observed on a small synthetic input, not every supported workflow. A skipped probe means that domain-specific inputs are needed; it does not mean the API is unavailable. The legacy manifest field `touched` means a key exists before and after the call, not that its values were changed. Nested values and read-only access are not inferred from this probe.", "",
+                 "For regeneration and validation, see [API and I/O provenance](contracts/README.md). These development manifests do not replace the paper's frozen analysis records.", ""]
+    overview += [_module(section, api[section], notes, io, prefix="../") for section in NAMESPACES]
+    output = {root / "docs/api_reference.md": "\n".join(overview).rstrip() + "\n"}
+    index = ["# Browse the ScGeo API", "", f"These module pages and the [complete API reference](../api_reference.md) are generated together for ScGeo {version}.", "",
+             "| Module | Purpose | Callables |", "|---|---|---|"]
+    for section in NAMESPACES:
+        rows = api[section]
+        index.append(f"| [scgeo.{section}]({section}.md) | {MODULES[section][0]} | {len(rows)} |")
+        header = [f"# scgeo.{section}", "", f"ScGeo {version} · [Complete reference](../api_reference.md) · [All modules](README.md) · [Quick start](../QUICKSTART.md)", "",
+                  "Signatures and docstrings match the public exports. I/O tables record a small synthetic probe; keys present before and after are not necessarily modified. [How this reference is generated](../contracts/README.md).", ""]
+        body = _module(section, rows, notes, io, prefix="../../").split("\n\n", 1)[1]
+        output[root / f"docs/api/{section}.md"] = "\n".join(header) + body
+    output[root / "docs/api/README.md"] = "\n".join(index).rstrip() + "\n"
+    return output
 
-def main():
-    api = _load_json(API)
-    io_state = _io_lookup()
 
-    for section in ["tl", "pl", "get", "pp", "data", "bench"]:
-        if section in api:
-            md = render_section(section, api[section], io_state)
-            (OUT / f"{section}.md").write_text(md)
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true", help="Fail if generated pages are stale; do not write files")
+    args = parser.parse_args()
+    outputs = expected_outputs()
+    stale = [str(path.relative_to(ROOT)) for path, text in outputs.items()
+             if not path.exists() or path.read_text(encoding="utf-8") != text]
+    if args.check:
+        if stale:
+            raise SystemExit("Stale generated API docs: " + ", ".join(stale))
+        print(f"PASS: {len(outputs)} generated API pages match the manifests and curated notes.")
+        return
+    for path, text in outputs.items():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+    print(f"Wrote {len(outputs)} API pages from current manifests and curated notes.")
 
-    print("Wrote:")
-    for section in ["tl", "pl", "get", "pp", "data", "bench"]:
-        p = OUT / f"{section}.md"
-        if p.exists():
-            print(f"  - {p}")
 
 if __name__ == "__main__":
     main()

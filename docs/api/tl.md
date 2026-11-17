@@ -1,677 +1,1040 @@
 # scgeo.tl
 
-## `scgeo.tl.align_vectors`
+ScGeo 0.1.0 · [Complete reference](../api_reference.md) · [All modules](README.md) · [Quick start](../QUICKSTART.md)
 
-**Signature**  
-`(adata, vec_key: 'str', ref_vec_key: 'Optional[str]' = None, *, ref_from_shift: 'bool' = False, shift_store_key: 'str' = 'scgeo', shift_kind: 'str' = 'shift', shift_level: 'str' = 'global', shift_index_key: 'Optional[str]' = None, obs_key: 'str' = 'scgeo_align', store_key: 'str' = 'scgeo') -> 'None'`
+Signatures and docstrings match the public exports. I/O tables record a small synthetic probe; keys present before and after are not necessarily modified. [How this reference is generated](../contracts/README.md).
+**Analysis.** Measure displacement, representation stability, local geometry, distributional change and dynamics agreement.
 
-**Docstring**  
+- [`align_vectors`](#scgeotlalign_vectors)
+- [`alignment_driver_genes`](#scgeotlalignment_driver_genes)
+- [`analyze_shift`](#scgeotlanalyze_shift)
+- [`consensus_subspace`](#scgeotlconsensus_subspace)
+- [`density_overlap`](#scgeotldensity_overlap)
+- [`distribution_test`](#scgeotldistribution_test)
+- [`local_geometry_stability`](#scgeotllocal_geometry_stability)
+- [`map_knn`](#scgeotlmap_knn)
+- [`map_query_to_ref`](#scgeotlmap_query_to_ref)
+- [`map_query_to_ref_pool`](#scgeotlmap_query_to_ref_pool)
+- [`map_query_to_ref_pool_census`](#scgeotlmap_query_to_ref_pool_census)
+- [`mixscore`](#scgeotlmixscore)
+- [`paga_composition_stats`](#scgeotlpaga_composition_stats)
+- [`projection_disagreement`](#scgeotlprojection_disagreement)
+- [`representation_stability`](#scgeotlrepresentation_stability)
+- [`robust_shift`](#scgeotlrobust_shift)
+- [`shift`](#scgeotlshift)
+- [`velocity_delta_alignment`](#scgeotlvelocity_delta_alignment)
+- [`velocity_shift_alignment`](#scgeotlvelocity_shift_alignment)
+- [`wasserstein`](#scgeotlwasserstein)
+
+### `scgeo.tl.align_vectors`
+
 Cosine alignment between vectors.
 
-### I/O contract
+```text
+scgeo.tl.align_vectors(
+    adata,
+    vec_key: 'str',
+    ref_vec_key: 'Optional[str]' = None,
+    *,
+    ref_from_shift: 'bool' = False,
+    shift_store_key: 'str' = 'scgeo',
+    shift_kind: 'str' = 'shift',
+    shift_level: 'str' = 'global',
+    shift_index_key: 'Optional[str]' = None,
+    obs_key: 'str' = 'scgeo_align',
+    store_key: 'str' = 'scgeo',
+) -> 'None'
+```
 
-**Manifest status:** `skipped`
-**Probed signature:** `(adata, vec_key: 'str', ref_vec_key: 'Optional[str]' = None, *, ref_from_shift: 'bool' = False, shift_store_key: 'str' = 'scgeo', shift_kind: 'str' = 'shift', shift_level: 'str' = 'global', shift_index_key: 'Optional[str]' = None, obs_key: 'str' = 'scgeo_align', store_key: 'str' = 'scgeo') -> 'None'`
-**Note:** needs domain-specific inputs
+[View implementation](../../scgeo/tl/_align_vectors.py)
 
-**Writes / touches (key-level)**
-- `obs_cols`:
-  - added: —
-  - touched: `batch`, `cluster`, `condition`
-  - removed: —
-- `obsm_keys`:
-  - added: —
-  - touched: `X_pca`, `X_umap`
-  - removed: —
-- `layers_keys`:
-  - added: —
-  - touched: —
-  - removed: —
-- `uns_keys`:
-  - added: —
-  - touched: —
-  - removed: —
+**I/O probe:** requires workflow-specific inputs. The small synthetic probe did not execute this function.
 
----
+Probe note: needs domain-specific inputs
 
-## `scgeo.tl.alignment_driver_genes`
+<details>
+<summary>Parameters, returns and usage notes</summary>
 
-**Signature**  
-`(adata, *, alignment_key: 'str', group1: 'str' = 'discordant', group2: 'str' = 'aligned', subset_key: 'Optional[str]' = None, subset_values: 'Optional[Sequence[str]]' = None, layer: 'Optional[str]' = None, method: 'str' = 'wilcoxon', pts: 'bool' = True, min_cells: 'int' = 20, key_added: 'str' = 'alignment_driver_genes') -> 'pd.DataFrame'`
+```text
+Cosine alignment between vectors.
 
-**Docstring**  
+Primary vectors:
+  - adata.obsm[vec_key]  (n_cells x d)
+
+Reference:
+  - if ref_vec_key provided: adata.obsm[ref_vec_key]  (n_cells x d)
+  - if ref_from_shift=True:
+      shift_level="global": uses single delta vector (broadcast to all cells)
+      shift_level="by": uses adata.uns[...]["by"][level]["delta"], level from obs[shift_index_key]
+      shift_level="samples": uses adata.uns[...]["samples"][sample]["delta"], sample from obs[shift_index_key]
+
+Writes:
+  - adata.obs[obs_key] : per-cell cosine
+  - adata.uns[store_key]["align_vectors"] : params + summary
+```
+
+</details>
+
+### `scgeo.tl.alignment_driver_genes`
+
+Identify genes associated with alignment or discordance between geometric shift and velocity direction.
+
+```text
+scgeo.tl.alignment_driver_genes(
+    adata,
+    *,
+    alignment_key: 'str',
+    group1: 'str' = 'discordant',
+    group2: 'str' = 'aligned',
+    subset_key: 'Optional[str]' = None,
+    subset_values: 'Optional[Sequence[str]]' = None,
+    layer: 'Optional[str]' = None,
+    method: 'str' = 'wilcoxon',
+    pts: 'bool' = True,
+    min_cells: 'int' = 20,
+    key_added: 'str' = 'alignment_driver_genes',
+) -> 'pd.DataFrame'
+```
+
+[View implementation](../../scgeo/tl/_alignment_driver_genes.py)
+
+**I/O probe:** requires workflow-specific inputs. The small synthetic probe did not execute this function.
+
+Probe note: needs domain-specific inputs
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
 Identify genes associated with alignment or discordance between geometric shift
+and velocity direction.
 
-### I/O contract
+Parameters
+----------
+adata
+    AnnData object.
+alignment_key
+    obs column containing alignment labels, e.g. "alignment_group".
+group1, group2
+    The two groups to compare, usually "discordant" vs "aligned".
+subset_key
+    Optional obs column for stratified analysis, e.g. "cluster_label_manual".
+subset_values
+    Optional subset values to analyze. If None and subset_key is provided,
+    all categories/unique values are used.
+layer
+    Optional layer to use as expression matrix. If provided, it is copied into
+    a minimal temporary AnnData as X before DE.
+method
+    Differential expression method passed to scanpy.tl.rank_genes_groups.
+pts
+    Whether to compute fraction of expressing cells.
+min_cells
+    Minimum number of cells required in each group for a valid comparison.
+key_added
+    Key used to store the concatenated result table in adata.uns.
 
-**Manifest status:** `skipped`
-**Probed signature:** `(adata, *, alignment_key: 'str', group1: 'str' = 'discordant', group2: 'str' = 'aligned', subset_key: 'Optional[str]' = None, subset_values: 'Optional[Sequence[str]]' = None, layer: 'Optional[str]' = None, method: 'str' = 'wilcoxon', pts: 'bool' = True, min_cells: 'int' = 20, key_added: 'str' = 'alignment_driver_genes') -> 'pd.DataFrame'`
-**Note:** needs domain-specific inputs
+Returns
+-------
+pd.DataFrame
+    Tidy dataframe of DE results with columns such as:
+    ['names', 'scores', 'logfoldchanges', 'pvals', 'pvals_adj', ...]
+    plus ['subset', 'group1', 'group2'].
+```
 
-**Writes / touches (key-level)**
-- `obs_cols`:
-  - added: —
-  - touched: `batch`, `cluster`, `condition`
-  - removed: —
-- `obsm_keys`:
-  - added: —
-  - touched: `X_pca`, `X_umap`
-  - removed: —
-- `layers_keys`:
-  - added: —
-  - touched: —
-  - removed: —
-- `uns_keys`:
-  - added: —
-  - touched: —
-  - removed: —
+</details>
 
----
+### `scgeo.tl.analyze_shift`
 
-## `scgeo.tl.analyze_shift`
-
-**Signature**  
-`(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', velocity_basis: 'Optional[str]' = None, ood_key: 'Optional[str]' = None, ood_groupby: 'Optional[str]' = None, robustness: 'Optional[pd.DataFrame]' = None, min_cells: 'int' = 10, store_key: 'str' = 'shift', overwrite: 'bool' = True)`
-
-**Docstring**  
 High-level ScGeo analysis orchestrator.
 
-### I/O contract
+```text
+scgeo.tl.analyze_shift(
+    adata,
+    *,
+    node_key: 'str',
+    condition_key: 'str',
+    group0: 'Any',
+    group1: 'Any',
+    basis: 'str' = 'umap',
+    velocity_basis: 'Optional[str]' = None,
+    ood_key: 'Optional[str]' = None,
+    ood_groupby: 'Optional[str]' = None,
+    robustness: 'Optional[pd.DataFrame]' = None,
+    min_cells: 'int' = 10,
+    store_key: 'str' = 'shift',
+    overwrite: 'bool' = True,
+)
+```
 
-**Manifest status:** `skipped`
-**Probed signature:** `(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', velocity_basis: 'Optional[str]' = None, ood_key: 'Optional[str]' = None, ood_groupby: 'Optional[str]' = None, robustness: 'Optional[pd.DataFrame]' = None, min_cells: 'int' = 10, store_key: 'str' = 'shift', overwrite: 'bool' = True)`
-**Note:** needs domain-specific inputs
+[View implementation](../../scgeo/tl/_analyze_shift.py)
 
-**Writes / touches (key-level)**
-- `obs_cols`:
-  - added: —
-  - touched: `batch`, `cluster`, `condition`
-  - removed: —
-- `obsm_keys`:
-  - added: —
-  - touched: `X_pca`, `X_umap`
-  - removed: —
-- `layers_keys`:
-  - added: —
-  - touched: —
-  - removed: —
-- `uns_keys`:
-  - added: —
-  - touched: —
-  - removed: —
+**I/O probe:** requires workflow-specific inputs. The small synthetic probe did not execute this function.
 
----
+Probe note: needs domain-specific inputs
 
-## `scgeo.tl.consensus_subspace`
+<details>
+<summary>Parameters, returns and usage notes</summary>
 
-**Signature**  
-`(adata: 'AnnData', rep: 'str' = 'X_pca', condition_key: 'str' = 'condition', group0: 'str | None' = None, group1: 'str | None' = None, sample_key: 'str | None' = None, n_components: 'int' = 2, obs_key_prefix: 'str' = 'cs', store_key: 'str' = 'consensus_subspace', min_cells: 'int' = 20, center: 'bool' = False) -> 'None'`
+```text
+High-level ScGeo analysis orchestrator.
 
-**Docstring**  
+Stores a compact analysis bundle at:
+    adata.uns["scgeo"][store_key]
+
+Stored keys
+-----------
+params
+shift_summary
+velocity_alignment   (if velocity embedding exists / requested)
+composition
+ood_summary          (if ood_key is provided)
+robustness           (if robustness DataFrame is provided)
+```
+
+</details>
+
+### `scgeo.tl.consensus_subspace`
+
 Compute consensus subspace directions from multiple delta vectors (sample-aware if sample_key is given).
 
-### I/O contract
+```text
+scgeo.tl.consensus_subspace(
+    adata: 'AnnData',
+    rep: 'str' = 'X_pca',
+    condition_key: 'str' = 'condition',
+    group0: 'str | None' = None,
+    group1: 'str | None' = None,
+    sample_key: 'str | None' = None,
+    n_components: 'int' = 2,
+    obs_key_prefix: 'str' = 'cs',
+    store_key: 'str' = 'consensus_subspace',
+    min_cells: 'int' = 20,
+    center: 'bool' = False,
+) -> 'None'
+```
 
-**Manifest status:** `skipped`
-**Probed signature:** `(adata: 'AnnData', rep: 'str' = 'X_pca', condition_key: 'str' = 'condition', group0: 'str | None' = None, group1: 'str | None' = None, sample_key: 'str | None' = None, n_components: 'int' = 2, obs_key_prefix: 'str' = 'cs', store_key: 'str' = 'consensus_subspace', min_cells: 'int' = 20, center: 'bool' = False) -> 'None'`
-**Note:** needs domain-specific inputs
+[View implementation](../../scgeo/tl/_consensus_subspace.py)
 
-**Writes / touches (key-level)**
-- `obs_cols`:
-  - added: —
-  - touched: `batch`, `cluster`, `condition`
-  - removed: —
-- `obsm_keys`:
-  - added: —
-  - touched: `X_pca`, `X_umap`
-  - removed: —
-- `layers_keys`:
-  - added: —
-  - touched: —
-  - removed: —
-- `uns_keys`:
-  - added: —
-  - touched: —
-  - removed: —
+**I/O probe:** requires workflow-specific inputs. The small synthetic probe did not execute this function.
 
----
+Probe note: needs domain-specific inputs
 
-## `scgeo.tl.density_overlap`
+<details>
+<summary>Parameters, returns and usage notes</summary>
 
-**Signature**  
-`(adata, rep: 'str' = 'X_umap', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, *, by: 'Optional[str]' = None, k: 'int' = 30, eval_on: 'str' = 'union', store_key: 'str' = 'scgeo') -> 'None'`
+```text
+Compute consensus subspace directions from multiple delta vectors (sample-aware if sample_key is given).
 
-**Docstring**  
+Deltas are computed as mean(rep)[group1] - mean(rep)[group0] within each sample (or globally if sample_key None).
+Consensus directions are the top right singular vectors of the delta matrix.
+
+Stores:
+  adata.uns["scgeo"][store_key] with components, singular_values, deltas, metadata
+  adata.obsm[f"X_{obs_key_prefix}"] as cell projections onto consensus directions
+  adata.obs[f"{obs_key_prefix}_score"] as per-cell magnitude in that subspace
+```
+
+</details>
+
+### `scgeo.tl.density_overlap`
+
+Compute density overlap between two conditions on an embedding using kNN density estimates. Outputs Bhattacharyya coefficient (BC) and Hellinger distance (H).
+
+```text
+scgeo.tl.density_overlap(
+    adata,
+    rep: 'str' = 'X_umap',
+    condition_key: 'str' = 'condition',
+    group1: 'Any' = None,
+    group0: 'Any' = None,
+    *,
+    by: 'Optional[str]' = None,
+    k: 'int' = 30,
+    eval_on: 'str' = 'union',
+    store_key: 'str' = 'scgeo',
+) -> 'None'
+```
+
+[View implementation](../../scgeo/tl/_density_overlap.py)
+
+**Observed AnnData keys in the synthetic I/O probe**
+
+| Field | Added | Present before and after | Removed |
+|---|---|---|---|
+| `obs_cols` | — | `batch`, `cluster`, `condition` | — |
+| `obsm_keys` | — | `X_pca`, `X_umap` | — |
+| `layers_keys` | — | `None` | — |
+| `uns_keys` | `dens_test` | — | — |
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
 Compute density overlap between two conditions on an embedding using kNN density estimates.
+Outputs Bhattacharyya coefficient (BC) and Hellinger distance (H).
 
-### I/O contract
+BC = ∫ sqrt(p q) dx   (in [0,1], higher = more overlap)
+H  = sqrt(1 - BC)     (in [0,1], higher = more separated)
+```
 
-**Manifest status:** `ok`
-**Probed signature:** `(adata, rep: 'str' = 'X_umap', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, *, by: 'Optional[str]' = None, k: 'int' = 30, eval_on: 'str' = 'union', store_key: 'str' = 'scgeo') -> 'None'`
+</details>
 
-**Writes / touches (key-level)**
-- `obs_cols`:
-  - added: —
-  - touched: `batch`, `cluster`, `condition`
-  - removed: —
-- `obsm_keys`:
-  - added: —
-  - touched: `X_pca`, `X_umap`
-  - removed: —
-- `layers_keys`:
-  - added: —
-  - touched: —
-  - removed: —
-- `uns_keys`:
-  - added: `dens_test`
-  - touched: —
-  - removed: —
+### `scgeo.tl.distribution_test`
 
----
-
-## `scgeo.tl.distribution_test`
-
-**Signature**  
-`(adata, rep: 'str' = 'X_pca', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, *, sample_key: 'Optional[str]' = None, by: 'Optional[str]' = None, method: 'str' = 'energy', n_perm: 'int' = 500, seed: 'int' = 0, store_key: 'str' = 'scgeo') -> 'None'`
-
-**Docstring**  
 Distribution difference test with sample-aware permutation.
 
-### I/O contract
+```text
+scgeo.tl.distribution_test(
+    adata,
+    rep: 'str' = 'X_pca',
+    condition_key: 'str' = 'condition',
+    group1: 'Any' = None,
+    group0: 'Any' = None,
+    *,
+    sample_key: 'Optional[str]' = None,
+    by: 'Optional[str]' = None,
+    method: 'str' = 'energy',
+    n_perm: 'int' = 500,
+    seed: 'int' = 0,
+    store_key: 'str' = 'scgeo',
+) -> 'None'
+```
 
-**Manifest status:** `ok`
-**Probed signature:** `(adata, rep: 'str' = 'X_pca', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, *, sample_key: 'Optional[str]' = None, by: 'Optional[str]' = None, method: 'str' = 'energy', n_perm: 'int' = 500, seed: 'int' = 0, store_key: 'str' = 'scgeo') -> 'None'`
+[View implementation](../../scgeo/tl/_distribution_test.py)
 
-**Writes / touches (key-level)**
-- `obs_cols`:
-  - added: —
-  - touched: `batch`, `cluster`, `condition`
-  - removed: —
-- `obsm_keys`:
-  - added: —
-  - touched: `X_pca`, `X_umap`
-  - removed: —
-- `layers_keys`:
-  - added: —
-  - touched: —
-  - removed: —
-- `uns_keys`:
-  - added: `dist_test`
-  - touched: —
-  - removed: —
+**Observed AnnData keys in the synthetic I/O probe**
 
----
+| Field | Added | Present before and after | Removed |
+|---|---|---|---|
+| `obs_cols` | — | `batch`, `cluster`, `condition` | — |
+| `obsm_keys` | — | `X_pca`, `X_umap` | — |
+| `layers_keys` | — | `None` | — |
+| `uns_keys` | `dist_test` | — | — |
 
-## `scgeo.tl.local_geometry_stability`
+<details>
+<summary>Parameters, returns and usage notes</summary>
 
-**Signature**  
-`(adata, *, reps, node_key=None, sample_key=None, k_values=(15, 30, 50), metric='euclidean', pair_mode='all', reference_rep=None, n_boot=500, max_exact_cells=3000, stratify_key=None, store_per_cell=False, seed=0, store_key='local_geometry_stability')`
+```text
+Distribution difference test with sample-aware permutation.
 
-**Docstring**  
+If sample_key provided:
+  - compute observed statistic on all cells
+  - permute condition labels at the SAMPLE level (swap sample assignments), recompute statistic
+  - p-value = (1 + #{perm >= obs})/(1+n_perm)
+
+Stores:
+  adata.uns[store_key]["distribution_test"]
+```
+
+</details>
+
+### `scgeo.tl.local_geometry_stability`
+
 Quantify local-geometry preservation across latent representations.
 
-### I/O contract
+```text
+scgeo.tl.local_geometry_stability(
+    adata,
+    *,
+    reps,
+    node_key=None,
+    sample_key=None,
+    k_values=(15, 30, 50),
+    metric='euclidean',
+    pair_mode='all',
+    reference_rep=None,
+    n_boot=500,
+    max_exact_cells=3000,
+    stratify_key=None,
+    store_per_cell=False,
+    seed=0,
+    store_key='local_geometry_stability',
+)
+```
 
-**Manifest status:** `ok`
-**Probed signature:** `(adata, *, reps, node_key=None, sample_key=None, k_values=(15, 30, 50), metric='euclidean', pair_mode='all', reference_rep=None, n_boot=500, max_exact_cells=3000, stratify_key=None, store_per_cell=False, seed=0, store_key='local_geometry_stability')`
+[View implementation](../../scgeo/tl/_local_geometry_stability.py)
 
-**Writes / touches (key-level)**
-- `obs_cols`:
-  - added: —
-  - touched: `batch`, `cluster`, `condition`
-  - removed: —
-- `obsm_keys`:
-  - added: —
-  - touched: `X_pca`, `X_umap`
-  - removed: —
-- `layers_keys`:
-  - added: —
-  - touched: —
-  - removed: —
-- `uns_keys`:
-  - added: `scgeo`
-  - touched: —
-  - removed: —
+**Observed AnnData keys in the synthetic I/O probe**
 
----
+| Field | Added | Present before and after | Removed |
+|---|---|---|---|
+| `obs_cols` | — | `batch`, `cluster`, `condition` | — |
+| `obsm_keys` | — | `X_pca`, `X_umap` | — |
+| `layers_keys` | — | `None` | — |
+| `uns_keys` | `scgeo` | — | — |
 
-## `scgeo.tl.map_knn`
+<details>
+<summary>Parameters, returns and usage notes</summary>
 
-**Signature**  
-`(adata_ref, adata_q, label_key: 'str' = 'cell_type', rep: 'str' = 'X_pca', k: 'int' = 25, ood_quantile: 'float' = 0.99, out_label_key: 'str' = 'scgeo_label', out_conf_key: 'str' = 'scgeo_confidence', out_ent_key: 'str' = 'scgeo_entropy', out_ood_key: 'str' = 'scgeo_ood', store_key: 'str' = 'scgeo') -> 'None'`
+```text
+Quantify local-geometry preservation across latent representations.
 
-**Docstring**  
+Definitions
+-----------
+For cell i and representation pair (a, b), neighborhood overlap is
+``|N_a(i) intersect N_b(i)| / k`` and neighborhood Jaccard is
+``|N_a(i) intersect N_b(i)| / |N_a(i) union N_b(i)|``. Directed graph
+edge retention is the Jaccard similarity of directed kNN edge sets.
+
+Distance distortion uses the union of directed kNN edges. For edge
+i -> j, global-scale distortion is
+``abs(log((d_b / med_kNN_b + eps) / (d_a / med_kNN_a + eps)))``.
+Local-shape distortion replaces the global median with the source cell's
+local median kNN distance. These quantities are invariant to translation,
+orthogonal rotation, and isotropic rescaling, but not to anisotropic or
+nonlinear distortion.
+
+Trustworthiness and continuity are exact rank metrics from scikit-learn.
+When ``n_obs > max_exact_cells``, they are evaluated on a reproducible
+selected subset, optionally stratified by ``stratify_key`` or ``node_key``.
+```
+
+</details>
+
+### `scgeo.tl.map_knn`
+
+kNN mapping reference->query with QC:   label = majority vote   confidence = vote fraction   entropy = vote entropy   OOD flag = mean kNN dist > quantile threshold
+
+```text
+scgeo.tl.map_knn(
+    adata_ref,
+    adata_q,
+    label_key: 'str' = 'cell_type',
+    rep: 'str' = 'X_pca',
+    k: 'int' = 25,
+    ood_quantile: 'float' = 0.99,
+    out_label_key: 'str' = 'scgeo_label',
+    out_conf_key: 'str' = 'scgeo_confidence',
+    out_ent_key: 'str' = 'scgeo_entropy',
+    out_ood_key: 'str' = 'scgeo_ood',
+    store_key: 'str' = 'scgeo',
+) -> 'None'
+```
+
+[View implementation](../../scgeo/tl/_map_knn.py)
+
+**I/O probe:** requires workflow-specific inputs. The small synthetic probe did not execute this function.
+
+Probe note: needs domain-specific inputs
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
 kNN mapping reference->query with QC:
+  label = majority vote
+  confidence = vote fraction
+  entropy = vote entropy
+  OOD flag = mean kNN dist > quantile threshold
 
-### I/O contract
+Writes into adata_q.obs and stores metadata in adata_q.uns[store_key]["map_knn"].
+```
 
-**Manifest status:** `skipped`
-**Probed signature:** `(adata_ref, adata_q, label_key: 'str' = 'cell_type', rep: 'str' = 'X_pca', k: 'int' = 25, ood_quantile: 'float' = 0.99, out_label_key: 'str' = 'scgeo_label', out_conf_key: 'str' = 'scgeo_confidence', out_ent_key: 'str' = 'scgeo_entropy', out_ood_key: 'str' = 'scgeo_ood', store_key: 'str' = 'scgeo') -> 'None'`
-**Note:** needs domain-specific inputs
+</details>
 
-**Writes / touches (key-level)**
-- `obs_cols`:
-  - added: —
-  - touched: `batch`, `cluster`, `condition`
-  - removed: —
-- `obsm_keys`:
-  - added: —
-  - touched: `X_pca`, `X_umap`
-  - removed: —
-- `layers_keys`:
-  - added: —
-  - touched: —
-  - removed: —
-- `uns_keys`:
-  - added: —
-  - touched: —
-  - removed: —
+### `scgeo.tl.map_query_to_ref`
 
----
+Graph-native reference mapping + QC that is agnostic to how the graph was built (BBKNN/Harmony/scVI/scanpy neighbors/...).
 
-## `scgeo.tl.map_query_to_ref`
+```text
+scgeo.tl.map_query_to_ref(
+    adata,
+    *,
+    ref_key: 'str',
+    ref_value: 'str',
+    label_key: 'str',
+    query_key: 'Optional[str]' = None,
+    query_value: 'Optional[str]' = None,
+    graph_key: 'str' = 'connectivities',
+    conf_method: 'str' = 'entropy_margin',
+    ood_method: 'str' = 'connectivity_mass',
+    reject_conf: 'Optional[float]' = None,
+    reject_ood: 'Optional[float]' = None,
+    rep: 'Optional[str]' = None,
+    store_key: 'str' = 'map_query_to_ref',
+    pred_key: 'str' = 'scgeo_pred',
+    conf_key: 'str' = 'scgeo_conf',
+    conf_entropy_key: 'str' = 'scgeo_conf_entropy',
+    conf_margin_key: 'str' = 'scgeo_conf_margin',
+    ood_key: 'str' = 'scgeo_ood',
+    reject_key: 'str' = 'scgeo_reject',
+    return_probs: 'bool' = False,
+    probs_key: 'str' = 'X_map_probs',
+    label_order_key: 'str' = 'map_label_order',
+) -> 'None'
+```
 
-**Signature**  
-`(adata, *, ref_key: 'str', ref_value: 'str', label_key: 'str', query_key: 'Optional[str]' = None, query_value: 'Optional[str]' = None, graph_key: 'str' = 'connectivities', conf_method: 'str' = 'entropy_margin', ood_method: 'str' = 'connectivity_mass', reject_conf: 'Optional[float]' = None, reject_ood: 'Optional[float]' = None, rep: 'Optional[str]' = None, store_key: 'str' = 'map_query_to_ref', pred_key: 'str' = 'scgeo_pred', conf_key: 'str' = 'scgeo_conf', conf_entropy_key: 'str' = 'scgeo_conf_entropy', conf_margin_key: 'str' = 'scgeo_conf_margin', ood_key: 'str' = 'scgeo_ood', reject_key: 'str' = 'scgeo_reject', return_probs: 'bool' = False, probs_key: 'str' = 'X_map_probs', label_order_key: 'str' = 'map_label_order') -> 'None'`
+[View implementation](../../scgeo/tl/_map_query_to_ref.py)
 
-**Docstring**  
+**I/O probe:** requires workflow-specific inputs. The small synthetic probe did not execute this function.
+
+Probe note: needs domain-specific inputs
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
 Graph-native reference mapping + QC that is agnostic to how the graph was built
+(BBKNN/Harmony/scVI/scanpy neighbors/...).
 
-### I/O contract
+Requirements:
+  - adata.obs[ref_key] exists and defines reference cells.
+  - adata.obs[label_key] exists for reference cells.
+  - adata.obsp[graph_key] exists as a CSR/CSC sparse affinity matrix.
 
-**Manifest status:** `skipped`
-**Probed signature:** `(adata, *, ref_key: 'str', ref_value: 'str', label_key: 'str', query_key: 'Optional[str]' = None, query_value: 'Optional[str]' = None, graph_key: 'str' = 'connectivities', conf_method: 'str' = 'entropy_margin', ood_method: 'str' = 'connectivity_mass', reject_conf: 'Optional[float]' = None, reject_ood: 'Optional[float]' = None, rep: 'Optional[str]' = None, store_key: 'str' = 'map_query_to_ref', pred_key: 'str' = 'scgeo_pred', conf_key: 'str' = 'scgeo_conf', conf_entropy_key: 'str' = 'scgeo_conf_entropy', conf_margin_key: 'str' = 'scgeo_conf_margin', ood_key: 'str' = 'scgeo_ood', reject_key: 'str' = 'scgeo_reject', return_probs: 'bool' = False, probs_key: 'str' = 'X_map_probs', label_order_key: 'str' = 'map_label_order') -> 'None'`
-**Note:** needs domain-specific inputs
+Writes:
+  adata.obs[pred_key]                predicted label for query cells (NaN for ref)
+  adata.obs[conf_entropy_key]        1 - normalized entropy of label probs (query)
+  adata.obs[conf_margin_key]         top1 - top2 probability margin (query)
+  adata.obs[conf_key]                combined confidence (query)
+  adata.obs[ood_key]                 OOD score (higher = more OOD-like) (query)
+  adata.obs[reject_key]              reject flag (query) if thresholds set
 
-**Writes / touches (key-level)**
-- `obs_cols`:
-  - added: —
-  - touched: `batch`, `cluster`, `condition`
-  - removed: —
-- `obsm_keys`:
-  - added: —
-  - touched: `X_pca`, `X_umap`
-  - removed: —
-- `layers_keys`:
-  - added: —
-  - touched: —
-  - removed: —
-- `uns_keys`:
-  - added: —
-  - touched: —
-  - removed: —
+  adata.uns["scgeo"][store_key]      params + per_label summary (+ optional label_deltas)
 
----
+Notes:
+  - OOD is computed as 1 - (sum of graph weights to reference neighbors).
+  - Confidence is derived from graph-weighted label voting among reference neighbors.
+```
 
-## `scgeo.tl.map_query_to_ref_pool`
+</details>
 
-**Signature**  
-`(adata, pool: 'ReferencePool', *, rep: 'str', k: 'int' = 30, weight_method: 'str' = 'inv', conf_method: 'str' = 'entropy_margin', ood_method: 'str' = 'distance', reject_conf: 'Optional[float]' = None, reject_ood: 'Optional[float]' = None, store_key: 'str' = 'map_query_to_ref', pred_key: 'str' = 'scgeo_pred', conf_key: 'str' = 'scgeo_conf', conf_entropy_key: 'str' = 'scgeo_conf_entropy', conf_margin_key: 'str' = 'scgeo_conf_margin', ood_key: 'str' = 'scgeo_ood', reject_key: 'str' = 'scgeo_reject', return_probs: 'bool' = False, probs_key: 'str' = 'X_map_probs', label_order_key: 'str' = 'map_label_order') -> 'None'`
+### `scgeo.tl.map_query_to_ref_pool`
 
-**Docstring**  
 Embedding-only mapping using a ReferencePool (ANN index).
 
-### I/O contract
+```text
+scgeo.tl.map_query_to_ref_pool(
+    adata,
+    pool: 'ReferencePool',
+    *,
+    rep: 'str',
+    k: 'int' = 30,
+    weight_method: 'str' = 'inv',
+    conf_method: 'str' = 'entropy_margin',
+    ood_method: 'str' = 'distance',
+    reject_conf: 'Optional[float]' = None,
+    reject_ood: 'Optional[float]' = None,
+    store_key: 'str' = 'map_query_to_ref',
+    pred_key: 'str' = 'scgeo_pred',
+    conf_key: 'str' = 'scgeo_conf',
+    conf_entropy_key: 'str' = 'scgeo_conf_entropy',
+    conf_margin_key: 'str' = 'scgeo_conf_margin',
+    ood_key: 'str' = 'scgeo_ood',
+    reject_key: 'str' = 'scgeo_reject',
+    return_probs: 'bool' = False,
+    probs_key: 'str' = 'X_map_probs',
+    label_order_key: 'str' = 'map_label_order',
+) -> 'None'
+```
 
-**Manifest status:** `skipped`
-**Probed signature:** `(adata, pool: 'ReferencePool', *, rep: 'str', k: 'int' = 30, weight_method: 'str' = 'inv', conf_method: 'str' = 'entropy_margin', ood_method: 'str' = 'distance', reject_conf: 'Optional[float]' = None, reject_ood: 'Optional[float]' = None, store_key: 'str' = 'map_query_to_ref', pred_key: 'str' = 'scgeo_pred', conf_key: 'str' = 'scgeo_conf', conf_entropy_key: 'str' = 'scgeo_conf_entropy', conf_margin_key: 'str' = 'scgeo_conf_margin', ood_key: 'str' = 'scgeo_ood', reject_key: 'str' = 'scgeo_reject', return_probs: 'bool' = False, probs_key: 'str' = 'X_map_probs', label_order_key: 'str' = 'map_label_order') -> 'None'`
-**Note:** needs domain-specific inputs
+[View implementation](../../scgeo/tl/_map_query_to_ref_pool.py)
 
-**Writes / touches (key-level)**
-- `obs_cols`:
-  - added: —
-  - touched: `batch`, `cluster`, `condition`
-  - removed: —
-- `obsm_keys`:
-  - added: —
-  - touched: `X_pca`, `X_umap`
-  - removed: —
-- `layers_keys`:
-  - added: —
-  - touched: —
-  - removed: —
-- `uns_keys`:
-  - added: —
-  - touched: —
-  - removed: —
+**I/O probe:** requires workflow-specific inputs. The small synthetic probe did not execute this function.
 
----
+Probe note: needs domain-specific inputs
 
-## `scgeo.tl.map_query_to_ref_pool_census`
+<details>
+<summary>Parameters, returns and usage notes</summary>
 
-**Signature**  
-`(adata_q, *, pool=None, census=None, rep: 'str' = 'X_emb', embedding_name: 'Optional[str]' = None, organism: 'str' = 'homo_sapiens', label_key: 'str' = 'cell_type', obs_columns: 'Optional[Sequence[str]]' = None, k: 'int' = 50, max_refs: 'int' = 200000, dedup: 'bool' = True, index_metric: 'str' = 'euclidean', index_seed: 'int' = 0, census_obs_filter: 'Optional[str]' = None, store_key: 'str' = 'map_query_to_ref', pred_key: 'str' = 'scgeo_pred', conf_key: 'str' = 'scgeo_conf', conf_entropy_key: 'str' = 'scgeo_conf_entropy', conf_margin_key: 'str' = 'scgeo_conf_margin', ood_key: 'str' = 'scgeo_ood', reject_key: 'str' = 'scgeo_reject', conf_method: 'str' = 'entropy_margin', ood_method: 'str' = 'distance', reject_conf: 'Optional[float]' = None, reject_ood: 'Optional[float]' = None, return_probs: 'bool' = False, probs_key: 'str' = 'X_map_probs', label_order_key: 'str' = 'map_label_order') -> 'None'`
+```text
+Embedding-only mapping using a ReferencePool (ANN index).
 
-**Docstring**  
-Phase B canonical spell:
+Writes same obs/uns keys as graph-native map_query_to_ref so plotting + get.table work.
+```
 
-### I/O contract
+</details>
 
-**Manifest status:** `skipped`
-**Probed signature:** `(adata_q, *, pool=None, census=None, rep: 'str' = 'X_emb', embedding_name: 'Optional[str]' = None, organism: 'str' = 'homo_sapiens', label_key: 'str' = 'cell_type', obs_columns: 'Optional[Sequence[str]]' = None, k: 'int' = 50, max_refs: 'int' = 200000, dedup: 'bool' = True, index_metric: 'str' = 'euclidean', index_seed: 'int' = 0, census_obs_filter: 'Optional[str]' = None, store_key: 'str' = 'map_query_to_ref', pred_key: 'str' = 'scgeo_pred', conf_key: 'str' = 'scgeo_conf', conf_entropy_key: 'str' = 'scgeo_conf_entropy', conf_margin_key: 'str' = 'scgeo_conf_margin', ood_key: 'str' = 'scgeo_ood', reject_key: 'str' = 'scgeo_reject', conf_method: 'str' = 'entropy_margin', ood_method: 'str' = 'distance', reject_conf: 'Optional[float]' = None, reject_ood: 'Optional[float]' = None, return_probs: 'bool' = False, probs_key: 'str' = 'X_map_probs', label_order_key: 'str' = 'map_label_order') -> 'None'`
-**Note:** needs domain-specific inputs
+### `scgeo.tl.map_query_to_ref_pool_census`
 
-**Writes / touches (key-level)**
-- `obs_cols`:
-  - added: —
-  - touched: `batch`, `cluster`, `condition`
-  - removed: —
-- `obsm_keys`:
-  - added: —
-  - touched: `X_pca`, `X_umap`
-  - removed: —
-- `layers_keys`:
-  - added: —
-  - touched: —
-  - removed: —
-- `uns_keys`:
-  - added: —
-  - touched: —
-  - removed: —
+Map query cells to a reference pool built from CELLxGENE Census embeddings.
 
----
+```text
+scgeo.tl.map_query_to_ref_pool_census(
+    adata_q,
+    *,
+    pool=None,
+    census=None,
+    rep: 'str' = 'X_emb',
+    embedding_name: 'str' = 'scvi',
+    organism: 'str' = 'Homo sapiens',
+    label_key: 'str' = 'cell_type',
+    obs_value_filter: 'Optional[str]' = None,
+    obs_columns: 'Optional[Sequence[str]]' = None,
+    max_refs: 'int' = 200000,
+    index_metric: 'str' = 'euclidean',
+    index_seed: 'int' = 0,
+    n_neighbors: 'int' = 30,
+    k: 'Optional[int]' = None,
+    dedup: 'Optional[bool]' = None,
+    census_obs_filter: 'Optional[str]' = None,
+    store_key: 'str' = 'map_query_to_ref',
+    pred_key: 'str' = 'scgeo_pred',
+    conf_key: 'str' = 'scgeo_conf',
+    conf_entropy_key: 'str' = 'scgeo_conf_entropy',
+    conf_margin_key: 'str' = 'scgeo_conf_margin',
+    ood_key: 'str' = 'scgeo_ood',
+    reject_key: 'str' = 'scgeo_reject',
+    conf_method: 'str' = 'entropy_margin',
+    ood_method: 'str' = 'distance',
+    reject_conf: 'Optional[float]' = None,
+    reject_ood: 'Optional[float]' = None,
+    return_probs: 'bool' = False,
+    probs_key: 'str' = 'X_map_probs',
+    label_order_key: 'str' = 'map_label_order',
+) -> 'None'
+```
 
-## `scgeo.tl.mixscore`
+[View implementation](../../scgeo/tl/_map_query_to_ref_pool_census.py)
 
-**Signature**  
-`(adata, label_key: 'str' = 'batch', rep: 'str' = 'X_pca', k: 'int' = 50, use_connectivities: 'bool' = True, connectivities_key: 'str' = 'connectivities', obs_key: 'str' = 'scgeo_mixscore', store_key: 'str' = 'scgeo') -> 'None'`
+**I/O probe:** requires workflow-specific inputs. The small synthetic probe did not execute this function.
 
-**Docstring**  
+Probe note: needs domain-specific inputs
+
+### `scgeo.tl.mixscore`
+
+kNN label mixing score in [0,1]:   per cell = fraction of neighbors with a different label.
+
+```text
+scgeo.tl.mixscore(
+    adata,
+    label_key: 'str' = 'batch',
+    rep: 'str' = 'X_pca',
+    k: 'int' = 50,
+    use_connectivities: 'bool' = True,
+    connectivities_key: 'str' = 'connectivities',
+    obs_key: 'str' = 'scgeo_mixscore',
+    store_key: 'str' = 'scgeo',
+) -> 'None'
+```
+
+[View implementation](../../scgeo/tl/_mixscore.py)
+
+**Observed AnnData keys in the synthetic I/O probe**
+
+| Field | Added | Present before and after | Removed |
+|---|---|---|---|
+| `obs_cols` | `scgeo_mixscore` | `batch`, `cluster`, `condition` | — |
+| `obsm_keys` | — | `X_pca`, `X_umap` | — |
+| `layers_keys` | — | `None` | — |
+| `uns_keys` | `mix_test` | — | — |
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
 kNN label mixing score in [0,1]:
+  per cell = fraction of neighbors with a different label.
 
-### I/O contract
+Preference order:
+  1) adata.obsp[connectivities_key] if present and use_connectivities=True (scanpy/bbknn native)
+  2) kNN on adata.obsm[rep] (requires scikit-learn)
 
-**Manifest status:** `ok`
-**Probed signature:** `(adata, label_key: 'str' = 'batch', rep: 'str' = 'X_pca', k: 'int' = 50, use_connectivities: 'bool' = True, connectivities_key: 'str' = 'connectivities', obs_key: 'str' = 'scgeo_mixscore', store_key: 'str' = 'scgeo') -> 'None'`
+Writes:
+  adata.obs[obs_key]
+  adata.uns[store_key]["mixscore"]
+```
 
-**Writes / touches (key-level)**
-- `obs_cols`:
-  - added: `scgeo_mixscore`
-  - touched: `batch`, `cluster`, `condition`
-  - removed: —
-- `obsm_keys`:
-  - added: —
-  - touched: `X_pca`, `X_umap`
-  - removed: —
-- `layers_keys`:
-  - added: —
-  - touched: —
-  - removed: —
-- `uns_keys`:
-  - added: `mix_test`
-  - touched: —
-  - removed: —
+</details>
 
----
+### `scgeo.tl.paga_composition_stats`
 
-## `scgeo.tl.paga_composition_stats`
-
-**Signature**  
-`(adata, group_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', *, sample_key: 'Optional[str]' = None, method: 'str' = 'gee', n_boot: 'int' = 1000, seed: 'int' = 0, store_key: 'str' = 'scgeo') -> 'None'`
-
-**Docstring**  
 For each cluster/node, test enrichment of condition1 vs condition0.
 
-### I/O contract
+```text
+scgeo.tl.paga_composition_stats(
+    adata,
+    group_key: 'str',
+    condition_key: 'str',
+    group0: 'Any',
+    group1: 'Any',
+    *,
+    sample_key: 'Optional[str]' = None,
+    method: 'str' = 'gee',
+    n_boot: 'int' = 1000,
+    seed: 'int' = 0,
+    store_key: 'str' = 'scgeo',
+) -> 'None'
+```
 
-**Manifest status:** `skipped`
-**Probed signature:** `(adata, group_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', *, sample_key: 'Optional[str]' = None, method: 'str' = 'gee', n_boot: 'int' = 1000, seed: 'int' = 0, store_key: 'str' = 'scgeo') -> 'None'`
-**Note:** needs domain-specific inputs
+[View implementation](../../scgeo/tl/_paga_composition_stats.py)
 
-**Writes / touches (key-level)**
-- `obs_cols`:
-  - added: —
-  - touched: `batch`, `cluster`, `condition`
-  - removed: —
-- `obsm_keys`:
-  - added: —
-  - touched: `X_pca`, `X_umap`
-  - removed: —
-- `layers_keys`:
-  - added: —
-  - touched: —
-  - removed: —
-- `uns_keys`:
-  - added: —
-  - touched: —
-  - removed: —
+- The default method="gee" requires statsmodels. Choose the analysis method explicitly; method="bootstrap" is a different statistical procedure.
 
----
+**I/O probe:** requires workflow-specific inputs. The small synthetic probe did not execute this function.
 
-## `scgeo.tl.projection_disagreement`
+Probe note: needs domain-specific inputs
 
-**Signature**  
-`(adata, sources: 'Sequence[Dict[str, Any]]', obs_key: 'str' = 'scgeo_disagree', store_key: 'str' = 'scgeo') -> 'None'`
+<details>
+<summary>Parameters, returns and usage notes</summary>
 
-**Docstring**  
+```text
+For each cluster/node, test enrichment of condition1 vs condition0.
+
+If method="gee" and sample_key provided:
+  - Fit GEE logistic regression: y = 1(cell in node), x = condition (0/1), cluster = sample
+  - Returns OR and robust SE CI
+
+Fallback method="bootstrap":
+  - Bootstrap over samples: compute per-sample proportions in node, compare groups, CI + effect
+```
+
+</details>
+
+### `scgeo.tl.projection_disagreement`
+
 Compute per-cell projection disagreement among multiple vector sources.
 
-### I/O contract
+```text
+scgeo.tl.projection_disagreement(
+    adata,
+    sources: 'Sequence[Dict[str, Any]]',
+    obs_key: 'str' = 'scgeo_disagree',
+    store_key: 'str' = 'scgeo',
+) -> 'None'
+```
 
-**Manifest status:** `skipped`
-**Probed signature:** `(adata, sources: 'Sequence[Dict[str, Any]]', obs_key: 'str' = 'scgeo_disagree', store_key: 'str' = 'scgeo') -> 'None'`
-**Note:** needs domain-specific inputs
+[View implementation](../../scgeo/tl/_projection_disagreement.py)
 
-**Writes / touches (key-level)**
-- `obs_cols`:
-  - added: —
-  - touched: `batch`, `cluster`, `condition`
-  - removed: —
-- `obsm_keys`:
-  - added: —
-  - touched: `X_pca`, `X_umap`
-  - removed: —
-- `layers_keys`:
-  - added: —
-  - touched: —
-  - removed: —
-- `uns_keys`:
-  - added: —
-  - touched: —
-  - removed: —
+**I/O probe:** requires workflow-specific inputs. The small synthetic probe did not execute this function.
 
----
+Probe note: needs domain-specific inputs
 
-## `scgeo.tl.representation_stability`
+<details>
+<summary>Parameters, returns and usage notes</summary>
 
-**Signature**  
-`(adata, *, reps, node_key, condition_key, group0, group1, sample_key=None, center: 'str' = 'geometric_median', trim_fraction: 'float' = 0.1, n_boot: 'int' = 500, velocity_keys=None, alignment_pos_thr: 'float' = 0.3, alignment_neg_thr: 'float' = -0.3, min_cells: 'int' = 20, consensus_rules=None, seed: 'int' = 0, store_key: 'str' = 'representation_stability')`
+```text
+Compute per-cell projection disagreement among multiple vector sources.
 
-**Docstring**  
+sources: list of dicts describing vector sources, e.g.
+  {"type": "obsm", "key": "velocity_umap", "name": "velocity"}
+  {"type": "shift", "level": "global", "name": "delta_global"}
+  {"type": "shift", "level": "by", "index_key": "cell_type", "name": "delta_by_ct"}
+
+Output:
+  adata.obs[obs_key] = 1 - mean_pairwise_cosine (nan-safe)
+  adata.uns[store_key]["projection_disagreement"] contains params + summary
+```
+
+</details>
+
+### `scgeo.tl.representation_stability`
+
 Assess whether state-level perturbation geometry is stable across representations.
 
-Consensus labels distinguish `stable_neutral`, magnitude-only `stable_effect`,
-velocity-supported `stable_aligned`/`stable_discordant`,
-`representation_unstable`, and `insufficient_coverage`.
+```text
+scgeo.tl.representation_stability(
+    adata,
+    *,
+    reps,
+    node_key,
+    condition_key,
+    group0,
+    group1,
+    sample_key=None,
+    center: 'str' = 'geometric_median',
+    trim_fraction: 'float' = 0.1,
+    n_boot: 'int' = 500,
+    velocity_keys=None,
+    alignment_pos_thr: 'float' = 0.3,
+    alignment_neg_thr: 'float' = -0.3,
+    min_cells: 'int' = 20,
+    consensus_rules=None,
+    seed: 'int' = 0,
+    store_key: 'str' = 'representation_stability',
+)
+```
 
-### I/O contract
+[View implementation](../../scgeo/tl/_representation_stability.py)
 
-**Manifest status:** `ok`
-**Probed signature:** `(adata, *, reps, node_key, condition_key, group0, group1, sample_key=None, center: 'str' = 'geometric_median', trim_fraction: 'float' = 0.1, n_boot: 'int' = 500, velocity_keys=None, alignment_pos_thr: 'float' = 0.3, alignment_neg_thr: 'float' = -0.3, min_cells: 'int' = 20, consensus_rules=None, seed: 'int' = 0, store_key: 'str' = 'representation_stability')`
+- Consensus labels include `stable_neutral` for consistently negligible effects, `stable_effect` for non-neutral magnitude agreement without velocity evidence, `stable_aligned`/`stable_discordant` when velocity classes agree, `representation_unstable` for substantive representation disagreement, and `insufficient_coverage`.
 
-**Writes / touches (key-level)**
-- `obs_cols`:
-  - added: —
-  - touched: `batch`, `cluster`, `condition`
-  - removed: —
-- `obsm_keys`:
-  - added: —
-  - touched: `X_pca`, `X_umap`
-  - removed: —
-- `layers_keys`:
-  - added: —
-  - touched: —
-  - removed: —
-- `uns_keys`:
-  - added: `scgeo`
-  - touched: —
-  - removed: —
+**Observed AnnData keys in the synthetic I/O probe**
 
----
+| Field | Added | Present before and after | Removed |
+|---|---|---|---|
+| `obs_cols` | — | `batch`, `cluster`, `condition` | — |
+| `obsm_keys` | — | `X_pca`, `X_umap` | — |
+| `layers_keys` | — | `None` | — |
+| `uns_keys` | `scgeo` | — | — |
 
-## `scgeo.tl.robust_shift`
+<details>
+<summary>Parameters, returns and usage notes</summary>
 
-**Signature**  
-`(adata, rep: 'str' = 'X_pca', condition_key: 'str' = 'condition', group0: 'Any' = None, group1: 'Any' = None, by: 'Optional[str]' = None, sample_key: 'Optional[str]' = None, center: 'str' = 'geometric_median', trim_fraction: 'float' = 0.1, n_boot: 'int' = 500, bootstrap_unit: 'str' = 'auto', normalize_by: 'Optional[str]' = 'pooled_robust_scale', seed: 'int' = 0, store_key: 'str' = 'robust_shift') -> 'Dict[str, Any]'`
+```text
+Assess whether state-level perturbation geometry is stable across representations.
 
-**Docstring**  
+Consensus labels use explicit rules stored in ``params['consensus_label_rules']``.
+The function never averages raw displacement vectors across representations; it
+combines only coordinate-safe scalars: normalized magnitudes, ranks, velocity
+cosines computed within each representation, and class agreement. Non-neutral
+magnitude agreement without velocity evidence is labeled ``stable_effect``;
+rank and direction instability are reserved for substantive representation
+disagreement after coverage and stable-neutral checks.
+```
+
+</details>
+
+### `scgeo.tl.robust_shift`
+
 Robust condition displacement with sample-aware bootstrap uncertainty.
 
-### I/O contract
+```text
+scgeo.tl.robust_shift(
+    adata,
+    rep: 'str' = 'X_pca',
+    condition_key: 'str' = 'condition',
+    group0: 'Any' = None,
+    group1: 'Any' = None,
+    by: 'Optional[str]' = None,
+    sample_key: 'Optional[str]' = None,
+    center: 'str' = 'geometric_median',
+    trim_fraction: 'float' = 0.1,
+    n_boot: 'int' = 500,
+    bootstrap_unit: 'str' = 'auto',
+    normalize_by: 'Optional[str]' = 'pooled_robust_scale',
+    seed: 'int' = 0,
+    store_key: 'str' = 'robust_shift',
+) -> 'Dict[str, Any]'
+```
 
-**Manifest status:** `ok`
-**Probed signature:** `(adata, rep: 'str' = 'X_pca', condition_key: 'str' = 'condition', group0: 'Any' = None, group1: 'Any' = None, by: 'Optional[str]' = None, sample_key: 'Optional[str]' = None, center: 'str' = 'geometric_median', trim_fraction: 'float' = 0.1, n_boot: 'int' = 500, bootstrap_unit: 'str' = 'auto', normalize_by: 'Optional[str]' = 'pooled_robust_scale', seed: 'int' = 0, store_key: 'str' = 'robust_shift') -> 'Dict[str, Any]'`
+[View implementation](../../scgeo/tl/_robust_shift.py)
 
-**Writes / touches (key-level)**
-- `obs_cols`:
-  - added: —
-  - touched: `batch`, `cluster`, `condition`
-  - removed: —
-- `obsm_keys`:
-  - added: —
-  - touched: `X_pca`, `X_umap`
-  - removed: —
-- `layers_keys`:
-  - added: —
-  - touched: —
-  - removed: —
-- `uns_keys`:
-  - added: `scgeo`
-  - touched: —
-  - removed: —
+**Observed AnnData keys in the synthetic I/O probe**
 
----
+| Field | Added | Present before and after | Removed |
+|---|---|---|---|
+| `obs_cols` | — | `batch`, `cluster`, `condition` | — |
+| `obsm_keys` | — | `X_pca`, `X_umap` | — |
+| `layers_keys` | — | `None` | — |
+| `uns_keys` | `scgeo` | — | — |
 
-## `scgeo.tl.shift`
+<details>
+<summary>Parameters, returns and usage notes</summary>
 
-**Signature**  
-`(adata, rep: 'str' = 'X_pca', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, by: 'Optional[str]' = None, sample_key: 'Optional[str]' = None, store_key: 'str' = 'scgeo') -> 'None'`
+```text
+Robust condition displacement with sample-aware bootstrap uncertainty.
 
-**Docstring**  
+When ``sample_key`` is provided, per-condition centers are estimated from
+sample-level centers and bootstrap resampling uses samples by default.
+
+Minimal example
+---------------
+>>> out = sg.tl.robust_shift(
+...     adata,
+...     rep="X_pca",
+...     condition_key="condition",
+...     group0="control",
+...     group1="treated",
+...     sample_key="donor",
+... )
+>>> out["global"]["delta_norm"]
+
+Stores results at ``adata.uns["scgeo"][store_key]`` and returns the same
+dictionary.
+```
+
+</details>
+
+### `scgeo.tl.shift`
+
 Compute mean shift vector Δ = μ1 - μ0 in representation space.
 
-### I/O contract
+```text
+scgeo.tl.shift(
+    adata,
+    rep: 'str' = 'X_pca',
+    condition_key: 'str' = 'condition',
+    group1: 'Any' = None,
+    group0: 'Any' = None,
+    by: 'Optional[str]' = None,
+    sample_key: 'Optional[str]' = None,
+    store_key: 'str' = 'scgeo',
+) -> 'None'
+```
 
-**Manifest status:** `ok`
-**Probed signature:** `(adata, rep: 'str' = 'X_pca', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, by: 'Optional[str]' = None, sample_key: 'Optional[str]' = None, store_key: 'str' = 'scgeo') -> 'None'`
+[View implementation](../../scgeo/tl/_shift.py)
 
-**Writes / touches (key-level)**
-- `obs_cols`:
-  - added: —
-  - touched: `batch`, `cluster`, `condition`
-  - removed: —
-- `obsm_keys`:
-  - added: —
-  - touched: `X_pca`, `X_umap`
-  - removed: —
-- `layers_keys`:
-  - added: —
-  - touched: —
-  - removed: —
-- `uns_keys`:
-  - added: `shift_test`
-  - touched: —
-  - removed: —
+**Observed AnnData keys in the synthetic I/O probe**
 
----
+| Field | Added | Present before and after | Removed |
+|---|---|---|---|
+| `obs_cols` | — | `batch`, `cluster`, `condition` | — |
+| `obsm_keys` | — | `X_pca`, `X_umap` | — |
+| `layers_keys` | — | `None` | — |
+| `uns_keys` | `shift_test` | — | — |
 
-## `scgeo.tl.velocity_delta_alignment`
+<details>
+<summary>Parameters, returns and usage notes</summary>
 
-**Signature**  
-`(adata, *, velocity_key: 'Optional[str]' = None, rep_for_shift: 'str' = 'X_umap', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, by: 'Optional[str]' = None, sample_key: 'Optional[str]' = None, shift_level: 'str' = 'global', shift_index_key: 'Optional[str]' = None, obs_key: 'str' = 'scgeo_vel_delta_align', store_key: 'str' = 'scgeo') -> 'None'`
+```text
+Compute mean shift vector Δ = μ1 - μ0 in representation space.
 
-**Docstring**  
+Stores results in:
+  adata.uns[store_key]["shift"]["global"]
+  adata.uns[store_key]["shift"]["by"][<level>] (if by is provided)
+  adata.uns[store_key]["shift"]["samples"] (if sample_key is provided)
+```
+
+</details>
+
+### `scgeo.tl.velocity_delta_alignment`
+
+Convenience wrapper for scVelo/CellRank workflows:   1) compute Δ via sg.tl.shift on rep_for_shift   2) align velocity vectors to Δ using sg.tl.align_vectors
+
+```text
+scgeo.tl.velocity_delta_alignment(
+    adata,
+    *,
+    velocity_key: 'Optional[str]' = None,
+    rep_for_shift: 'str' = 'X_umap',
+    condition_key: 'str' = 'condition',
+    group1: 'Any' = None,
+    group0: 'Any' = None,
+    by: 'Optional[str]' = None,
+    sample_key: 'Optional[str]' = None,
+    shift_level: 'str' = 'global',
+    shift_index_key: 'Optional[str]' = None,
+    obs_key: 'str' = 'scgeo_vel_delta_align',
+    store_key: 'str' = 'scgeo',
+) -> 'None'
+```
+
+[View implementation](../../scgeo/tl/_velocity_delta_alignment.py)
+
+**I/O probe:** requires workflow-specific inputs. The small synthetic probe did not execute this function.
+
+Probe note: needs domain-specific inputs
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
 Convenience wrapper for scVelo/CellRank workflows:
+  1) compute Δ via sg.tl.shift on rep_for_shift
+  2) align velocity vectors to Δ using sg.tl.align_vectors
 
-### I/O contract
+velocity_key auto-detection order:
+  - "velocity_umap"
+  - "velocity_pca"
+```
 
-**Manifest status:** `skipped`
-**Probed signature:** `(adata, *, velocity_key: 'Optional[str]' = None, rep_for_shift: 'str' = 'X_umap', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, by: 'Optional[str]' = None, sample_key: 'Optional[str]' = None, shift_level: 'str' = 'global', shift_index_key: 'Optional[str]' = None, obs_key: 'str' = 'scgeo_vel_delta_align', store_key: 'str' = 'scgeo') -> 'None'`
-**Note:** needs domain-specific inputs
+</details>
 
-**Writes / touches (key-level)**
-- `obs_cols`:
-  - added: —
-  - touched: `batch`, `cluster`, `condition`
-  - removed: —
-- `obsm_keys`:
-  - added: —
-  - touched: `X_pca`, `X_umap`
-  - removed: —
-- `layers_keys`:
-  - added: —
-  - touched: —
-  - removed: —
-- `uns_keys`:
-  - added: —
-  - touched: —
-  - removed: —
+### `scgeo.tl.velocity_shift_alignment`
 
----
-
-## `scgeo.tl.velocity_shift_alignment`
-
-**Signature**  
-`(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', velocity_basis: 'Optional[str]' = None, min_cells: 'int' = 15, agg: 'str' = 'mean', alignment_pos_thr: 'float' = 0.3, alignment_neg_thr: 'float' = -0.3, key_added: 'Optional[str]' = 'velocity_shift_alignment', propagate_to_obs: 'bool' = False) -> 'pd.DataFrame'`
-
-**Docstring**  
 Compute node-wise alignment between observed geometric shift and mean velocity.
 
-### I/O contract
+```text
+scgeo.tl.velocity_shift_alignment(
+    adata,
+    *,
+    node_key: 'str',
+    condition_key: 'str',
+    group0: 'Any',
+    group1: 'Any',
+    basis: 'str' = 'umap',
+    velocity_basis: 'Optional[str]' = None,
+    min_cells: 'int' = 15,
+    agg: 'str' = 'mean',
+    alignment_pos_thr: 'float' = 0.3,
+    alignment_neg_thr: 'float' = -0.3,
+    key_added: 'Optional[str]' = 'velocity_shift_alignment',
+    propagate_to_obs: 'bool' = False,
+) -> 'pd.DataFrame'
+```
 
-**Manifest status:** `skipped`
-**Probed signature:** `(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', velocity_basis: 'Optional[str]' = None, min_cells: 'int' = 15, agg: 'str' = 'mean', alignment_pos_thr: 'float' = 0.3, alignment_neg_thr: 'float' = -0.3, key_added: 'Optional[str]' = 'velocity_shift_alignment', propagate_to_obs: 'bool' = False) -> 'pd.DataFrame'`
-**Note:** needs domain-specific inputs
+[View implementation](../../scgeo/tl/_velocity_shift_alignment.py)
 
-**Writes / touches (key-level)**
-- `obs_cols`:
-  - added: —
-  - touched: `batch`, `cluster`, `condition`
-  - removed: —
-- `obsm_keys`:
-  - added: —
-  - touched: `X_pca`, `X_umap`
-  - removed: —
-- `layers_keys`:
-  - added: —
-  - touched: —
-  - removed: —
-- `uns_keys`:
-  - added: —
-  - touched: —
-  - removed: —
+**I/O probe:** requires workflow-specific inputs. The small synthetic probe did not execute this function.
 
----
+Probe note: needs domain-specific inputs
 
-## `scgeo.tl.wasserstein`
+<details>
+<summary>Parameters, returns and usage notes</summary>
 
-**Signature**  
-`(adata, rep: 'str' = 'X_pca', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, *, by: 'Optional[str]' = None, n_proj: 'int' = 128, p: 'int' = 2, seed: 'int' = 0, store_key: 'str' = 'scgeo') -> 'None'`
+```text
+Compute node-wise alignment between observed geometric shift and mean velocity.
 
-**Docstring**  
+Parameters
+----------
+adata
+    AnnData object.
+node_key
+    obs column defining nodes/groups (e.g. cluster labels).
+condition_key
+    obs column defining the condition or timepoint.
+group0, group1
+    Two values in `condition_key` to compare. Shift is computed as group1 - group0.
+basis
+    Embedding basis in `obsm`, with or without `X_` prefix.
+velocity_basis
+    Velocity embedding basis in `obsm`, with or without `velocity_` prefix.
+    If None, auto-detect from `basis`.
+min_cells
+    Minimum cells required per node per condition.
+agg
+    Aggregation method for centroids and mean velocity: {'mean', 'median'}.
+alignment_pos_thr, alignment_neg_thr
+    Thresholds for classifying alignment cosine.
+key_added
+    If not None, store the node-level dataframe in `adata.uns[key_added]`.
+propagate_to_obs
+    If True, propagate node-level cosine/class back to cells in `adata.obs`.
+
+Returns
+-------
+pd.DataFrame
+    Node-level dataframe with shift, velocity, cosine alignment, and classes.
+```
+
+</details>
+
+### `scgeo.tl.wasserstein`
+
 Compute (sliced) Wasserstein distance between two conditions in embedding space.
 
-### I/O contract
+```text
+scgeo.tl.wasserstein(
+    adata,
+    rep: 'str' = 'X_pca',
+    condition_key: 'str' = 'condition',
+    group1: 'Any' = None,
+    group0: 'Any' = None,
+    *,
+    by: 'Optional[str]' = None,
+    n_proj: 'int' = 128,
+    p: 'int' = 2,
+    seed: 'int' = 0,
+    store_key: 'str' = 'scgeo',
+) -> 'None'
+```
 
-**Manifest status:** `ok`
-**Probed signature:** `(adata, rep: 'str' = 'X_pca', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, *, by: 'Optional[str]' = None, n_proj: 'int' = 128, p: 'int' = 2, seed: 'int' = 0, store_key: 'str' = 'scgeo') -> 'None'`
+[View implementation](../../scgeo/tl/_wasserstein.py)
 
-**Writes / touches (key-level)**
-- `obs_cols`:
-  - added: —
-  - touched: `batch`, `cluster`, `condition`
-  - removed: —
-- `obsm_keys`:
-  - added: —
-  - touched: `X_pca`, `X_umap`
-  - removed: —
-- `layers_keys`:
-  - added: —
-  - touched: —
-  - removed: —
-- `uns_keys`:
-  - added: `dist_test`
-  - touched: —
-  - removed: —
+**Observed AnnData keys in the synthetic I/O probe**
 
----
+| Field | Added | Present before and after | Removed |
+|---|---|---|---|
+| `obs_cols` | — | `batch`, `cluster`, `condition` | — |
+| `obsm_keys` | — | `X_pca`, `X_umap` | — |
+| `layers_keys` | — | `None` | — |
+| `uns_keys` | `dist_test` | — | — |
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Compute (sliced) Wasserstein distance between two conditions in embedding space.
+
+Stores:
+  adata.uns[store_key]["wasserstein"]["global"]
+  adata.uns[store_key]["wasserstein"]["by"][level] (if by provided)
+
+Notes:
+  - Uses sliced Wasserstein by default (no extra deps).
+  - Equal-weight empirical distributions; uses min(n0, n1) truncation per projection.
+```
+
+</details>

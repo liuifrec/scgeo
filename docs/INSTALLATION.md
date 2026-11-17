@@ -1,142 +1,166 @@
-# Installation
+# Install ScGeo
 
-Use a new environment rather than changing an environment used for a frozen
-analysis. Python 3.12 is the recommended starting point. Package metadata retains
-Python >=3.9; installation CI targets 3.9 and 3.12 on Linux, and 3.12 on Windows
-and macOS. Check CI results before treating a platform as validated.
+[Quick start](QUICKSTART.md) · [API reference](api_reference.md) · [Paper reproduction](REPRODUCIBILITY.md)
 
-## pip: install directly from GitHub
+**ScGeo 0.1.0 is published on [PyPI](https://pypi.org/project/scgeo/0.1.0/).**
+Python 3.12 is the recommended starting point. Use a fresh environment for a new
+project and preserve environments that support frozen analyses.
 
-Inside a virtual environment or an activated conda environment:
+## Choose an installation
+
+| Workflow | Command |
+| --- | --- |
+| Core geometry and plotting | `python -m pip install scgeo==0.1.0` |
+| Standard Scanpy/AnnData analysis | `python -m pip install "scgeo[scanpy]==0.1.0"` |
+| Scanpy with JupyterLab | `python -m pip install "scgeo[scanpy,notebook]==0.1.0"` |
+| scVelo workflow dependencies | `python -m pip install "scgeo[scanpy,scvelo]==0.1.0"` |
+| CELLxGENE Census access | `python -m pip install "scgeo[census]==0.1.0"` |
+
+The core package includes NumPy, pandas, AnnData, SciPy, scikit-learn, Matplotlib,
+and Plotly. ScGeo consumes existing representations; construct scVI, CellRank,
+or other upstream model outputs with the appropriate tools for your workflow.
+
+## Create a Python environment
 
 ```bash
-python -m pip install "scgeo @ https://github.com/liuifrec/scgeo/archive/refs/heads/main.zip"
+python -m venv .venv
+```
+
+Activate it on Linux/macOS:
+
+```bash
+source .venv/bin/activate
+```
+
+Or in Windows PowerShell:
+
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+Then install and verify:
+
+```bash
+python -m pip install "scgeo[scanpy]==0.1.0"
+python -m pip check
 python -c "import scgeo; print(scgeo.__version__)"
 ```
 
-This is a non-editable development installation. It needs internet access but
-not a manual clone or a Git executable. For a new Python virtual environment,
-first run `python -m venv .venv`; activate it with `source .venv/bin/activate` on
-Linux/macOS or `.venv\Scripts\Activate.ps1` in Windows PowerShell.
+The last command should print `0.1.0`. Continue with the
+[download-free synthetic example](QUICKSTART.md#try-the-complete-example).
 
-The source URL explicitly identifies this project. A bare `pip install scgeo`
-should only be advertised after a release under this project's verified PyPI
-account has been published. A README change does not publish a package.
-
-## Default dependencies and optional extras
-
-The default installation includes NumPy, pandas, AnnData, SciPy, scikit-learn,
-Matplotlib, and Plotly for local representation analysis and plotting. It does
-not install CELLxGENE Census, TileDB-SOMA, or Arrow as required ScGeo dependencies.
-Census access uses the existing optional-dependency helpers.
-
-| Extra | Use |
-| --- | --- |
-| `scanpy` | Scanpy-based preprocessing and helper workflows |
-| `scvelo` | The existing scVelo, igraph, leidenalg, and scikit-misc extra |
-| `census` | CELLxGENE Census access, TileDB-SOMA, and Arrow |
-| `notebook` | JupyterLab and an IPython kernel |
-| `dev` | pytest and Ruff for development |
-
-The existing `plot` and `sklearn` extras remain accepted for compatibility,
-although Matplotlib and scikit-learn are now included by default.
-
-For Scanpy and notebooks:
+## Use conda to manage the environment
 
 ```bash
-python -m pip install "scgeo[scanpy,notebook] @ https://github.com/liuifrec/scgeo/archive/refs/heads/main.zip"
+conda create -n scgeo -c conda-forge python=3.12 pip
+conda activate scgeo
+python -m pip install "scgeo[scanpy]==0.1.0"
+python -m pip check
 ```
 
-For Census access:
+Conda supplies the environment and pip installs the released ScGeo package.
+As of **17 November 2026**, native Bioconda publication is pending in
+[PR #70318](https://github.com/bioconda/bioconda-recipes/pull/70318).
+See [Bioconda status](BIOCONDA.md) for the submission and publication checks.
 
-```bash
-python -m pip install "scgeo[census] @ https://github.com/liuifrec/scgeo/archive/refs/heads/main.zip"
-```
-
-Choose extras only when required. Their upstream Python/platform requirements
-may be narrower than ScGeo's core metadata; the installation CI does not certify
-all optional extras. ScGeo consumes supplied representations, so scVI, CellRank,
-and other upstream analysis tools are not silently added to the core install.
-
-## conda: create a user environment
+The repository's [`environment-user.yml`](../environment-user.yml) installs a
+conda-forge scientific stack followed by **GitHub main.zip**. Use it for current
+development, rather than as a pinned release or manuscript environment:
 
 ```bash
 conda env create -f https://raw.githubusercontent.com/liuifrec/scgeo/main/environment-user.yml
 conda activate scgeo
-python -c "import scgeo; print(scgeo.__version__)"
 ```
 
-The environment installs the scientific stack, Scanpy, and an IPython kernel
-from conda-forge, then installs ScGeo with pip. This is **conda plus pip**, not a
-claim that ScGeo has already been distributed on a conda channel. With an older
-conda that cannot read a remote environment file, download `environment-user.yml`
-and pass its local path to `conda env create -f`.
+Use another environment name if `scgeo` already exists. Install conda
+dependencies before pip dependencies, and preserve the resolved environment
+with your analysis records.
 
-An existing environment named `scgeo` is not overwritten. Use `-n scgeo-new`
-when creating a separate one, and activate that name. Install conda dependencies
-before pip dependencies; recreate an environment rather than changing a frozen
-analysis environment in place. `environment.yml` is retained unchanged for the
-existing developer workflow.
+## Feature-specific dependencies
 
-Both the environment file and archive above follow `main`. They are convenient
-for current development, but are not a lockfile or a frozen manuscript environment.
+Some APIs require packages beyond the geometry core:
 
-## Developer installation
+| Feature | Requirement | How to install |
+| --- | --- | --- |
+| `tl.alignment_driver_genes` | Scanpy | `python -m pip install "scgeo[scanpy]==0.1.0"` |
+| `pp.build_reference_pool` and reference-pool search with the default backend | PyNNDescent | `python -m pip install pynndescent` |
+| `tl.paga_composition_stats(method="gee")` | statsmodels | `python -m pip install statsmodels` |
+| Census access | Census, TileDB-SOMA, Arrow | `python -m pip install "scgeo[census]==0.1.0"` |
+| Census reference-pool construction | Census stack and PyNNDescent | `python -m pip install "scgeo[census]==0.1.0" pynndescent` |
+
+The tested Scanpy extra also supplies PyNNDescent and statsmodels transitively.
+They are listed here explicitly because ScGeo 0.1.0 does not declare separate
+reference/statistics extras. Select the intended statistical method explicitly;
+bootstrap and GEE analyses are different procedures.
+
+Other extras: `notebook` installs JupyterLab/ipykernel; `scvelo` installs scVelo,
+igraph, leidenalg, and scikit-misc; `dev` installs pytest and Ruff. The legacy
+`plot` and `sklearn` extras remain accepted, although those packages are now
+included in the core. Optional tools can have narrower Python/platform support
+than ScGeo itself.
+
+### Python 3.9 and PyNNDescent
+
+For Python 3.9 workflows that use PyNNDescent, including default reference-pool
+indexing, constrain the optional dependency to a compatible release:
+
+```bash
+python -m pip install "scgeo[scanpy]==0.1.0" "pynndescent<0.7; python_version < '3.10'"
+python -m pip check
+```
+
+As of 17 November 2026, PyNNDescent 0.7.0 fails during index compilation with
+Numba 0.60.0, the newest Numba available for Python 3.9. The problem and the
+compatible PyNNDescent 0.6.0 combination are documented in
+[upstream issue #288](https://github.com/lmcinnes/pynndescent/issues/288).
+Apply the same constraint when adding PyNNDescent to a Census environment.
+The Python 3.9 library CI uses this compatibility constraint and retains the
+reference-pool tests. Python 3.12 remains the recommended starting point for
+new analyses.
+
+## Platform and verification scope
+
+Package metadata declares Python >=3.9. Release CI has checked core wheel
+installation on Linux (3.9 and 3.12), Windows (3.12), and macOS (3.12).
+The 17 November 2026 Linux/Python 3.12 audit also passed a fresh PyPI install,
+dependency checks, the installed-package smoke test, and all **191 non-network
+library tests with the Scanpy extra**. One dataset-download integration test was
+excluded; optional live services and full manuscript workflows are separate checks.
+
+The `scgeo.bench` simulation profiler uses the Unix-only `resource` module.
+Run benchmarks on Linux/WSL or macOS. Core analysis and plotting remain
+available on native Windows. See the
+[installation workflow](../.github/workflows/packaging.yml) and
+[release workflow](../.github/workflows/publish.yml) for validation details.
+
+## Development installation
+
+For editable source:
 
 ```bash
 git clone https://github.com/liuifrec/scgeo.git
 cd scgeo
 python -m pip install -e ".[dev,scanpy]"
-python -m pytest -q
+python -m pytest -q -m "not integration"
 ```
 
-Use a dedicated environment. Editing the package requires a checkout; ordinary
-users do not need an editable install.
-
-## Local native conda build
-
-A local-only `noarch: python` recipe is included in `conda-recipe/meta.yaml`.
-It uses the current checkout, rather than a fabricated release URL or checksum:
+For a non-editable development snapshot without cloning:
 
 ```bash
-conda create -n scgeo-build --override-channels -c conda-forge python=3.12 conda-build
-conda activate scgeo-build
-# Run from the repository root:
-conda-build conda-recipe --override-channels -c conda-forge --python 3.12 --no-anaconda-upload
-conda create -n scgeo-local --use-local --override-channels -c conda-forge python=3.12 scgeo=0.1.0
+python -m pip install "scgeo @ https://github.com/liuifrec/scgeo/archive/refs/heads/main.zip"
 ```
 
-The recipe builds core ScGeo 0.1.0 from this checkout; this does not publish it
-to any channel. It must be converted to an immutable release source and checksum
-before submission to Bioconda or conda-forge. See [Release checklist](RELEASING.md).
+For a fixed source snapshot, use the full commit SHA in the archive URL instead
+of `refs/heads/main`. A source pin does not lock third-party dependencies.
 
-## Platform scope
+## Local conda builds and manuscript reproduction
 
-Core analysis and plotting installation checks cover Linux, Windows, and macOS.
-The separate `scgeo.bench` simulation suite currently uses Python's Unix-only
-`resource` module for profiling. Run that suite on Linux (including WSL) or
-macOS. ScGeo loads it only when requested, so it does not prevent ordinary
-Windows users from importing ScGeo or using its analysis functions. This change
-does not port or alter the frozen benchmark calculations.
+[`conda-recipe/meta.yaml`](../conda-recipe/meta.yaml) builds the local checkout;
+[`packaging/bioconda/recipes/scgeo`](../packaging/bioconda/recipes/scgeo) contains
+the submitted recipe using the immutable PyPI sdist and checksum. Building a
+local artifact does not publish it to a channel. Maintainers should follow
+[Bioconda status](BIOCONDA.md) and the [release process](RELEASING.md).
 
-## What installation checks cover
-
-The packaging workflow builds an sdist and a wheel, checks distribution metadata,
-installs the wheel using declared core dependencies, runs `pip check`, and checks
-imports and a tiny sample-aware displacement calculation outside the source tree.
-A separate conda job tests the user environment against the PR checkout and builds
-the local native conda package. Nothing is uploaded to PyPI or a conda channel.
-
-These checks do not reproduce the manuscript benchmarks or validate new scientific
-results. Full library tests and optional workflow tests remain separate checks.
-
-## Reproducibility
-
-For a fixed GitHub install, replace `refs/heads/main.zip` with the full commit SHA
-followed by `.zip`. Preserve the environment and input checksums as well; a fixed
-source commit does not lock third-party dependencies.
-
-The manuscript's frozen package checkpoint remains
-`9a0ed16cbaa57f935f9c9bc87d1643a25b51012c`. Use the recorded workflow environments
-and companion repository for manuscript reproduction. Installation convenience
-changes do not replace that checkpoint or its numerical evidence.
+To reproduce the paper, use the recorded workflow environments and package
+checkpoint `9a0ed16cbaa57f935f9c9bc87d1643a25b51012c`, together with the companion
+repository and input checksums. See [Reproducibility](REPRODUCIBILITY.md).

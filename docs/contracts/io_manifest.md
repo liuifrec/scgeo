@@ -1,7 +1,9 @@
-# I/O Contract Docs (redirect)
+# I/O probe documentation
 
-`docs/api_reference.md` is the canonical, manifest-driven public API reference.
+The [complete API reference](../api_reference.md) includes the normalized
+synthetic I/O observations next to each covered analysis function.
 
-This previously generated split contract page was removed to avoid divergence.
-
-Manual contract supplements are no longer maintained; uncertain entries are tracked directly in `docs/api_reference.md`.
+Read [API and I/O provenance](README.md) for the manifest schema, the meaning of
+skipped probes and the regeneration commands. The probes record which AnnData
+keys exist before and after a small call; they do not claim exhaustive mutation
+coverage for every supported workflow.

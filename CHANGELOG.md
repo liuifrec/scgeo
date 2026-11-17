@@ -1,29 +1,38 @@
 # Changelog
 
-## 0.1.0
+## Unreleased documentation updates
 
-First non-development release candidate for distribution. A version in the
-repository is not evidence of an upload to PyPI or Bioconda.
+- Lead with the published PyPI installation and clarify the pending native
+  Bioconda route, optional feature dependencies, and platform scope.
+- Add a runnable synthetic example, an output preview, and clearer paths for
+  package users, paper readers, and researchers reproducing the frozen workflows.
+- Add BibTeX/RIS citation downloads and a Methods/provenance reporting guide.
+- Refresh API references and manifests from current exported signatures and
+  validate their version, coverage, and documentation consistency.
 
-- Retains the existing ScGeo analysis functions and published-paper citation.
-- Includes the pip/conda installation improvements merged in PR #10: local
-  geometry and plotting dependencies are installed by default; Census is
-  optional; Scanpy-dependent differential expression and Unix-only benchmark
-  profiling are loaded only when needed.
-- Adds release-archive checks, library tests, optional-extra installation checks,
-  and a native conda build from the actual source distribution.
-- Adds approval-gated Trusted Publishing to TestPyPI and verifies the uploaded
-  files against the exact tested SHA256 checksums. Production PyPI publication
-  and Bioconda submission remain separate, explicitly authorized steps.
+These updates leave package version 0.1.0 and scientific runtime code unchanged.
+They do not change published distribution files or the manuscript's numerical
+evidence. Corrections to the PyPI long description will accompany a future
+package release.
 
-Python 3.12 is the recommended starting point. Package metadata retains Python
->=3.9; see the CI results for the precise tested combinations. Core installation
-checks cover Linux, Windows, and macOS. Benchmark profiling still requires Linux
-(including WSL) or macOS. Optional-extra installation checks are on Linux/Python
-3.12 and do not certify every upstream workflow or live Census service.
+## 0.1.0 — 15 October 2026
 
-This release preparation does not change scientific calculations, inference
-rules, thresholds, public analysis signatures, manuscript figures, or numerical
-results. The manuscript's frozen package checkpoint remains
-`9a0ed16cbaa57f935f9c9bc87d1643a25b51012c`; version 0.1.0 is not a replacement
-checkpoint for reproducing that analysis.
+First production release, available on [PyPI](https://pypi.org/project/scgeo/0.1.0/).
+
+- Includes ScGeo analysis functions and the published-paper citation.
+- Installs geometry and plotting dependencies by default; Census is optional.
+  Scanpy-dependent differential expression and Unix-only benchmark profiling
+  load only when needed.
+- Adds distribution/source integrity checks, library and optional-extra tests,
+  cross-platform wheel installation checks, and native conda build checks.
+- Published through verified TestPyPI staging and production promotion of the
+  same wheel/sdist bytes. Native Bioconda publication is tracked separately in
+  [PR #70318](https://github.com/bioconda/bioconda-recipes/pull/70318).
+
+Python 3.12 is the recommended starting point; metadata declares Python >=3.9.
+See [Installation](docs/INSTALLATION.md) for the tested configurations and
+optional dependencies. Benchmark profiling requires Linux/WSL or macOS.
+
+The manuscript's frozen package checkpoint remains
+`9a0ed16cbaa57f935f9c9bc87d1643a25b51012c`. Version 0.1.0 is a distribution
+release, not a replacement checkpoint for reproducing that analysis.

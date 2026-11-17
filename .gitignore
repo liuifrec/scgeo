@@ -6,6 +6,8 @@ build/
 dist/
 *.egg-info/
 .check_notebooks/
+# Outputs from the synthetic documentation example
+results/quickstart/
 notebooks/data/
 # Python / pytest
 .venv/

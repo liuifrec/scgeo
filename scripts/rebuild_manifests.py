@@ -4,42 +4,33 @@ from __future__ import annotations
 import inspect
 import json
 import importlib
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import anndata as ad
 import numpy as np
 
+ROOT = Path(__file__).resolve().parents[1]
+# Inspect this checkout rather than a potentially older installed distribution.
+sys.path.insert(0, str(ROOT))
 import scgeo as sg
 
-ROOT = Path(__file__).resolve().parents[1]
 API_PATH = ROOT / "api_manifest.json"
 RAW_PATH = ROOT / "scgeo_io_raw.json"
 CLEAN_PATH = ROOT / "scgeo_io_manifest.json"
-REFRESH_SIGNATURES = {
-    "scgeo.tl.representation_stability",
-    "scgeo.get.state_report",
-    "scgeo.pl.local_distortion_map",
-    "scgeo.pl.perturbation_report",
-    "scgeo.pl.state_evidence_panel",
-    "scgeo.pl.representation_stability_heatmap",
-    "scgeo.pl.consensus_state_map",
-}
-
-
-def _load_json(path: Path) -> Any:
-    with path.open("r", encoding="utf-8") as f:
-        return json.load(f)
+NAMESPACES = ("tl", "pl", "get", "pp", "data", "bench")
 
 
 def _write_json(path: Path, obj: Any) -> None:
     with path.open("w", encoding="utf-8") as f:
         json.dump(obj, f, indent=2)
+        f.write("\n")
 
 
-def _public_callables(module_name: str) -> List[Dict[str, str]]:
+def _public_callables(module_name: str) -> List[Dict[str, Any]]:
     mod = importlib.import_module(module_name)
-    rows: List[Dict[str, str]] = []
+    rows: List[Dict[str, Any]] = []
     for name in getattr(mod, "__all__", []):
         fq_name = f"{module_name}.{name}"
         if name.startswith("_"):
@@ -49,11 +40,14 @@ def _public_callables(module_name: str) -> List[Dict[str, str]]:
             continue
         try:
             signature = str(inspect.signature(fn))
-        except Exception:
-            signature = "(signature unavailable)"
+        except (TypeError, ValueError) as exc:
+            raise RuntimeError(f"Cannot inspect public signature: {fq_name}") from exc
         doc = inspect.getdoc(fn) or ""
-        doc1 = doc.splitlines()[0] if doc else ""
-        rows.append({"name": fq_name, "signature": signature, "doc": doc1})
+        doc1 = " ".join(doc.split("\n\n", 1)[0].splitlines()) if doc else ""
+        source = inspect.getsourcefile(fn)
+        source_path = Path(source).resolve().relative_to(ROOT).as_posix() if source else None
+        rows.append({"name": fq_name, "signature": signature, "doc": doc1,
+                     "docstring": doc, "source": source_path})
     rows.sort(key=lambda row: row["name"])
     return rows
 
@@ -222,34 +216,13 @@ def _call_policy_clean(fn, adata: ad.AnnData) -> Tuple[bool, str]:
 
 
 def rebuild() -> None:
-    api_prev = _load_json(API_PATH)
-    api_tl_prev = {entry["name"]: entry for entry in api_prev.get("tl", [])}
-    api_pl_prev = {entry["name"]: entry for entry in api_prev.get("pl", [])}
-    api_get_prev = {entry["name"]: entry for entry in api_prev.get("get", [])}
-    api_bench_prev = {entry["name"]: entry for entry in api_prev.get("bench", [])}
     api_manifest = {
-        "scgeo_version": getattr(sg, "__version__", None),
-        "tl": _public_callables("scgeo.tl"),
-        "pl": _public_callables("scgeo.pl"),
-        "get": _public_callables("scgeo.get"),
-        "bench": _public_callables("scgeo.bench"),
+        "scgeo_version": sg.__version__,
+        **{section: _public_callables(f"scgeo.{section}") for section in NAMESPACES},
     }
-    for section, prev_map in (
-        ("tl", api_tl_prev),
-        ("pl", api_pl_prev),
-        ("get", api_get_prev),
-        ("bench", api_bench_prev),
-    ):
-        for row in api_manifest[section]:
-            prev = prev_map.get(row["name"])
-            if prev is not None and row["name"] not in REFRESH_SIGNATURES:
-                row["signature"] = prev.get("signature", row["signature"])
-                row["doc"] = prev.get("doc", row["doc"])
     _write_json(API_PATH, api_manifest)
 
     tl_names = [row["name"].split(".")[-1] for row in api_manifest["tl"]]
-    raw_prev = _load_json(RAW_PATH)
-    raw_prev_map = {**raw_prev.get("tl", {}), **raw_prev.get("skipped", {})}
 
     raw_tl: Dict[str, Any] = {}
     raw_skipped: Dict[str, Any] = {}
@@ -260,8 +233,7 @@ def rebuild() -> None:
         ok, note = _call_policy_raw(fn, adata)
         after = _snapshot_raw(adata)
         fq = f"scgeo.tl.{name}"
-        prev_entry = raw_prev_map.get(fq, {})
-        signature = str(inspect.signature(fn)) if fq in REFRESH_SIGNATURES else prev_entry.get("signature", str(inspect.signature(fn)))
+        signature = str(inspect.signature(fn))
         entry = {
             "ok": ok,
             "note": note,
@@ -280,8 +252,6 @@ def rebuild() -> None:
     }
     _write_json(RAW_PATH, raw_manifest)
 
-    clean_prev = _load_json(CLEAN_PATH)
-    clean_prev_map = {**clean_prev.get("tl", {}), **clean_prev.get("skipped", {})}
 
     clean_tl: Dict[str, Any] = {}
     clean_skipped: Dict[str, Any] = {}
@@ -292,8 +262,7 @@ def rebuild() -> None:
         ok, note = _call_policy_clean(fn, adata)
         after = _snapshot_clean(adata)
         fq = f"scgeo.tl.{name}"
-        prev_entry = clean_prev_map.get(fq, {})
-        signature = str(inspect.signature(fn)) if fq in REFRESH_SIGNATURES else prev_entry.get("signature", str(inspect.signature(fn)))
+        signature = str(inspect.signature(fn))
         entry = {
             "signature": signature,
             "ok": ok,
