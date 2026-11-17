@@ -143,13 +143,33 @@ else:
                 group0="control", group1="treated", basis="pca",
                 graph_node_order=["A", "B"], min_cells=2,
                 show_velocity=True, return_result=True, show=False,
+                velocity_mode="grid",
+                velocity_options={
+                    "grid_size": 20, "n_neighbors": 12,
+                    "radius": 0.28, "min_neighbors": 2,
+                },
             )
             assert float(paga.axes["map"].get_aspect()) == 1.0
             assert len(paga.data["edges"]) == 1
             graph_export = paga.save(Path(temporary) / "paga", formats=("png", "svg"))
             assert {"edge_table", "display_cells", "vectors"} <= set(graph_export["tables"])
+            assert paga.data["velocity_grid"].supported.any()
+            assert {"velocity_grid", "velocity_cells", "velocity_vectors"} <= set(graph_export["tables"])
             assert all(Path(path).is_file() for path in graph_export["figures"].values())
             plt.close(paga.fig)
+            field = sg.pl.velocity_field(
+                adata, basis="pca", condition_key="condition", groups=["control"],
+                mode="stream", grid_size=20, n_neighbors=12, radius=0.28,
+                min_neighbors=2, background="selected",
+                return_result=True, show=False,
+            )
+            assert field.data["grid"].supported.any()
+            assert not field.data["paths"].empty
+            assert field.data["cells"].eligible.sum() == 12
+            field_export = field.save(Path(temporary) / "velocity", formats=("svg",))
+            assert {"cells", "grid", "paths", "vectors"} <= set(field_export["tables"])
+            assert Path(field_export["figures"]["svg"]).is_file()
+            plt.close(field.fig)
     assert "cellxgene_census" not in sys.modules
     assert "tiledbsoma" not in sys.modules
     print(f"PASS: ScGeo {version('scgeo')} imported from {installed_from}")
@@ -157,7 +177,8 @@ else:
     print("PASS: core import and helpful DE error with optional Scanpy blocked")
     print("PASS: core import is independent of the Unix-only benchmark profiler")
     print("PASS: stored sample centers, plotting API, and source-data figure export")
-    print("PASS: supplied-graph PAGA map, projected velocity, and exported graph sources")
+    print("PASS: PAGA local velocity grid and exported graph/field sources")
+    print("PASS: supported projected streamlines with selected-condition source export")
 
 
 if __name__ == "__main__":

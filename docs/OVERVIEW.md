@@ -65,6 +65,7 @@ or unresolved; they do not create causal evidence.
 - [Quick start](QUICKSTART.md): a small synthetic run and an AnnData example.
 - [Plotting guide](PLOTTING.md) and [gallery](PLOTTING_GALLERY.md): development evidence figures, contrast comparisons, biological samples, and source-data exports.
 - [PAGA shift maps](PAGA_SHIFT_MAP.md): state connectivity, condition centres, projected velocity, and stored alignment on a shared display.
+- [Local velocity fields](VELOCITY_FIELDS.md): projected-vector grids and streamlines, local support diagnostics, and matched condition panels.
 - [Analysis layers](ANALYSIS_LAYERS.md): quantities and comparison units.
 - [Result interpretation](RESULT_INTERPRETATION.md): evidence labels and reporting language.
 - [Companion workflows](COMPANION_NOTEBOOKS.md): the paper's applications and validation settings.

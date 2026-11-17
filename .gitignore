@@ -10,6 +10,7 @@ dist/
 results/quickstart/
 results/plotting_gallery/
 results/paga_shift_map/
+results/velocity_fields/
 notebooks/data/
 # Python / pytest
 .venv/

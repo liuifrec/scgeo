@@ -48,6 +48,7 @@ Signatures and docstrings match the public exports. I/O tables record a small sy
 - [`state_flow_alluvial`](#scgeoplstate_flow_alluvial)
 - [`state_flow_sankey`](#scgeoplstate_flow_sankey)
 - [`style_context`](#scgeoplstyle_context)
+- [`velocity_field`](#scgeoplvelocity_field)
 - [`velocity_shift_alignment`](#scgeoplvelocity_shift_alignment)
 
 ### `scgeo.pl.PlotResult`
@@ -1218,6 +1219,7 @@ scgeo.pl.paga_scgeo(
 
 - Additional keyword arguments are forwarded to paga_shift_map, including stored alignment, shared limits, label placement, and return_result.
 - Composition pies show the selected conditions. Numeric node colour is retained in the pie rim; the composition sectors and quantitative rim have separate legends.
+- velocity_mode and velocity_options are forwarded to the PAGA map for local projected-velocity grids and streamlines.
 
 
 <details>
@@ -1232,6 +1234,11 @@ condition contrasts and teal arrows show mean projected velocity, with
 separate display multipliers recorded in the legend. These arrows describe
 geometry, not inferred trajectories. ``velocity_basis=None`` uses the same
 basis as the display and requires its matching projected velocity array.
+
+``velocity_mode='grid'`` or ``'stream'`` replaces the state velocity arrows
+with a supported local projected field. ``velocity_options`` controls its
+neighborhood, support thresholds, and display style. Local directional
+agreement is descriptive and does not measure statistical confidence.
 
 Other options, including axes, label placement, stored alignment coloring,
 and ``return_result``, are forwarded to :func:`paga_shift_map`.
@@ -1317,6 +1324,8 @@ scgeo.pl.paga_shift_map(
     show_colorbar: 'bool' = True,
     cax=None,
     return_result: 'bool' = False,
+    velocity_mode: 'str' = 'state',
+    velocity_options=None,
 )
 ```
 
@@ -1328,6 +1337,7 @@ scgeo.pl.paga_shift_map(
 - Projected velocity must match the display basis. Velocity and composition summaries use only group0/group1; background="all" can retain other cells as context.
 - Equal aspect, distinct condition endpoints, point-sized glyphs, automatic labels, and graphical legends are the new defaults. Explicit arrow_width retains the legacy data-unit style.
 - return_result=True returns PlotResult with named map axis and full cell/edge/vector sources. Legacy owned (fig, ax), supplied ax, and (fig, ax, data) returns remain supported.
+- velocity_mode="state" preserves the original aggregate arrows. Opt-in "grid"/"stream" use selected-condition local fields; velocity_options controls finite-radius support and rendering, with full velocity_* source tables.
 
 
 <details>
@@ -1348,6 +1358,21 @@ velocity must use the matching ``velocity_<basis>`` key and match the
 embedding shape. Selected, labeled cells with nonfinite display coordinates
 are rejected before drawing; nonfinite background rows are omitted. Missing
 velocity rows are excluded jointly and their support counts are exported.
+
+``velocity_mode='state'`` preserves the reference-anchored state arrows.
+``'grid'`` and ``'stream'`` interpolate the selected cells' supplied projected
+velocities locally, using finite-radius support and directional-coherence
+masks. These are descriptive display fields, not inferred trajectories or
+statistical confidence. ``velocity_options`` controls grid_size, grid_extent,
+n_neighbors, radius, min_neighbors, min_coherence, scale, arrow_linewidth,
+arrow_head_size, stream_density, and stream_linewidth. Local means are
+Gaussian weighted regardless of the state-center ``agg`` option.
+``velocity_scale`` applies to state arrows; local grid arrows use the
+options' scale (default ``'auto'``), and streamlines carry no time scale.
+Local field color follows ``velocity_color`` so stored node colors retain
+their independent meaning. Use :func:`velocity_field` for numeric field
+colors or separate condition panels.
+
 Explicit ``pie_categories`` must include every observed selected category;
 missing values use a separate ``(missing)`` category (escaped if that literal
 label already exists). Retained slices are never silently renormalized.
@@ -1975,6 +2000,122 @@ Temporarily apply a paper or presentation style without global changes.
 supply their own figsize. Use ``export_figure`` to size an existing figure.
 ``overrides`` accepts any Matplotlib rcParams mapping. SVG text remains text
 and PDF uses TrueType fonts; viewers need the selected font for SVG editing.
+```
+
+</details>
+
+### `scgeo.pl.velocity_field`
+
+Display locally averaged projected velocity as a support-masked arrow grid or streamlines, with condition selection, comparable scales, and complete source exports.
+
+```text
+scgeo.pl.velocity_field(
+    adata,
+    *,
+    basis='umap',
+    velocity_basis=None,
+    mode='grid',
+    condition_key=None,
+    groups=None,
+    background_key=None,
+    palette=None,
+    background='all',
+    max_points=None,
+    random_state=0,
+    required_indices=None,
+    grid_size=25,
+    grid_extent=None,
+    n_neighbors=30,
+    radius=None,
+    min_neighbors=5,
+    min_coherence=0.2,
+    scale='auto',
+    color='#008C95',
+    color_by=None,
+    cmap='viridis',
+    norm=None,
+    vmin=None,
+    vmax=None,
+    arrow_linewidth=1.1,
+    arrow_head_size=5.5,
+    stream_density=1.0,
+    stream_linewidth=1.2,
+    background_size=5.0,
+    background_alpha=0.18,
+    alpha=0.9,
+    aspect='equal',
+    xlim=None,
+    ylim=None,
+    show_colorbar=True,
+    cax=None,
+    legend=True,
+    legend_loc='outside',
+    ax=None,
+    figsize=(7.0, 6.0),
+    title=None,
+    return_data=False,
+    return_result=False,
+    show=True,
+)
+```
+
+[View implementation](../../scgeo/pl/_velocity_field.py)
+
+- This is an unreleased development feature; see the [local velocity guide](https://github.com/liuifrec/scgeo/blob/main/docs/VELOCITY_FIELDS.md) and executable gallery.
+- Requires a velocity array projected into the matching display basis. The function does not fit RNA kinetics, project high-dimensional vectors, infer cell trajectories, or estimate elapsed time.
+- Finite-radius Gaussian weighting summarizes eligible selected cells. Local coherence is norm(weighted mean velocity) divided by weighted mean velocity norm; it is a direction-agreement diagnostic, not statistical confidence.
+- groups selects field inputs independently of the background. max_points changes only background drawing; full eligible inputs define the field.
+- Use common grid_extent, radius, neighborhood/support settings, numeric arrow scale, and color normalization for matched condition panels. Axis limits crop the view without redefining the grid.
+- Streamlines are masked and their actual segments are checked against supported interpolation cells. Source exports include rejected grid positions, filtering reasons, scaled arrows, and rendered path vertices.
+- return_result=True returns PlotResult with field and optional colorbar axes. Default owned (fig, ax) and supplied ax conventions are supported; return_data=True returns (fig, ax, data).
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Plot local summaries of already projected velocity on an embedding.
+
+The input must contain a matching ``velocity_<basis>`` array with exactly
+the display embedding shape. Only the first two display coordinates and
+velocity components are used. This function does not project vectors from
+another representation or estimate RNA kinetics, trajectories, or time.
+
+``condition_key`` and ``groups`` select the field's source cells; ``groups``
+omitted means all cells. Coordinates and velocity are filtered jointly for
+finite rows. Background scope is independent: ``'all'`` or ``'selected'``.
+``background_key`` colors categorical cell labels with a stable palette.
+``max_points`` affects background drawing only. The field always uses every
+eligible selected cell, with deterministic background sampling by category
+and condition and optional required observation positions.
+
+A regular ``grid_size`` (integer or ``(nx, ny)``) summarizes at most
+``n_neighbors`` nearest cells inside a finite ``radius``. Gaussian weights
+use sigma=radius/2. The default radius is 1.5 times the median source-cell
+kth-neighbor distance. ``grid_extent=(xmin,xmax,ymin,ymax)`` fixes evaluation
+coordinates across panels; otherwise full selected-source bounds are used.
+``xlim`` and ``ylim`` change only the view. A grid position is supported when
+its count reaches ``min_neighbors``, its mean vector is nonzero, and its
+coherence reaches ``min_coherence``. Coherence is the norm of the weighted
+mean vector divided by the weighted mean individual norm: a directional
+agreement diagnostic, not a confidence level or significance test.
+
+``mode='grid'`` draws arrows with line widths and heads in points. ``scale``
+is a positive multiplier on the raw mean vectors or ``'auto'``; their lengths
+remain projected vectors times that scale. The resolved multiplier is
+explicit in the legend and metadata. ``mode='stream'`` traces geometric direction paths,
+masks unsupported regions, and audits the rendered segments for support.
+Scale does not apply to streamlines and never represents elapsed time.
+``color_by='speed'`` uses the norm of the local mean; ``'coherence'`` uses its
+directional agreement. ``norm`` or ``vmin``/``vmax`` support shared scales.
+
+Supplied axes retain their figure size and already fixed limits. Use an
+explicit ``cax`` for a shared colorbar (orientation follows its shape), or
+``show_colorbar=False``. Owned figures return ``(fig, ax)``, supplied axes
+return ``ax``, and ``return_data=True`` returns ``(fig, ax, data)``. Opt-in
+``return_result=True`` returns a :class:`PlotResult` with a named ``field``
+axis, all source cells and grid rows, display flags, scaled vector endpoints,
+actual streamline path vertices, support rules, and plotting provenance.
 ```
 
 </details>

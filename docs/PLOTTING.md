@@ -3,7 +3,7 @@
 Build a state-evidence figure, inspect biological sample support, compare
 contrasts, and export the exact plotted tables with your figure.
 
-[Gallery](PLOTTING_GALLERY.md) · [PAGA shift maps](PAGA_SHIFT_MAP.md) · [Plotting API](api/pl.md) ·
+[Gallery](PLOTTING_GALLERY.md) · [PAGA shift maps](PAGA_SHIFT_MAP.md) · [Velocity fields](VELOCITY_FIELDS.md) · [Plotting API](api/pl.md) ·
 [Interpretation](RESULT_INTERPRETATION.md) · [Citation guide](CITING.md)
 
 ## Availability and installation
@@ -85,7 +85,7 @@ available for `state_evidence_panel`, `representation_stability_heatmap`,
 `consensus_state_map`, `local_distortion_map`, `composition_drift`,
 `gallery_overview`, `robustness_matrix`, `velocity_shift_alignment`,
 `score_embedding`/`score_umap`, `evidence_comparison`, `replicate_effect`,
-and `paga_shift_map`/`paga_scgeo`.
+`paga_shift_map`/`paga_scgeo`, and `velocity_field`.
 Other plotting functions retain their documented interfaces.
 
 ## Compose panels in your own figure
@@ -120,6 +120,7 @@ Common named axes are:
 | Composition | `embedding`, `change`, `proportions`, selected by `panels` |
 | Stored velocity alignment | `overlay`, `alignment` |
 | PAGA shift map | `map`, optional `colorbar` |
+| Local velocity field | `field`, optional `colorbar` |
 | Contrast comparison | Contrast labels |
 | Biological replicates | State labels |
 | Robustness | `heatmap`, optional `summary` |
@@ -224,6 +225,14 @@ For state connectivity and condition centres on the same display, use the
 [PAGA shift-map guide](PAGA_SHIFT_MAP.md). Its `alignment_source='stored'`
 option uses the declared representation's quantitative alignment for node
 colours, while the node positions and arrows remain in display coordinates.
+
+For within-state directional patterns, set `show_velocity=True` together with
+`velocity_mode='grid'` or `'stream'` on the PAGA map, or use `pl.velocity_field`
+for a standalone display. The
+[local velocity guide](VELOCITY_FIELDS.md) explains finite-radius support,
+directional coherence, comparable condition panels, and field-source exports.
+Coherence describes agreement among supplied projected vectors; it is not a
+confidence interval or a probability that a lineage relationship is correct.
 
 ## Treat robustness and coverage separately
 

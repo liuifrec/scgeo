@@ -41,6 +41,7 @@ from ._score import score_embedding, score_umap
 from ._state_flow_alluvial import state_flow_alluvial
 from ._state_flow_sankey import state_flow_sankey
 from ._style import category_palette, style_context
+from ._velocity_field import velocity_field
 from ._velocity_shift_alignment import velocity_shift_alignment
 from ._volcano import distribution_test_volcano
 
@@ -77,6 +78,7 @@ __all__ = [
     "paga_shift_map",
     "ood_landscape",
     "velocity_shift_alignment",
+    "velocity_field",
     "composition_drift",
     "robustness_matrix",
     "gallery_overview",
