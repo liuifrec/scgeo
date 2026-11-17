@@ -1,6 +1,6 @@
 # API reference
 
-Public API for **ScGeo 0.1.0** · **95 exported callables**.
+Public API for **ScGeo 0.1.0** · **96 exported callables**.
 
 This reference describes the current checkout. Plotting additions marked [unreleased in the changelog](../CHANGELOG.md) require that development checkout; they are not included in the published 0.1.0 distribution.
 
@@ -11,7 +11,7 @@ Start with `tl.robust_shift`, `get.state_report` and `pl.state_evidence_panel`. 
 | Namespace | Purpose | Browse separately |
 |---|---|---|
 | [`scgeo.tl`](#scgeotl) | Analysis | [20 callables](api/tl.md) |
-| [`scgeo.pl`](#scgeopl) | Figures | [43 callables](api/pl.md) |
+| [`scgeo.pl`](#scgeopl) | Figures | [44 callables](api/pl.md) |
 | [`scgeo.get`](#scgeoget) | Reports and tables | [9 callables](api/get.md) |
 | [`scgeo.pp`](#scgeopp) | Reference preparation | [6 callables](api/pp.md) |
 | [`scgeo.data`](#scgeodata) | Census access | [12 callables](api/data.md) |
@@ -1109,6 +1109,7 @@ Notes:
 - [`score_umap`](#scgeoplscore_umap)
 - [`state_evidence_panel`](#scgeoplstate_evidence_panel)
 - [`state_flow_alluvial`](#scgeoplstate_flow_alluvial)
+- [`state_flow_chord`](#scgeoplstate_flow_chord)
 - [`state_flow_sankey`](#scgeoplstate_flow_sankey)
 - [`style_context`](#scgeoplstyle_context)
 - [`velocity_field`](#scgeoplvelocity_field)
@@ -1667,7 +1668,7 @@ Optionally label the top hits by p-value.
 
 ### `scgeo.pl.embedding_density`
 
-Plot embedding density per group (small multiples).
+Compare group occupancy on a common embedding grid with explicit normalization, source counts, and composable panels.
 
 ```text
 scgeo.pl.embedding_density(
@@ -1675,7 +1676,7 @@ scgeo.pl.embedding_density(
     groupby: 'str',
     *,
     basis: 'str' = 'umap',
-    groups: 'Optional[Iterable[str]]' = None,
+    groups: 'Iterable[str] | None' = None,
     gridsize: 'int' = 160,
     normalize: 'str' = 'per_group',
     cmap: 'str' = 'magma',
@@ -1684,7 +1685,7 @@ scgeo.pl.embedding_density(
     imshow_alpha: 'float' = 0.85,
     transparent_background: 'bool' = True,
     mask_zeros: 'bool' = True,
-    background: 'Optional[str]' = None,
+    background: 'str | None' = None,
     figsize=None,
     show: 'bool' = True,
     smooth_k: 'int' = 5,
@@ -1693,32 +1694,102 @@ scgeo.pl.embedding_density(
     contour_linewidth: 'float' = 0.7,
     contour_alpha: 'float' = 0.95,
     contour_level_mode: 'str' = 'quantile',
+    ax=None,
+    axes=None,
+    cax=None,
+    show_colorbar: 'bool' = True,
+    grid_extent=None,
+    xlim=None,
+    ylim=None,
+    aspect: 'str' = 'equal',
+    norm=None,
+    vmin=None,
+    vmax=None,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
 [View implementation](../scgeo/pl/_density.py)
+
+- Common bins preserve raw count totals. Contour mode optionally smooths once and applies log1p once; contour levels use the actual rendered values.
+- normalize=per_group uses a shared relative 0–1 scale with each group peak set to one; normalize=global uses one absolute count or transformed-count scale across panels.
+- Per-group peak normalization cannot establish relative abundance. Embedding density describes display coordinates and does not constitute sample-level enrichment inference.
+- grid_extent controls computational binning. xlim/ylim only crop the view. Full cell sources retain nonfinite, missing-group, and outside-grid exclusions.
+- For matched filled-contour bands, render comparison groups in one call. Automatic level boundaries depend on selected groups; a shared norm alone does not make separate calls use identical bands. Shared explicit color limits provide direct heatmap comparability.
+- Supplied axes/cax and shared Normalize objects support composition. Default (fig, axes) is retained; return_data=True adds a source dictionary, and return_result=True supplies density:<group> and colorbar axes.
 
 
 <details>
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Plot embedding density per group (small multiples).
+Plot comparable per-group histograms on the first two embedding axes.
 
-Primary goal: quick, stable, and notebook-friendly density diagnostics.
+All groups use the same grid. ``normalize='per_group'`` divides each
+group's transformed grid by its own peak, giving a shared relative scale
+from zero to one. This compares spatial shape, not group abundance.
+``normalize='global'`` retains absolute bin values and uses one color scale
+across panels. Counts describe the supplied cells and depend on sampling,
+bin width, and embedding geometry; they are not a probability density or
+an estimate of population abundance.
 
-Implementation:
-  - Computes a 2D histogram on the embedding.
-  - Renders either an ``imshow`` heatmap (default) or a ``contourf`` plot
-    (set ``contour=True``) to avoid the "blocky / too dark" look.
+Heatmaps show raw cell counts before normalization. Only ``contour=True``
+applies one optional ``smooth_k`` box blur followed by one optional
+``log1p`` transform. ``smooth_k=0`` or ``1`` disables smoothing; other values
+must be positive odd integers. Replicated-edge smoothing is descriptive
+and does not guarantee count conservation; exported ``raw_count`` does.
+Contour levels are shared across panels and computed from the actual
+plotted values, using quantile or linear spacing over their full range.
+When zeros are masked, the lowest level is half the smallest positive
+plotted value; this preserves sparse peaks and lower-count groups on a
+common scale. Repeated levels are removed. Zeros are omitted when ``mask_zeros=True``;
+contour boundaries interpolate toward zero-valued neighbors so sparse
+peaks remain visible.
 
 Parameters
 ----------
-contour
-    If True, draw a filled contour plot (``contourf``) instead of imshow.
-transparent_background
-    If True, set figure + axes patches to transparent so the density layers
-    don't sit on a dark rectangle in some notebook themes.
+groups
+    Ordered known group labels. By default, categorical declaration order
+    is retained, including unused levels; other labels use observed order.
+    Known groups with no finite cells remain explicit empty panels.
+    Missing labels and nonfinite coordinate pairs are excluded jointly and
+    retained in the source table. Unknown requested groups raise an error.
+gridsize
+    Number of bins per coordinate, an integer of at least two.
+grid_extent
+    Optional ``(xmin, xmax, ymin, ymax)`` computational bounds. The default
+    uses all finite labeled cells, including unselected groups, so selecting
+    panels does not silently alter their bins. Constant coordinates receive
+    a small explicit padding. Cells outside the grid remain in source data
+    but do not contribute to histograms; the final bin includes its upper edge.
+xlim, ylim
+    View limits only: these do not change histograms or color normalization.
+    Supplied axes retain already fixed limits unless overridden explicitly.
+norm, vmin, vmax
+    Optional shared Matplotlib color normalization. Supply ``norm`` or
+    numeric limits. Defaults are zero to one for relative panels and zero
+    to the largest transformed count for global panels. Normalization maps
+    colors only; contour geometry uses the transformed count values.
+    A shared norm directly aligns heatmap color scales. For matching
+    automatic filled-contour bands, render the comparison groups in one
+    call: their shared levels depend on all selected plotted values.
+ax, axes, cax
+    Compose into an existing figure. ``ax`` is for one group; ``axes`` is a
+    flat sequence or mapping keyed by group (or ``'density:<group>'``).
+    Use ``cax`` for a reserved shared colorbar, or disable it with
+    ``show_colorbar=False``. Supplied figure size and sibling panels are
+    preserved. ``aspect='equal'`` keeps embedding units equally scaled.
+return_data, return_result
+    The default remains ``(fig, flat_axes_array)``. ``return_data=True``
+    returns ``(fig, flat_axes_array, data)``. ``return_result=True`` returns
+    a :class:`PlotResult` with named ``density:<group>`` axes, optional
+    ``colorbar``, and four source tables: full ``cells`` with inclusion
+    flags, every ``grid`` bin with raw and transformed values, ``groups``
+    with counts and normalization factors, and exact ``contour_levels``.
+    The grid's ``displayed`` flag records unmasked values at the contour
+    threshold, independently of view cropping; contours interpolate those
+    grid values. A SubFigure result exports its full parent canvas.
 ```
 
 </details>
@@ -2929,7 +3000,7 @@ figures are not resized or laid out. Legacy returns are preserved;
 
 ### `scgeo.pl.state_flow_alluvial`
 
-Draw an alluvial / ribbon plot for ordered categorical columns in `adata.obs`.
+Compare categorical annotations with readable ribbons, conserved counts, and explicit omitted associations.
 
 ```text
 scgeo.pl.state_flow_alluvial(
@@ -2947,49 +3018,149 @@ scgeo.pl.state_flow_alluvial(
     ribbon_curve: 'float' = 0.35,
     figsize: 'tuple[float, float]' = (11, 6),
     title: 'Optional[str]' = None,
-    palette: 'Optional[dict[str, tuple[float, float, float, float]]]' = None,
+    palette=None,
     ax=None,
     return_data: 'bool' = False,
     show: 'bool' = True,
+    category_order=None,
+    order='input',
+    label_format=None,
+    label_fontsize=9,
+    bar_width=0.08,
+    show_omissions=True,
+    return_result=False,
 )
 ```
 
 [View implementation](../scgeo/pl/_state_flow_alluvial.py)
+
+- Unreleased development upgrade; see the state-association and density guide and real-data plotting gallery.
+- Each ribbon counts the same observations across adjacent columns. It does not establish tracked longitudinal transitions, lineage, or causality.
+- All positive associations receive layout slots before min_count filtering. Category totals and fractions retain the full included-cell denominator; hidden links leave gaps.
+- The legacy value field and geometry are fractions of included cells. normalize selects the default count or percentage labels and never renormalizes after filtering.
+- True missing values are distinct from literal NA/nan labels. drop_na excludes genuinely missing rows across all requested columns and records their source flags.
+- return_result=True adds cells, nodes, links, layout, and label sources with an alluvial axis. Existing owned, supplied-axis, and four-part return_data conventions are retained.
 
 
 <details>
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Draw an alluvial / ribbon plot for ordered categorical columns in `adata.obs`.
+Draw count-conserving associations between categorical cell annotations.
 
-Parameters
-----------
-adata
-    AnnData object.
-columns
-    Ordered categorical columns, e.g. ["timepoint", "alignment_group"].
-min_count
-    Minimum flow count to retain.
-drop_na
-    If True, drop rows containing 'NA' in any selected column.
-normalize
-    If True, each stage totals to 1.0 instead of raw counts.
-sort_categories
-    If True, sort labels alphabetically within each stage.
-color_by
-    One of {"source", "target"}; determines ribbon color source.
-alpha
-    Ribbon transparency.
-return_data
-    If True, return (fig, ax, stage_boxes, link_df).
+Each row contributes one count to each adjacent pair in ``columns``. These
+links connect annotations on the same cells; they do not establish lineage,
+transitions between different cells, or elapsed time.
+
+All positive counts and their layout slots are retained before ``min_count``
+hides ribbons. Filtered mass remains blank, and category totals stay complete.
+Both legacy ``normalize`` settings retain fraction-based geometry and
+``value=count/N``, where N is the number of included cells before filtering.
+``normalize=True`` changes the default labels to percentages; False shows
+counts. ``label_format`` can explicitly choose label/count/percent/both.
+Raw counts and full-denominator fractions are always exported separately.
+
+``drop_na`` removes rows with genuine missing selected annotations; literal
+labels such as 'NA', 'nan', and '(missing)' remain distinct categories.
+Otherwise missing observations receive their own explicitly marked category.
+Input ordering respects declared categorical levels, then first appearance
+for other columns. ``category_order`` maps stage names to complete observed
+orders (use None for missing); ``order='count'`` or ``'barycentric'`` provides
+deterministic alternative layouts. Explicit orders remain fixed.
+
+``palette`` may map labels to colors or stage names to complete label-color
+mappings. Labels sit outside the bars with point-space spacing and leaders.
+Supplied axes retain figure size and already fixed limits. ``return_result``
+returns a PlotResult with the named ``alluvial`` axis and complete cells,
+nodes, links, layouts, label positions, and provenance. Existing returns are
+preserved: owned (fig,ax), supplied ax, or return_data=(fig,ax,stage_boxes,
+displayed_allocations). The result object's layout includes hidden links.
+```
+
+</details>
+
+### `scgeo.pl.state_flow_chord`
+
+Display a two-column category cross-tab as circular ribbons with complete source counts and omission-aware geometry.
+
+```text
+scgeo.pl.state_flow_chord(
+    adata,
+    *,
+    columns,
+    min_count=1,
+    drop_na=False,
+    normalize=False,
+    category_order=None,
+    order='input',
+    sort_categories=False,
+    color_by='target',
+    palette=None,
+    alpha=0.65,
+    category_gap=2.0,
+    stage_gap=18.0,
+    node_width=0.09,
+    label_format=None,
+    label_fontsize=9,
+    show_omissions=True,
+    ax=None,
+    figsize=(8, 7),
+    title=None,
+    return_data=False,
+    return_result=False,
+    show=True,
+)
+```
+
+[View implementation](../scgeo/pl/_state_flow_chord.py)
+
+- Requires exactly two obs columns; each stage keeps distinct node identities even when category text is identical.
+- Ribbons show category associations among the supplied cells. Source/target denotes the input-column order, not inferred biological direction or elapsed time.
+- min_count hides links without reallocating their slots. Raw counts, full-denominator fractions, retained/omitted flags, angular layouts, and labels remain exportable.
+- Supports explicit category orders, stable palettes, supplied axes/SubFigures, and return_result=True with a chord axis. Legacy-style owned (fig, ax), supplied ax, and four-part return_data are supported.
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Draw a two-stage bipartite chord of same-cell category associations.
+
+``columns`` must contain exactly two categorical annotations. The left half
+is the source annotation and the right half is its target annotation on the
+same cells. Repeated category names remain distinct stage-specific nodes.
+Ribbons encode counts of co-assigned labels, not lineage, a transition rate,
+or elapsed time. There are no inferred connections between different cells.
+
+Each half has a common angular scale for the full included N cells. Full
+category totals and every positive link receive angular slots before
+``min_count`` hides small links, leaving honest gaps instead of renormalizing
+retained mass. Category fractions and ribbon fractions use N, not 2N, even
+though each cell contributes to one arc on each half. ``category_gap`` and
+``stage_gap`` are degrees; ``node_width`` is a fraction of the unit radius.
+
+``category_order`` maps stage names to complete observed orders; None denotes
+genuine missing labels. Input order respects categorical levels, otherwise
+first appearance. Count and deterministic barycentric ordering are optional.
+``drop_na`` drops genuine missing selected annotations only; literal 'NA'
+remains a real category. A flat palette shares label colors across stages;
+nested stage palettes can give distinct colors to equal labels.
+
+Geometry uses full-denominator fractions in both ``normalize`` modes.
+Normalize selects percentage labels by default; False selects counts.
+``label_format`` explicitly accepts label/count/percent/both. Supplied axes
+retain figure size and fixed limits. Default returns are (fig,ax) for owned
+figures and ax for supplied axes. ``return_data`` returns
+(fig,ax,node_layout,link_layout), including hidden links. ``return_result``
+returns a PlotResult with the named ``chord`` axis, all source cells and
+counts, angular geometry, label positions, and interpretation metadata.
 ```
 
 </details>
 
 ### `scgeo.pl.state_flow_sankey`
 
-Plot a categorical state-flow Sankey diagram from columns in `adata.obs`.
+Inspect categorical associations interactively with complete and visible counts in hover information.
 
 ```text
 scgeo.pl.state_flow_sankey(
@@ -3008,36 +3179,47 @@ scgeo.pl.state_flow_sankey(
     link_color: 'str' = 'rgba(120,120,120,0.28)',
     return_data: 'bool' = False,
     show: 'bool' = True,
+    category_order=None,
+    order='input',
+    sort_categories=False,
+    palette=None,
+    color_by='target',
 )
 ```
 
 [View implementation](../scgeo/pl/_state_flow_sankey.py)
+
+- Uses the same missing-value and stage-identity policy as the static state-association views. Links are same-cell cross-tabulations, not tracked transitions.
+- Plotly sizes its nodes from visible links after filtering. Hover and metadata report complete and omitted counts; use alluvial/chord when reserved omitted geometry is required.
+- Existing Plotly figure and (fig, nodes, links) data returns are retained.
 
 
 <details>
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Plot a categorical state-flow Sankey diagram from columns in `adata.obs`.
+Plot interactive categorical associations between annotations on cells.
 
-Parameters
-----------
-adata
-    AnnData object.
-columns
-    Ordered categorical columns from `adata.obs`, e.g.
-    ["timepoint", "alignment_group", "macrostates_fwd"].
-min_count
-    Minimum flow count to retain.
-drop_na
-    If True, rows containing 'NA' in any selected column are removed.
-return_data
-    If True, return (fig, nodes_df, links_df).
+Shared counts match ``state_flow_alluvial`` and ``state_flow_chord``.
+``columns`` names ordered annotations on the same rows; links do not imply
+cell lineage, longitudinal transitions, or elapsed time. Missing values are
+detected before string conversion, so ``drop_na`` leaves literal 'NA' intact.
+``category_order`` maps stages to complete observed orders (None denotes
+genuine missingness); input order respects categorical levels. Optional
+count or barycentric ordering and complete flat/nested palettes are shared
+with the Matplotlib views.
 
-Notes
------
-This is a categorical flow summary, useful for showing how cells distribute
-across timepoints, alignment classes, clusters, macrostates, annotations, or OOD groups.
+``min_count`` hides links without changing their raw counts or denominator.
+Native Plotly node geometry follows visible links after filtering, so its
+displayed node areas need not represent complete category marginals. Hover
+reports full counts alongside visible and omitted incoming/outgoing counts.
+For reserved gaps and full-marginal geometry, use alluvial or chord.
+
+The default return remains a Plotly Figure. ``return_data=True`` preserves
+(fig,nodes_df,displayed_links_df); link ``value`` is the raw cell count.
+Complete node/link counts and filtering provenance are retained in
+``fig.layout.meta['scgeo']``. PlotResult/export_figure are Matplotlib APIs;
+Plotly's native HTML/JSON exports remain available for this interactive view.
 ```
 
 </details>

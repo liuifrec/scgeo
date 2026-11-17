@@ -1,5 +1,31 @@
 # Changelog
 
+## Unreleased state-association and density upgrades
+
+Add a two-column `pl.state_flow_chord` and improve the alluvial, Sankey, and
+embedding-density displays. See the [state-association guide](docs/STATE_FLOW_AND_DENSITY.md)
+and [real-data plotting examples](docs/REAL_DATA_PLOTTING.md).
+
+- Preserve full category totals when `min_count` hides a ribbon. Alluvial and
+  chord plots reserve the omitted link's space and export its original count.
+- Separate genuinely missing annotations from literal strings such as `NA`;
+  use unique stage-specific identities and explicit category orders.
+- Add readable category labels, consistent palettes, count/percentage labels,
+  caller-axis support, and complete `PlotResult` sources for the static views.
+- Correct the density contour pipeline to smooth and transform once, and derive
+  contour levels from the values actually rendered. Per-group normalization
+  now uses a truthful relative 0–1 colorbar; global normalization shares the
+  same absolute scale across panels.
+- Add common density grids, finite-coordinate exclusions, visible empty groups,
+  supplied axes/colorbars, and source tables that reconcile to the raw counts.
+- Add reproducible public PBMC3k and pancreas plotting checks with input hashes,
+  supplied annotations/coordinates, and explicit upstream velocity provenance.
+
+State links are same-cell categorical associations, not observed longitudinal
+transitions. Embedding-density panels describe the selected display coordinates,
+not a biological-sample enrichment test. These additions require the development
+checkout and are not present in the published `scgeo==0.1.0` distribution.
+
 ## Unreleased local velocity-field upgrades
 
 PAGA maps now support local projected-velocity grids and streamlines. The new

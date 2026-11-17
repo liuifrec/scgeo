@@ -7,7 +7,7 @@ The current checkout includes [unreleased plotting additions](../../CHANGELOG.md
 | Module | Purpose | Callables |
 |---|---|---|
 | [scgeo.tl](tl.md) | Analysis | 20 |
-| [scgeo.pl](pl.md) | Figures | 43 |
+| [scgeo.pl](pl.md) | Figures | 44 |
 | [scgeo.get](get.md) | Reports and tables | 9 |
 | [scgeo.pp](pp.md) | Reference preparation | 6 |
 | [scgeo.data](data.md) | Census access | 12 |
