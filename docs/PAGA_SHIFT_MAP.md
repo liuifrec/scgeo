@@ -6,7 +6,7 @@ same canvas to inspect condition endpoints, stored geometric alignment,
 observed cell composition, and a compatible projected velocity overlay.
 
 [Plotting guide](PLOTTING.md) · [Plotting API](api/pl.md) ·
-[Interpretation](RESULT_INTERPRETATION.md) · [Citation guide](CITING.md)
+[Local velocity fields](VELOCITY_FIELDS.md) · [Interpretation](RESULT_INTERPRETATION.md) · [Citation guide](CITING.md)
 
 ## See the result
 
@@ -191,17 +191,64 @@ By default, `velocity_basis=None` inherits the selected display basis and looks
 for its matching projected-velocity key. Set an explicit matching basis when
 you want the relationship to be visible in the call.
 
-The display overlay aggregates velocity among cells in the selected two
-conditions using the chosen mean/median rule. Other conditions are excluded,
-even when `background="all"` displays them. This descriptive aggregation is
-separate from any sample-aware calculation in the stored quantitative analysis.
-Velocity rows with non-finite coordinates are jointly excluded from that
-summary; its `n_velocity` field records the usable count. Non-finite display
-coordinates within the selected contrast are rejected before drawing.
+The default state overlay (`velocity_mode="state"`) aggregates velocity among
+cells in the selected two conditions using the chosen mean/median rule. Other
+conditions are excluded, even when `background="all"` displays them. This
+descriptive aggregation is separate from any sample-aware calculation in the
+stored quantitative analysis. Rows with non-finite projected-velocity
+components are jointly excluded from that summary; its `n_velocity` field
+records the usable count. Non-finite display coordinates within the selected
+contrast are rejected before drawing for cells with nonmissing state labels.
+Local grid and streamline modes instead use Gaussian-weighted local means,
+independently of `agg`.
 
 `velocity_scale` is a display multiplier, not a time estimate. The overview
 explicitly labels its velocity vectors as multiplied by 20. Keep the same
 multiplier and coordinate limits when comparing compatible views.
+
+### Show local directions within states
+
+The default `velocity_mode="state"` retains one projected vector at each
+supported reference anchor. To inspect a local field, select a grid or
+streamline layer:
+
+```python
+result = sg.pl.paga_shift_map(
+    adata,
+    node_key="cell_type", condition_key="condition",
+    group0="control", group1="treated",
+    basis="umap", graph_node_order=graph_order,
+    show_velocity=True, velocity_mode="stream",
+    velocity_options={
+        "grid_size": 45,
+        "n_neighbors": 30,
+        "min_neighbors": 8,
+        "min_coherence": 0.3,
+        "stream_density": 1.0,
+    },
+    background="contrast", return_result=True, show=False,
+)
+```
+
+The local layer uses only the selected two conditions and replaces the state
+velocity arrows. Condition-contrast arrows and stored node colors retain their
+meaning. The field can describe a comparison-only state when its projected
+vectors have enough local support, even though that state has no estimable
+two-condition shift.
+
+`velocity_options` controls field neighborhoods and rendering. Grid arrows use
+its `scale` option (`"auto"` by default); the existing `velocity_scale` parameter
+continues to control state arrows. Streamlines encode local field direction,
+with no time scale. Numeric field colors are available in the standalone
+`pl.velocity_field` view; the PAGA layer uses `velocity_color` so the node's
+quantitative colorbar stays unambiguous.
+
+Pooling conditions may conceal opposing patterns. Use the
+[matched-condition example](VELOCITY_FIELDS.md) to inspect conditions separately
+with shared grid coordinates, support rules, and scales. Local coherence is a
+descriptive measure of vector agreement, not statistical confidence. Full
+local-field inputs, support grids, arrow endpoints, and streamline paths are
+included in the PAGA result's `velocity_*` source tables.
 
 ### Migrate a historical velocity-overlay call
 

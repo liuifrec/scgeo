@@ -30,6 +30,11 @@ def paga_scgeo(
     geometry, not inferred trajectories. ``velocity_basis=None`` uses the same
     basis as the display and requires its matching projected velocity array.
 
+    ``velocity_mode='grid'`` or ``'stream'`` replaces the state velocity arrows
+    with a supported local projected field. ``velocity_options`` controls its
+    neighborhood, support thresholds, and display style. Local directional
+    agreement is descriptive and does not measure statistical confidence.
+
     Other options, including axes, label placement, stored alignment coloring,
     and ``return_result``, are forwarded to :func:`paga_shift_map`.
     """

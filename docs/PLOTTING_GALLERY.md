@@ -17,6 +17,22 @@ python examples/plotting_gallery.py --output-dir results/plotting_gallery --form
 Each figure has source CSVs and a JSON manifest with plotting configuration,
 software versions, available analysis metadata, and file hashes.
 
+## Local velocity with explicit support
+
+![Constructed PAGA map with local streamlines over a synthetic branched cell cloud.](assets/velocity_paga_stream.png)
+
+The [local velocity gallery](VELOCITY_FIELDS.md) adds grid arrows and
+streamlines to an explicitly synthetic curved-branch fixture. It includes a
+real coordinate gap, opposing vectors, and sparse observations to show how
+support and directional-coherence masks affect the display. The matching
+condition panels use common evaluation coordinates and scale settings.
+
+![Local projected velocity grid with directional-coherence colors.](assets/velocity_field_grid.png)
+
+Run `examples/velocity_field_gallery.py` for these views and their exact source
+tables. The vector field is interpolated from supplied projected velocities;
+the example does not fit UMAP, PAGA, RNA kinetics, or biological trajectories.
+
 ## State connectivity, condition centres, and projected velocity
 
 ![Constructed state connectivity on synthetic display coordinates, with distinct condition centres and projected velocity arrows.](assets/paga_shift_map_overview.png)

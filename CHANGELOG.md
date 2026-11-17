@@ -1,5 +1,32 @@
 # Changelog
 
+## Unreleased local velocity-field upgrades
+
+PAGA maps now support local projected-velocity grids and streamlines. The new
+`pl.velocity_field` also provides standalone and matched-condition views. See
+the [local velocity guide](docs/VELOCITY_FIELDS.md) and executable gallery.
+
+- Add opt-in `velocity_mode='grid'` and `'stream'` to `paga_shift_map` and its
+  `paga_scgeo` wrapper. The default `velocity_mode='state'` preserves the
+  existing reference-anchored state arrows.
+- Interpolate supplied projected vectors with finite-radius Gaussian weights;
+  retain support counts, local direction coherence, and explicit omission
+  reasons. Unsupported gaps and opposing-vector regions remain identifiable.
+- Keep cell-background sampling separate from field computation. Explicit
+  `grid_extent`, radius, color normalization, and numeric arrow scales support
+  matched condition panels; visual axis limits do not redefine the field.
+- Export complete field inputs, grid diagnostics, actual arrow endpoints, and
+  rendered streamline paths through `PlotResult`.
+- Add an offline synthetic gallery, API documentation, regression tests, and
+  installation checks for both field rendering modes.
+
+These are descriptive interpolations in the supplied display coordinates.
+Directional coherence is not statistical confidence, streamlines are not
+observed cell trajectories, and vector scales do not establish elapsed time.
+The plotting functions require a matching projected velocity array and do not
+fit or project an RNA-velocity model. These features require the development
+checkout; the published `scgeo==0.1.0` distribution does not include them.
+
 ## Unreleased PAGA shift-map upgrades
 
 The development `paga_shift_map` now brings state connectivity, condition

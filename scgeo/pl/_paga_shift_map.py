@@ -494,6 +494,39 @@ def _draw_vector(
     return patch
 
 
+def _local_velocity_options(options):
+    """Keep local-field controls separate from graph/contrast identities."""
+    prepare = {
+        "grid_size": 25,
+        "grid_extent": None,
+        "n_neighbors": 30,
+        "radius": None,
+        "min_neighbors": 5,
+        "min_coherence": 0.2,
+    }
+    render = {
+        "scale": "auto",
+        "arrow_linewidth": 1.1,
+        "arrow_head_size": 5.5,
+        "stream_density": 1.0,
+        "stream_linewidth": 1.2,
+    }
+    if options is not None:
+        if not isinstance(options, Mapping):
+            raise TypeError("velocity_options must be a mapping of local-field controls.")
+        unknown = set(options) - set(prepare) - set(render)
+        if unknown:
+            raise ValueError(
+                "Unsupported velocity_options: "
+                + ", ".join(sorted(map(str, unknown)))
+                + ". Basis, conditions, and field color come from the PAGA call; "
+                "use velocity_field for a separately colored local field."
+            )
+        prepare.update({key: value for key, value in options.items() if key in prepare})
+        render.update({key: value for key, value in options.items() if key in render})
+    return prepare, render
+
+
 def paga_shift_map(
     adata,
     *,
@@ -567,6 +600,8 @@ def paga_shift_map(
     show_colorbar: bool = True,
     cax=None,
     return_result: bool = False,
+    velocity_mode: str = "state",
+    velocity_options=None,
 ):
     """Draw undirected PAGA topology and condition contrasts on an embedding.
 
@@ -582,6 +617,21 @@ def paga_shift_map(
     embedding shape. Selected, labeled cells with nonfinite display coordinates
     are rejected before drawing; nonfinite background rows are omitted. Missing
     velocity rows are excluded jointly and their support counts are exported.
+
+    ``velocity_mode='state'`` preserves the reference-anchored state arrows.
+    ``'grid'`` and ``'stream'`` interpolate the selected cells' supplied projected
+    velocities locally, using finite-radius support and directional-coherence
+    masks. These are descriptive display fields, not inferred trajectories or
+    statistical confidence. ``velocity_options`` controls grid_size, grid_extent,
+    n_neighbors, radius, min_neighbors, min_coherence, scale, arrow_linewidth,
+    arrow_head_size, stream_density, and stream_linewidth. Local means are
+    Gaussian weighted regardless of the state-center ``agg`` option.
+    ``velocity_scale`` applies to state arrows; local grid arrows use the
+    options' scale (default ``'auto'``), and streamlines carry no time scale.
+    Local field color follows ``velocity_color`` so stored node colors retain
+    their independent meaning. Use :func:`velocity_field` for numeric field
+    colors or separate condition panels.
+
     Explicit ``pie_categories`` must include every observed selected category;
     missing values use a separate ``(missing)`` category (escaped if that literal
     label already exists). Retained slices are never silently renormalized.
@@ -640,6 +690,13 @@ def paga_shift_map(
         raise ValueError(
             "node_color_mode must be one of {'palette', 'alignment', 'delta', 'constant'}."
         )
+    if velocity_mode not in {"state", "grid", "stream"}:
+        raise ValueError("velocity_mode must be 'state', 'grid', or 'stream'.")
+    if velocity_options is not None and (not show_velocity or velocity_mode == "state"):
+        raise ValueError(
+            "velocity_options requires show_velocity=True and velocity_mode='grid' or 'stream'."
+        )
+    field_prepare_options, field_render_options = _local_velocity_options(velocity_options)
     if background not in {"all", "contrast"}:
         raise ValueError("background must be 'all' or 'contrast'.")
     if aspect not in {"equal", "auto"}:
@@ -745,13 +802,19 @@ def paga_shift_map(
         )
     if cells.state.isna().any():
         notes.append(
-            "Cells with missing state labels remain background-only and are excluded from state summaries."
+            "Cells with missing state labels are excluded from state summaries. "
+            + (
+                "Eligible selected cells can still contribute to the local velocity field."
+                if show_velocity and velocity_mode != "state"
+                else "They remain background-only."
+            )
         )
     if (~cells.finite_coordinates).any():
         notes.append(
             "Nonfinite context-background coordinate rows were omitted from drawing."
         )
     velocity, velocity_key = None, None
+    local_field, local_render = None, None
     if show_velocity:
         velocity, velocity_key, excluded_velocity = _velocity(
             adata,
@@ -768,6 +831,27 @@ def paga_shift_map(
             notes.append(
                 f"{excluded_velocity} selected cells with nonfinite projected velocity were excluded jointly from velocity summaries."
             )
+        if velocity_mode != "state":
+            from ._velocity_grid import _field_style, _prepare_velocity_field
+
+            local_field = _prepare_velocity_field(
+                adata,
+                basis=embedding_key,
+                velocity_basis=velocity_key,
+                condition_key=condition_key,
+                groups=[g0, g1],
+                **field_prepare_options,
+            )
+            # Share standalone field validation before changing caller axes.
+            _field_style(
+                local_field,
+                mode=velocity_mode,
+                color=velocity_color,
+                color_by=None,
+                alpha=velocity_alpha,
+                **field_render_options,
+            )
+            notes.extend(local_field["warnings"])
     composition, composition_counts, pie_colors, missing_pie = None, None, {}, None
     if pie_key is not None:
         composition, composition_counts, pie_categories, pie_colors, missing_pie = (
@@ -951,6 +1035,9 @@ def paga_shift_map(
                     else "zero_display_scale"
                 )
             )
+            if velocity_mode != "state":
+                visible = False
+                reason = "local_field_mode"
             vector_rows.append(
                 {
                     "state": state,
@@ -1021,6 +1108,24 @@ def paga_shift_map(
         zorder=1,
     )
     ax.add_collection(artists["topology"])
+    if local_field is not None:
+        from ._velocity_grid import _render_velocity_field
+
+        local_render = _render_velocity_field(
+            ax,
+            local_field,
+            mode=velocity_mode,
+            color=velocity_color,
+            color_by=None,
+            cmap="viridis",
+            norm=None,
+            vmin=None,
+            vmax=None,
+            alpha=velocity_alpha,
+            **field_render_options,
+        )
+        artists["velocity_field"] = local_render["artists"]
+        notes.extend(local_render["warnings"])
     composition_index = None if composition is None else composition.set_index("node")
     obstacles, label_anchors = [], {}
     for _, row in centers.iterrows():
@@ -1142,6 +1247,8 @@ def paga_shift_map(
     )
     drawn_vectors = vectors.loc[vectors.displayed, ["target_x", "target_y"]].to_numpy()
     limits_data = np.vstack([limits_data, anchors_data, drawn_vectors])
+    if local_render is not None:
+        limits_data = np.vstack([limits_data, local_render["extent_points"]])
     limits_data = limits_data[np.isfinite(limits_data).all(axis=1)]
     if not len(limits_data):
         raise ValueError(
@@ -1213,7 +1320,7 @@ def paga_shift_map(
                 label=f"Comparison center: {g1}",
             ),
         )
-    if show_velocity:
+    if show_velocity and velocity_mode == "state":
         legend_handles.append(
             Line2D(
                 [],
@@ -1225,6 +1332,8 @@ def paga_shift_map(
                 label=f"Projected velocity ×{velocity_scale:g}",
             )
         )
+    elif local_render is not None:
+        legend_handles.extend(local_render["legend_handles"])
     if (centers.coverage_status == "comparison_only").any():
         legend_handles.append(
             Line2D(
@@ -1383,6 +1492,14 @@ def paga_shift_map(
         data["velocity"] = velocity
     if alignment is not None:
         data["alignment"] = alignment
+    if local_field is not None:
+        field_cells = local_field["cells"].copy(deep=True)
+        field_cells["displayed"] = cells.displayed.to_numpy()
+        field_cells["background_scope"] = cells.background_scope.to_numpy()
+        data["velocity_cells"] = field_cells
+        data.update(
+            {f"velocity_{key}": table for key, table in local_render["data"].items()}
+        )
     metadata = {
         "plot": "paga_shift_map",
         "display_only_geometry": True,
@@ -1420,6 +1537,7 @@ def paga_shift_map(
         "n_cells_input": adata.n_obs,
         "n_cells_displayed": len(shown),
         "velocity_key": velocity_key,
+        "velocity_mode": velocity_mode if show_velocity else None,
         "velocity_scope": "selected_conditions" if show_velocity else None,
         "velocity_conditions": [g0, g1] if show_velocity else None,
         "composition_scope": "selected_conditions" if pie_key else None,
@@ -1441,7 +1559,7 @@ def paga_shift_map(
         "endpoint_size": endpoint_size,
         "comparison_markers": "actual unscaled comparison centers",
         "arrow_scale": arrow_scale,
-        "velocity_scale": velocity_scale,
+        "velocity_scale": velocity_scale if velocity_mode == "state" else None,
         "arrow_width": arrow_width,
         "arrow_width_units": "data (legacy)" if arrow_width is not None else "points",
         "arrow_linewidth": arrow_linewidth,
@@ -1462,6 +1580,15 @@ def paga_shift_map(
         "legend_loc": legend_loc,
         "legend_labels": [item.get_label() for item in legend_handles],
     }
+    if local_field is not None:
+        metadata["local_velocity"] = {
+            **local_field["metadata"],
+            **local_render["metadata"],
+            "condition_key": condition_key,
+            "groups": [g0, g1],
+            "state_center_aggregation": agg,
+            "state_velocity_arrows_displayed": False,
+        }
     if numeric:
         metadata.update(
             {

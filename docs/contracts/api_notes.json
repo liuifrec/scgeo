@@ -143,14 +143,28 @@
       "PAGA connectivity is undirected. Supply graph_node_order when matrix labels differ from the current category order; graph shape, weights, symmetry, and group identity are validated.",
       "Projected velocity must match the display basis. Velocity and composition summaries use only group0/group1; background=\"all\" can retain other cells as context.",
       "Equal aspect, distinct condition endpoints, point-sized glyphs, automatic labels, and graphical legends are the new defaults. Explicit arrow_width retains the legacy data-unit style.",
-      "return_result=True returns PlotResult with named map axis and full cell/edge/vector sources. Legacy owned (fig, ax), supplied ax, and (fig, ax, data) returns remain supported."
+      "return_result=True returns PlotResult with named map axis and full cell/edge/vector sources. Legacy owned (fig, ax), supplied ax, and (fig, ax, data) returns remain supported.",
+      "velocity_mode=\"state\" preserves the original aggregate arrows. Opt-in \"grid\"/\"stream\" use selected-condition local fields; velocity_options controls finite-radius support and rendering, with full velocity_* source tables."
     ]
   },
   "scgeo.pl.paga_scgeo": {
     "summary": "Convenience wrapper for the PAGA shift map with composition pies and optional projected velocity.",
     "notes": [
       "Additional keyword arguments are forwarded to paga_shift_map, including stored alignment, shared limits, label placement, and return_result.",
-      "Composition pies show the selected conditions. Numeric node colour is retained in the pie rim; the composition sectors and quantitative rim have separate legends."
+      "Composition pies show the selected conditions. Numeric node colour is retained in the pie rim; the composition sectors and quantitative rim have separate legends.",
+      "velocity_mode and velocity_options are forwarded to the PAGA map for local projected-velocity grids and streamlines."
+    ]
+  },
+  "scgeo.pl.velocity_field": {
+    "summary": "Display locally averaged projected velocity as a support-masked arrow grid or streamlines, with condition selection, comparable scales, and complete source exports.",
+    "notes": [
+      "This is an unreleased development feature; see the [local velocity guide](https://github.com/liuifrec/scgeo/blob/main/docs/VELOCITY_FIELDS.md) and executable gallery.",
+      "Requires a velocity array projected into the matching display basis. The function does not fit RNA kinetics, project high-dimensional vectors, infer cell trajectories, or estimate elapsed time.",
+      "Finite-radius Gaussian weighting summarizes eligible selected cells. Local coherence is norm(weighted mean velocity) divided by weighted mean velocity norm; it is a direction-agreement diagnostic, not statistical confidence.",
+      "groups selects field inputs independently of the background. max_points changes only background drawing; full eligible inputs define the field.",
+      "Use common grid_extent, radius, neighborhood/support settings, numeric arrow scale, and color normalization for matched condition panels. Axis limits crop the view without redefining the grid.",
+      "Streamlines are masked and their actual segments are checked against supported interpolation cells. Source exports include rejected grid positions, filtering reasons, scaled arrows, and rendered path vertices.",
+      "return_result=True returns PlotResult with field and optional colorbar axes. Default owned (fig, ax) and supplied ax conventions are supported; return_data=True returns (fig, ax, data)."
     ]
   }
 }
