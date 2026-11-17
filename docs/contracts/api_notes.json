@@ -166,5 +166,44 @@
       "Streamlines are masked and their actual segments are checked against supported interpolation cells. Source exports include rejected grid positions, filtering reasons, scaled arrows, and rendered path vertices.",
       "return_result=True returns PlotResult with field and optional colorbar axes. Default owned (fig, ax) and supplied ax conventions are supported; return_data=True returns (fig, ax, data)."
     ]
+  },
+  "scgeo.pl.state_flow_alluvial": {
+    "summary": "Compare categorical annotations with readable ribbons, conserved counts, and explicit omitted associations.",
+    "notes": [
+      "Unreleased development upgrade; see the state-association and density guide and real-data plotting gallery.",
+      "Each ribbon counts the same observations across adjacent columns. It does not establish tracked longitudinal transitions, lineage, or causality.",
+      "All positive associations receive layout slots before min_count filtering. Category totals and fractions retain the full included-cell denominator; hidden links leave gaps.",
+      "The legacy value field and geometry are fractions of included cells. normalize selects the default count or percentage labels and never renormalizes after filtering.",
+      "True missing values are distinct from literal NA/nan labels. drop_na excludes genuinely missing rows across all requested columns and records their source flags.",
+      "return_result=True adds cells, nodes, links, layout, and label sources with an alluvial axis. Existing owned, supplied-axis, and four-part return_data conventions are retained."
+    ]
+  },
+  "scgeo.pl.state_flow_chord": {
+    "summary": "Display a two-column category cross-tab as circular ribbons with complete source counts and omission-aware geometry.",
+    "notes": [
+      "Requires exactly two obs columns; each stage keeps distinct node identities even when category text is identical.",
+      "Ribbons show category associations among the supplied cells. Source/target denotes the input-column order, not inferred biological direction or elapsed time.",
+      "min_count hides links without reallocating their slots. Raw counts, full-denominator fractions, retained/omitted flags, angular layouts, and labels remain exportable.",
+      "Supports explicit category orders, stable palettes, supplied axes/SubFigures, and return_result=True with a chord axis. Legacy-style owned (fig, ax), supplied ax, and four-part return_data are supported."
+    ]
+  },
+  "scgeo.pl.state_flow_sankey": {
+    "summary": "Inspect categorical associations interactively with complete and visible counts in hover information.",
+    "notes": [
+      "Uses the same missing-value and stage-identity policy as the static state-association views. Links are same-cell cross-tabulations, not tracked transitions.",
+      "Plotly sizes its nodes from visible links after filtering. Hover and metadata report complete and omitted counts; use alluvial/chord when reserved omitted geometry is required.",
+      "Existing Plotly figure and (fig, nodes, links) data returns are retained."
+    ]
+  },
+  "scgeo.pl.embedding_density": {
+    "summary": "Compare group occupancy on a common embedding grid with explicit normalization, source counts, and composable panels.",
+    "notes": [
+      "Common bins preserve raw count totals. Contour mode optionally smooths once and applies log1p once; contour levels use the actual rendered values.",
+      "normalize=per_group uses a shared relative 0\u20131 scale with each group peak set to one; normalize=global uses one absolute count or transformed-count scale across panels.",
+      "Per-group peak normalization cannot establish relative abundance. Embedding density describes display coordinates and does not constitute sample-level enrichment inference.",
+      "grid_extent controls computational binning. xlim/ylim only crop the view. Full cell sources retain nonfinite, missing-group, and outside-grid exclusions.",
+      "For matched filled-contour bands, render comparison groups in one call. Automatic level boundaries depend on selected groups; a shared norm alone does not make separate calls use identical bands. Shared explicit color limits provide direct heatmap comparability.",
+      "Supplied axes/cax and shared Normalize objects support composition. Default (fig, axes) is retained; return_data=True adds a source dictionary, and return_result=True supplies density:<group> and colorbar axes."
+    ]
   }
 }

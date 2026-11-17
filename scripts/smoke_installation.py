@@ -170,6 +170,27 @@ else:
             assert {"cells", "grid", "paths", "vectors"} <= set(field_export["tables"])
             assert Path(field_export["figures"]["svg"]).is_file()
             plt.close(field.fig)
+            for kind in ("alluvial", "chord"):
+                associations = getattr(sg.pl, f"state_flow_{kind}")(
+                    adata, columns=["state", "condition"], min_count=5,
+                    return_result=True, show=False,
+                )
+                assert associations.data["links"]["count"].sum() == adata.n_obs
+                visible = associations.data["links"].query("displayed")
+                assert visible["count"].sum() == 16
+                assert abs(visible.fraction.sum() - 16 / 24) < 1e-12
+                flow_export = associations.save(Path(temporary) / kind, formats=("svg",))
+                assert {"cells", "nodes", "links", "node_layout", "link_layout"} <= set(flow_export["tables"])
+                plt.close(associations.fig)
+            density = sg.pl.embedding_density(
+                adata, "state", basis="pca", gridsize=12,
+                contour=True, smooth_k=3, normalize="global",
+                return_result=True, show=False,
+            )
+            assert density.data["grid"].raw_count.sum() == adata.n_obs
+            density_export = density.save(Path(temporary) / "density", formats=("svg",))
+            assert {"cells", "grid", "groups", "contour_levels"} <= set(density_export["tables"])
+            plt.close(density.fig)
     assert "cellxgene_census" not in sys.modules
     assert "tiledbsoma" not in sys.modules
     print(f"PASS: ScGeo {version('scgeo')} imported from {installed_from}")
@@ -179,6 +200,8 @@ else:
     print("PASS: stored sample centers, plotting API, and source-data figure export")
     print("PASS: PAGA local velocity grid and exported graph/field sources")
     print("PASS: supported projected streamlines with selected-condition source export")
+    print("PASS: alluvial/chord count conservation and filtered-link source exports")
+    print("PASS: density contour counts, shared scale, and grid source export")
 
 
 if __name__ == "__main__":

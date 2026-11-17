@@ -1,0 +1,895 @@
+{
+  "schema_version": "scgeo.real_data_plotting_validation.v1",
+  "rendered_utc": "2026-11-17T07:26:16.505122+00:00",
+  "scope": "Public-data descriptive software validation; same-cell coassignments and supplied embeddings/vectors, not independent annotation accuracy, lineage, causality, or biological inference.",
+  "software_versions": {
+    "python": "3.12.14",
+    "scgeo": "0.1.0",
+    "anndata": "0.13.4",
+    "numpy": "2.5.5",
+    "pandas": "3.1.1",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.1",
+    "matplotlib": "3.11.2"
+  },
+  "source_code_sha256": {
+    "scgeo/pl/_state_flow.py": "4029ce57842d3785da602a975c000e094ff03a446bd5af60b6051409e02279ae",
+    "scgeo/pl/_state_flow_alluvial.py": "f083686ef93043558575768d4c7a8a8dfe71a800765d9529be9b0ccd2daf4c2d",
+    "scgeo/pl/_state_flow_chord.py": "48afb810295c3abcaf28554e45e6bf035a7e8a47ac892e8aa4d76eceab760a62",
+    "scgeo/pl/_density.py": "ad983a2648f74664ddc91dd590035a2fdce92a3c202d149f15372bfa62d575e8",
+    "scgeo/pl/_score.py": "810c148f97e03ca5f14ad9af47f542c4084db121be30fe8b2320da951d10a3cf",
+    "scgeo/pl/_velocity_field.py": "0fe8ee64b237961a6426df9bd49d4dca9ed02c486944fee75d8948e43570b7e5",
+    "scgeo/pl/_velocity_grid.py": "f7693eca476006150850bf7c342266c7d6561e19ec30d090e8e548d99c396cd9",
+    "scgeo/pl/_result.py": "8e6b416133179e24799e32d8d5283ffd7dd57282110dae17ed622aa973805caa",
+    "scgeo/pl/_style.py": "af6f0347ff5537ec4746f02a96fd8ce38661bb390aaaab5b03389fef50900a62",
+    "scgeo/pl/_utils.py": "c3fe900eefb44148a9e814824073bcba5b31525ccd96872d221dbd104cf8f1ac",
+    "scgeo/tl/_map_knn.py": "51324aefaa143fc13f22655f6cbc385c2727a977d07a3ce26ef699c19793cc1f",
+    "examples/real_data_plotting_gallery.py": "e392ec8db6fb2f2c353344c0ce963bb1736af922d0265baf904fd43460e8330b"
+  },
+  "datasets": {
+    "pbmc": {
+      "source": {
+        "name": "Scanpy processed PBMC3k",
+        "url": "https://exampledata.scverse.org/scanpy/pbmc3k.h5ad",
+        "documentation": "https://scanpy.readthedocs.io/en/stable/api/generated/scanpy.datasets.pbmc3k_processed.html",
+        "sha256": "0db367b991dd95809732b218539ede489bea99113807f62ebd7ccc970025fe38",
+        "size_bytes": 24653425,
+        "filename": "pbmc3k_processed.h5ad"
+      },
+      "raw_hash_reverified_at_render": true,
+      "schema": {
+        "shape": [
+          2638,
+          1838
+        ],
+        "obs_columns": [
+          "n_genes",
+          "percent_mito",
+          "n_counts",
+          "louvain"
+        ],
+        "obsm": {
+          "X_pca": [
+            2638,
+            50
+          ],
+          "X_tsne": [
+            2638,
+            2
+          ],
+          "X_umap": [
+            2638,
+            2
+          ],
+          "X_draw_graph_fr": [
+            2638,
+            2
+          ]
+        },
+        "layers": [
+          null
+        ],
+        "sample_identity_fields": []
+      },
+      "prepared_files": {
+        "full": {
+          "filename": "pbmc_full.h5ad",
+          "sha256": "2f6afa8cb20d368ac174b14e8fcf11460334a6095696a759a551eae5dd0137de",
+          "n_cells": 2638
+        },
+        "reference": {
+          "filename": "pbmc_reference.h5ad",
+          "sha256": "fe5afa30ec5652910d0248a9ce6f5e4caff754749305be57e1b70d700c076b6a",
+          "n_cells": 1976
+        },
+        "query": {
+          "filename": "pbmc_query.h5ad",
+          "sha256": "61076539d765d4e7a3be937f2d913d5a9a23b48a8f2edc2310e376fd8dd0a01e",
+          "n_cells": 662
+        }
+      },
+      "observed_annotation_counts": {
+        "CD4 T cells": 1144,
+        "CD14+ Monocytes": 480,
+        "B cells": 342,
+        "CD8 T cells": 316,
+        "NK cells": 154,
+        "FCGR3A+ Monocytes": 150,
+        "Dendritic cells": 37,
+        "Megakaryocytes": 15
+      },
+      "mapping": {
+        "seed": 17,
+        "query_fraction": 0.25,
+        "split_rule": "Within supplied annotation categories, ceil(n*query_fraction) query cells, bounded to keep at least one reference and one query cell; one seeded RNG in supplied category order.",
+        "reference_cells": 1976,
+        "query_cells": 662,
+        "supplied_representation": "All 50 supplied PCA coordinates; embedding fitted upstream on the full dataset, including query cells.",
+        "scope": "Held-out labels within the same dataset and a fixed shared representation; descriptive software validation, not independent classification accuracy or biological ground truth.",
+        "map_knn": {
+          "params": {
+            "label_key": "louvain",
+            "rep": "X_pca",
+            "k": 25,
+            "ood_quantile": 0.99
+          },
+          "ood_threshold_mean_dist": 19.301649447631835,
+          "summary": {
+            "mean_confidence": 0.904712975025177,
+            "ood_rate": 0.010574018126888218
+          }
+        },
+        "annotation_agreement_count": 618,
+        "annotation_agreement_fraction": 0.9335347432024169,
+        "vote_fraction_meaning": "Fraction of k reference neighbors voting for the assigned label; not a calibrated probability or biological confidence.",
+        "annotation_disagreement_count": 44
+      },
+      "split_counts": [
+        {
+          "louvain": "CD4 T cells",
+          "reference_query_role": "reference",
+          "n_cells": 858
+        },
+        {
+          "louvain": "CD4 T cells",
+          "reference_query_role": "query",
+          "n_cells": 286
+        },
+        {
+          "louvain": "CD14+ Monocytes",
+          "reference_query_role": "reference",
+          "n_cells": 360
+        },
+        {
+          "louvain": "CD14+ Monocytes",
+          "reference_query_role": "query",
+          "n_cells": 120
+        },
+        {
+          "louvain": "B cells",
+          "reference_query_role": "reference",
+          "n_cells": 256
+        },
+        {
+          "louvain": "B cells",
+          "reference_query_role": "query",
+          "n_cells": 86
+        },
+        {
+          "louvain": "CD8 T cells",
+          "reference_query_role": "reference",
+          "n_cells": 237
+        },
+        {
+          "louvain": "CD8 T cells",
+          "reference_query_role": "query",
+          "n_cells": 79
+        },
+        {
+          "louvain": "NK cells",
+          "reference_query_role": "reference",
+          "n_cells": 115
+        },
+        {
+          "louvain": "NK cells",
+          "reference_query_role": "query",
+          "n_cells": 39
+        },
+        {
+          "louvain": "FCGR3A+ Monocytes",
+          "reference_query_role": "reference",
+          "n_cells": 112
+        },
+        {
+          "louvain": "FCGR3A+ Monocytes",
+          "reference_query_role": "query",
+          "n_cells": 38
+        },
+        {
+          "louvain": "Dendritic cells",
+          "reference_query_role": "reference",
+          "n_cells": 27
+        },
+        {
+          "louvain": "Dendritic cells",
+          "reference_query_role": "query",
+          "n_cells": 10
+        },
+        {
+          "louvain": "Megakaryocytes",
+          "reference_query_role": "reference",
+          "n_cells": 11
+        },
+        {
+          "louvain": "Megakaryocytes",
+          "reference_query_role": "query",
+          "n_cells": 4
+        }
+      ],
+      "flow_mass_reconciliation": {
+        "alluvial": {
+          "query_cells": 662,
+          "positive_links": 15,
+          "displayed_links": 15,
+          "link_count_sum": 662,
+          "link_fraction_sum": 1.0,
+          "node_count_by_stage": {
+            "0": 662,
+            "1": 662
+          },
+          "matches_observed_query_cross_tab": true,
+          "all_cell_identities_preserved": true
+        },
+        "chord": {
+          "query_cells": 662,
+          "positive_links": 15,
+          "displayed_links": 15,
+          "link_count_sum": 662,
+          "link_fraction_sum": 1.0,
+          "node_count_by_stage": {
+            "0": 662,
+            "1": 662
+          },
+          "matches_observed_query_cross_tab": true,
+          "all_cell_identities_preserved": true
+        }
+      },
+      "observed_query_cross_tab": [
+        {
+          "supplied_annotation": "B cells",
+          "mapped_label": "B cells",
+          "count": 86
+        },
+        {
+          "supplied_annotation": "CD14+ Monocytes",
+          "mapped_label": "CD14+ Monocytes",
+          "count": 120
+        },
+        {
+          "supplied_annotation": "CD4 T cells",
+          "mapped_label": "CD4 T cells",
+          "count": 286
+        },
+        {
+          "supplied_annotation": "CD8 T cells",
+          "mapped_label": "CD4 T cells",
+          "count": 24
+        },
+        {
+          "supplied_annotation": "CD8 T cells",
+          "mapped_label": "CD8 T cells",
+          "count": 55
+        },
+        {
+          "supplied_annotation": "Dendritic cells",
+          "mapped_label": "B cells",
+          "count": 1
+        },
+        {
+          "supplied_annotation": "Dendritic cells",
+          "mapped_label": "CD14+ Monocytes",
+          "count": 5
+        },
+        {
+          "supplied_annotation": "Dendritic cells",
+          "mapped_label": "Dendritic cells",
+          "count": 4
+        },
+        {
+          "supplied_annotation": "FCGR3A+ Monocytes",
+          "mapped_label": "CD14+ Monocytes",
+          "count": 5
+        },
+        {
+          "supplied_annotation": "FCGR3A+ Monocytes",
+          "mapped_label": "FCGR3A+ Monocytes",
+          "count": 33
+        },
+        {
+          "supplied_annotation": "Megakaryocytes",
+          "mapped_label": "CD14+ Monocytes",
+          "count": 1
+        },
+        {
+          "supplied_annotation": "Megakaryocytes",
+          "mapped_label": "CD4 T cells",
+          "count": 1
+        },
+        {
+          "supplied_annotation": "Megakaryocytes",
+          "mapped_label": "Megakaryocytes",
+          "count": 2
+        },
+        {
+          "supplied_annotation": "NK cells",
+          "mapped_label": "CD8 T cells",
+          "count": 7
+        },
+        {
+          "supplied_annotation": "NK cells",
+          "mapped_label": "NK cells",
+          "count": 32
+        }
+      ],
+      "density": {
+        "common": {
+          "grid_rows": 16900,
+          "raw_count_sum": 2003,
+          "raw_count_by_annotation": {
+            "B cells": 342,
+            "CD14+ Monocytes": 480,
+            "CD4 T cells": 1144,
+            "Dendritic cells": 37
+          },
+          "plotted_peak_by_annotation": {
+            "B cells": 1.8803128665695,
+            "CD14+ Monocytes": 1.791759469228055,
+            "CD4 T cells": 1.9616585060234524,
+            "Dendritic cells": 0.9382696385929303
+          },
+          "color_limits": [
+            0.0,
+            1.9616585060234524
+          ],
+          "contour_levels": [
+            0.05268025782891315,
+            0.1053605156578263,
+            0.20067069546215116,
+            0.36772478012531734,
+            0.5753641449035618,
+            0.8472978603872034,
+            1.0986122886681096,
+            1.2797010195241452,
+            1.466337068793427,
+            1.563975538357343,
+            1.6739764335716716,
+            1.9616585060234524
+          ],
+          "normalization_rule": "absolute_transformed_count"
+        },
+        "relative": {
+          "grid_rows": 16900,
+          "raw_count_sum": 2003,
+          "raw_count_by_annotation": {
+            "B cells": 342,
+            "CD14+ Monocytes": 480,
+            "CD4 T cells": 1144,
+            "Dendritic cells": 37
+          },
+          "plotted_peak_by_annotation": {
+            "B cells": 1.0,
+            "CD14+ Monocytes": 1.0,
+            "CD4 T cells": 1.0,
+            "Dendritic cells": 1.0
+          },
+          "color_limits": [
+            0.0,
+            1.0
+          ],
+          "contour_levels": [
+            0.02685495852981219,
+            0.05603350247240994,
+            0.11229236386230027,
+            0.22523428564265963,
+            0.35334752630571187,
+            0.4709016833813686,
+            0.594077776016663,
+            0.7066950526114237,
+            0.7660222976711348,
+            0.8316517957348134,
+            0.8902648401410587,
+            1.0
+          ],
+          "normalization_rule": "divide_by_group_peak"
+        },
+        "same_bin_coordinates_and_raw_counts": true,
+        "grid_size": 65,
+        "grid_extent": [
+          -9.676648677138273,
+          4.42933338975498,
+          -5.946500365026074,
+          10.291558600174584
+        ],
+        "smooth_k": 3,
+        "log1p": true
+      },
+      "vote_fraction": {
+        "cells": 662,
+        "minimum": 0.4,
+        "maximum": 1.0,
+        "mean": 0.9047129909365559,
+        "color_limits": [
+          0,
+          1
+        ],
+        "matches_stored_mapping_values": true,
+        "calibrated_probability": false
+      }
+    },
+    "pancreas": {
+      "source": {
+        "name": "CellRank preprocessed pancreas E15.5",
+        "url": "https://ndownloader.figshare.com/files/25030028",
+        "documentation": "https://cellrank.readthedocs.io/en/stable/api/_autosummary/datasets/cellrank.datasets.pancreas.html",
+        "sha256": "e8d672d74f5cbb866fe9b5a7acba828a5a0fa9816331b1ce5a1c1e630de01564",
+        "size_bytes": 146972595,
+        "filename": "cellrank_pancreas_preprocessed.h5ad"
+      },
+      "raw_hash_reverified_at_render": true,
+      "schema": {
+        "shape": [
+          2531,
+          2000
+        ],
+        "obs_columns": [
+          "day",
+          "proliferation",
+          "G2M_score",
+          "S_score",
+          "phase",
+          "clusters_coarse",
+          "clusters",
+          "clusters_fine",
+          "louvain_Alpha",
+          "louvain_Beta",
+          "initial_size_unspliced",
+          "initial_size_spliced",
+          "initial_size",
+          "n_counts",
+          "velocity_self_transition",
+          "dpt_pseudotime"
+        ],
+        "obsm": {
+          "X_diffmap": [
+            2531,
+            15
+          ],
+          "X_pca": [
+            2531,
+            50
+          ],
+          "X_umap": [
+            2531,
+            2
+          ],
+          "velocity_umap": [
+            2531,
+            2
+          ]
+        },
+        "layers": [
+          null,
+          "Ms",
+          "Mu",
+          "fit_t",
+          "fit_tau",
+          "fit_tau_",
+          "spliced",
+          "unspliced",
+          "velocity",
+          "velocity_u"
+        ],
+        "sample_identity_fields": [],
+        "upstream_velocity_params": {
+          "embeddings": [
+            "umap"
+          ],
+          "fit_offset": false,
+          "mode": "dynamical",
+          "mode_neighbors": "distances",
+          "n_recurse_neighbors": 2,
+          "perc": [
+            5,
+            95
+          ]
+        },
+        "upstream_recover_dynamics": {
+          "fit_connected_states": true,
+          "use_raw": false
+        },
+        "observed_day_counts": {
+          "15.5": 2531
+        }
+      },
+      "prepared_files": {
+        "full": {
+          "filename": "pancreas_full.h5ad",
+          "sha256": "a4bb41f49db6c9ab841e7d01e2f8a62bc453c6b2c2bfd07d2a0b9c74491df81d",
+          "n_cells": 2531
+        }
+      },
+      "observed_cluster_counts": {
+        "Beta": 591,
+        "Fev+": 587,
+        "Ngn3 high EP": 529,
+        "Alpha": 477,
+        "Epsilon": 139,
+        "Ngn3 low EP": 138,
+        "Delta": 70
+      },
+      "same_estimated_field_in_both_modes": true,
+      "velocity_scope": "All supplied pancreas cells at the recorded single embryonic time point; original upstream X_umap and velocity_umap, no refit, new projection, inferred pseudotime, or fabricated condition contrast.",
+      "velocity": {
+        "grid": {
+          "grid_size": [
+            32,
+            32
+          ],
+          "grid_extent": [
+            -14.249540328979492,
+            14.272940635681152,
+            -7.17041540145874,
+            10.206693649291992
+          ],
+          "n_neighbors": 30,
+          "min_neighbors": 5,
+          "radius": 1.2681592563264794,
+          "radius_source": "1.5 * median source kth-neighbor distance",
+          "min_coherence": 0.2,
+          "scale_requested": 7.0,
+          "scale_resolved": 7.0,
+          "stream_segments_checked": 0,
+          "stream_segments_removed": 0,
+          "stream_paths_rendered": 0,
+          "grid_arrows_rendered": 546,
+          "eligible_cells": 2531,
+          "grid_nodes": 1024,
+          "supported_nodes": 546,
+          "support_reason_counts": {
+            "supported": 546,
+            "insufficient_neighbors;no_vector;undefined_coherence": 437,
+            "insufficient_neighbors": 39,
+            "low_coherence": 2
+          },
+          "path_vertices": 0,
+          "exported_paths": 0,
+          "displayed_vectors": 546,
+          "supplied_coordinates_and_vectors_preserved": true
+        },
+        "stream": {
+          "grid_size": [
+            32,
+            32
+          ],
+          "grid_extent": [
+            -14.249540328979492,
+            14.272940635681152,
+            -7.17041540145874,
+            10.206693649291992
+          ],
+          "n_neighbors": 30,
+          "min_neighbors": 5,
+          "radius": 1.2681592563264794,
+          "radius_source": "1.5 * median source kth-neighbor distance",
+          "min_coherence": 0.2,
+          "scale_requested": 7.0,
+          "scale_resolved": null,
+          "stream_segments_checked": 548,
+          "stream_segments_removed": 3,
+          "stream_paths_rendered": 42,
+          "grid_arrows_rendered": 0,
+          "eligible_cells": 2531,
+          "grid_nodes": 1024,
+          "supported_nodes": 546,
+          "support_reason_counts": {
+            "supported": 546,
+            "insufficient_neighbors;no_vector;undefined_coherence": 437,
+            "insufficient_neighbors": 39,
+            "low_coherence": 2
+          },
+          "path_vertices": 587,
+          "exported_paths": 42,
+          "displayed_vectors": 41,
+          "supplied_coordinates_and_vectors_preserved": true
+        }
+      }
+    }
+  },
+  "exports": {
+    "pbmc": {
+      "alluvial": {
+        "figures": {
+          "png": {
+            "file": "real_pbmc_alluvial.png",
+            "size_bytes": 237201,
+            "sha256": "948a81358172ea893fa01f39f5cb64d051ffdd6470f14ff26169eda7bfba2cff"
+          },
+          "svg": {
+            "file": "real_pbmc_alluvial.svg",
+            "size_bytes": 24171,
+            "sha256": "f4d3717ea94807180575b9d0651af3ffc45273b10fa78c571311907dc9096cd1"
+          },
+          "pdf": {
+            "file": "real_pbmc_alluvial.pdf",
+            "size_bytes": 27242,
+            "sha256": "3d23442649c9dc687720505651a7d628bd777c2ed0c993155ab9c759a38dec67"
+          }
+        },
+        "tables": {
+          "cells": {
+            "file": "real_pbmc_alluvial_cells.csv",
+            "size_bytes": 50490,
+            "sha256": "79f2d8f4d7dae0fa7e6bb0039d0b022b8c77812e85d6cc2db6321f5936391625"
+          },
+          "nodes": {
+            "file": "real_pbmc_alluvial_nodes.csv",
+            "size_bytes": 1973,
+            "sha256": "e2fe25eddd011111b1afddf86b476d39f5dd1f5fa7b0a0962d3e4e02a33af53a"
+          },
+          "links": {
+            "file": "real_pbmc_alluvial_links.csv",
+            "size_bytes": 2480,
+            "sha256": "d931dee2092cd20ffb5d3813f74f7e379aa318f98b7e47604f9d9d0931c23155"
+          },
+          "node_layout": {
+            "file": "real_pbmc_alluvial_node_layout.csv",
+            "size_bytes": 3243,
+            "sha256": "af1f8c593f5ad143dedcc3c28195de2d126b77dd23318d8cfa7803f6c6892b2b"
+          },
+          "link_layout": {
+            "file": "real_pbmc_alluvial_link_layout.csv",
+            "size_bytes": 5187,
+            "sha256": "982a8680550d4d16415d7841e53d876b37ee484bbaf28caddc564492f1ae2a55"
+          },
+          "labels": {
+            "file": "real_pbmc_alluvial_labels.csv",
+            "size_bytes": 1710,
+            "sha256": "bb7935d9f714dc681b16726c9faca7cc293279e531fa29301ca227a46e3a51fa"
+          },
+          "source_observations": {
+            "file": "real_pbmc_alluvial_source_observations.csv",
+            "size_bytes": 81839,
+            "sha256": "c9b8767a8f2aef69800677864b3d472a7c441e57f666197343aec5c6b42a0fa4"
+          }
+        },
+        "metadata": {
+          "file": "real_pbmc_alluvial.json",
+          "size_bytes": 17826,
+          "sha256": "ec206318629e83f20abd8af7e23b1753d643e8993c8081653f32d011896dc864"
+        }
+      },
+      "chord": {
+        "figures": {
+          "png": {
+            "file": "real_pbmc_chord.png",
+            "size_bytes": 301208,
+            "sha256": "999c9dc6acc0568b152d6cf958d74236e79c4ad2785b823211496e1cfb5aaf86"
+          },
+          "svg": {
+            "file": "real_pbmc_chord.svg",
+            "size_bytes": 31753,
+            "sha256": "b5744b3782e0c93b4568b27d8064416c40353c842a3c0c4f3dd4aa440fec3fe1"
+          },
+          "pdf": {
+            "file": "real_pbmc_chord.pdf",
+            "size_bytes": 32675,
+            "sha256": "082ce17ce3e63b7c741678c96768c08ca94910307166ceb93fc6d07b503e8c66"
+          }
+        },
+        "tables": {
+          "cells": {
+            "file": "real_pbmc_chord_cells.csv",
+            "size_bytes": 50490,
+            "sha256": "79f2d8f4d7dae0fa7e6bb0039d0b022b8c77812e85d6cc2db6321f5936391625"
+          },
+          "nodes": {
+            "file": "real_pbmc_chord_nodes.csv",
+            "size_bytes": 1973,
+            "sha256": "e2fe25eddd011111b1afddf86b476d39f5dd1f5fa7b0a0962d3e4e02a33af53a"
+          },
+          "links": {
+            "file": "real_pbmc_chord_links.csv",
+            "size_bytes": 2480,
+            "sha256": "d931dee2092cd20ffb5d3813f74f7e379aa318f98b7e47604f9d9d0931c23155"
+          },
+          "node_layout": {
+            "file": "real_pbmc_chord_node_layout.csv",
+            "size_bytes": 4205,
+            "sha256": "c28630b3fe0f9e12a9b4d3557f72436a55806d033a632d59b73451fcbede0487"
+          },
+          "link_layout": {
+            "file": "real_pbmc_chord_link_layout.csv",
+            "size_bytes": 4344,
+            "sha256": "14185108a5e82340d82ee30066063cfa9936fe83192c9cae29bd1ebbe872a3f2"
+          },
+          "labels": {
+            "file": "real_pbmc_chord_labels.csv",
+            "size_bytes": 2258,
+            "sha256": "e21f3b44ef213a7e1d5cbc841201cedbe1cd3bf460704b195ca6adcba2a48ea6"
+          },
+          "source_observations": {
+            "file": "real_pbmc_chord_source_observations.csv",
+            "size_bytes": 81839,
+            "sha256": "c9b8767a8f2aef69800677864b3d472a7c441e57f666197343aec5c6b42a0fa4"
+          }
+        },
+        "metadata": {
+          "file": "real_pbmc_chord.json",
+          "size_bytes": 18013,
+          "sha256": "5ca1fa76b092d73cc5d162663faa17808d305e01c0bdb5c42b8c533e3fc6a397"
+        }
+      },
+      "density": {
+        "figures": {
+          "png": {
+            "file": "real_pbmc_density.png",
+            "size_bytes": 487576,
+            "sha256": "16de27e518f6bfedee9ecd770f7d07afc66dff47f6cdc30bd9eb4246a0b9bcdb"
+          },
+          "svg": {
+            "file": "real_pbmc_density.svg",
+            "size_bytes": 370574,
+            "sha256": "0d4978a21bffb9e9f711ce8ea6e4163fefe177c0a82227ea8260249ebbf5b824"
+          },
+          "pdf": {
+            "file": "real_pbmc_density.pdf",
+            "size_bytes": 80776,
+            "sha256": "c70c2788dc391d6ceff6f24198818fa72b07908164c6093823cbd1d8204f4be4"
+          }
+        },
+        "tables": {
+          "common_cells": {
+            "file": "real_pbmc_density_common_cells.csv",
+            "size_bytes": 321991,
+            "sha256": "27e20ec9eabda6df2f1d1ff1d7760c285b73f10cbfacb7a3a5f6469f1dcbbec1"
+          },
+          "common_grid": {
+            "file": "real_pbmc_density_common_grid.csv",
+            "size_bytes": 2811010,
+            "sha256": "414814306f761fcdec73e546cb387367baf398bdba7c14f3a2cbbc54235199d7"
+          },
+          "common_groups": {
+            "file": "real_pbmc_density_common_groups.csv",
+            "size_bytes": 525,
+            "sha256": "6c0f0b7c1c9ee4b5073eae7ef9cd491ff81d7bbdef5b5ed51a94298640db9ae2"
+          },
+          "common_contour_levels": {
+            "file": "real_pbmc_density_common_contour_levels.csv",
+            "size_bytes": 1668,
+            "sha256": "a8150562eebc0c2b1b752e9aebd0c1db434f1611c57ce60c4eba8f004fe86ee4"
+          },
+          "relative_cells": {
+            "file": "real_pbmc_density_relative_cells.csv",
+            "size_bytes": 321991,
+            "sha256": "27e20ec9eabda6df2f1d1ff1d7760c285b73f10cbfacb7a3a5f6469f1dcbbec1"
+          },
+          "relative_grid": {
+            "file": "real_pbmc_density_relative_grid.csv",
+            "size_bytes": 2811176,
+            "sha256": "b61115f3dc4bb781f09444fdaea9d89040905c6dd432cc13b53f788150f4a9ac"
+          },
+          "relative_groups": {
+            "file": "real_pbmc_density_relative_groups.csv",
+            "size_bytes": 521,
+            "sha256": "7eb67a6b1e2f4fb6e0f564fb34b44d5f917b33c76a56e401630382c2248e87a2"
+          },
+          "relative_contour_levels": {
+            "file": "real_pbmc_density_relative_contour_levels.csv",
+            "size_bytes": 1620,
+            "sha256": "a2280d686d7367e7fcd46fc9918799eae40012e31ca1eedddad0c58cedb679a2"
+          },
+          "source_observations": {
+            "file": "real_pbmc_density_source_observations.csv",
+            "size_bytes": 162017,
+            "sha256": "11b7036ba343a60a45eab411845873ce58a2cefee8dc57b056ebc06a5dd9fc17"
+          }
+        },
+        "metadata": {
+          "file": "real_pbmc_density.json",
+          "size_bytes": 21435,
+          "sha256": "7cacabea2f58dde5654bb5c6f1cbf5548d1641e32e9c7820bfc38d820b344c39"
+        }
+      },
+      "vote_fraction": {
+        "figures": {
+          "png": {
+            "file": "real_pbmc_vote_fraction.png",
+            "size_bytes": 185696,
+            "sha256": "85b48c483ff07cf2bfa457635a7b1f9636f07e8ffa09f70e121c76832d2e42d4"
+          },
+          "svg": {
+            "file": "real_pbmc_vote_fraction.svg",
+            "size_bytes": 121742,
+            "sha256": "542a4b8e204d3ba49efbaae96f18d57bcd1f789e589fe4011d5e444749bbf2d7"
+          },
+          "pdf": {
+            "file": "real_pbmc_vote_fraction.pdf",
+            "size_bytes": 40787,
+            "sha256": "fcd29886be019889bf152838226ce8c9effd152f0108954c3b5353b67ef67e0c"
+          }
+        },
+        "tables": {
+          "cells": {
+            "file": "real_pbmc_vote_fraction_cells.csv",
+            "size_bytes": 42492,
+            "sha256": "6d0598223eaa126ee15aa6950a8421706a2c74cbf765fcfd0e50dcad44cb6a17"
+          },
+          "source_observations": {
+            "file": "real_pbmc_vote_fraction_source_observations.csv",
+            "size_bytes": 81839,
+            "sha256": "c9b8767a8f2aef69800677864b3d472a7c441e57f666197343aec5c6b42a0fa4"
+          }
+        },
+        "metadata": {
+          "file": "real_pbmc_vote_fraction.json",
+          "size_bytes": 17432,
+          "sha256": "d8749fa1b685817f5e4237ad6e575963f9b83f3681a89dbfd05a9432d5d2c8f0"
+        }
+      }
+    },
+    "pancreas": {
+      "velocity": {
+        "figures": {
+          "png": {
+            "file": "real_pancreas_velocity.png",
+            "size_bytes": 809087,
+            "sha256": "9ebd4a6c6dd879a37eee6c184dfa64c8fd1928b88c3d9c164b1e24f02579b100"
+          },
+          "svg": {
+            "file": "real_pancreas_velocity.svg",
+            "size_bytes": 852846,
+            "sha256": "e8ba41c02d086c33ede6a6cb58b9540864f4835e2e181847f55e9f41e77c227d"
+          },
+          "pdf": {
+            "file": "real_pancreas_velocity.pdf",
+            "size_bytes": 390899,
+            "sha256": "14c73e0a84cec96ce6246be416e455451204bcbd6375076271403e3414e0805a"
+          }
+        },
+        "tables": {
+          "grid_cells": {
+            "file": "real_pancreas_velocity_grid_cells.csv",
+            "size_bytes": 385260,
+            "sha256": "1336407de64f26c5d0878271c87932189a3b3016138b1d00481e8d25f956c190"
+          },
+          "grid_grid": {
+            "file": "real_pancreas_velocity_grid_grid.csv",
+            "size_bytes": 221457,
+            "sha256": "326c681b71c2ff33ea663ce329745abd9e8c06aecb977014a6d311f8ac0d4ae3"
+          },
+          "grid_vectors": {
+            "file": "real_pancreas_velocity_grid_vectors.csv",
+            "size_bytes": 175394,
+            "sha256": "6d08257a5c3fdd4a6e3d79afd1bf6249cd37796c5813b21f280e4a9a5413cd77"
+          },
+          "grid_paths": {
+            "file": "real_pancreas_velocity_grid_paths.csv",
+            "size_bytes": 42,
+            "sha256": "5c731538dc8aa783e1590dbd9432e8e0fa746a496859d3229a3e81ac9c5a31c5"
+          },
+          "stream_cells": {
+            "file": "real_pancreas_velocity_stream_cells.csv",
+            "size_bytes": 385260,
+            "sha256": "1336407de64f26c5d0878271c87932189a3b3016138b1d00481e8d25f956c190"
+          },
+          "stream_grid": {
+            "file": "real_pancreas_velocity_stream_grid.csv",
+            "size_bytes": 222003,
+            "sha256": "17dd7a2dd8dde496f695ce5a4598f39cee2a43316c2296c5fa442c8027d9c3d9"
+          },
+          "stream_vectors": {
+            "file": "real_pancreas_velocity_stream_vectors.csv",
+            "size_bytes": 7929,
+            "sha256": "30efc48aa72a8b44ed5c0ed7e3085c39bd73a0dcb886aa67871562082f4c7956"
+          },
+          "stream_paths": {
+            "file": "real_pancreas_velocity_stream_paths.csv",
+            "size_bytes": 27379,
+            "sha256": "deac473a626e9bbaa3a485f121fb668dc29523146ed9dbb8de5e90040d9dbb83"
+          },
+          "source_observations": {
+            "file": "real_pancreas_velocity_source_observations.csv",
+            "size_bytes": 367028,
+            "sha256": "52d5d808fcb5102c660547531618fd5cbf03579deaa7d75bc4c07f93fd423171"
+          }
+        },
+        "metadata": {
+          "file": "real_pancreas_velocity.json",
+          "size_bytes": 107187,
+          "sha256": "b5504bb72897da319a617fffbc3778451812350542f512e757d7f9f9ae6957fc"
+        }
+      }
+    }
+  },
+  "all_export_audits_passed": true
+}

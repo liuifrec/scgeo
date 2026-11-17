@@ -39,6 +39,7 @@ from ._result import PlotResult, export_figure
 from ._robustness_matrix import robustness_matrix
 from ._score import score_embedding, score_umap
 from ._state_flow_alluvial import state_flow_alluvial
+from ._state_flow_chord import state_flow_chord
 from ._state_flow_sankey import state_flow_sankey
 from ._style import category_palette, style_context
 from ._velocity_field import velocity_field
@@ -85,6 +86,7 @@ __all__ = [
     "recovery_compass",
     "state_flow_sankey",
     "state_flow_alluvial",
+    "state_flow_chord",
     "paga_scgeo",
     "state_evidence_panel",
     "representation_stability_heatmap",

@@ -38,3 +38,7 @@ data/
 *.pkl
 *.npz
 .ipynb_checkpoints/
+
+results/state_flow/
+results/real_data_plotting/
+data/plotting_public/

@@ -6,6 +6,8 @@ contrasts, and export the exact plotted tables with your figure.
 [Gallery](PLOTTING_GALLERY.md) · [PAGA shift maps](PAGA_SHIFT_MAP.md) · [Velocity fields](VELOCITY_FIELDS.md) · [Plotting API](api/pl.md) ·
 [Interpretation](RESULT_INTERPRETATION.md) · [Citation guide](CITING.md)
 
+[State associations and density](STATE_FLOW_AND_DENSITY.md) · [Real-data examples](REAL_DATA_PLOTTING.md)
+
 ## Availability and installation
 
 The plotting additions on this page are **unreleased development features**.
@@ -20,8 +22,9 @@ python examples/plotting_gallery.py --output-dir results/plotting_gallery
 ```
 
 Record the commit printed by Git together with your analysis settings. The
-examples use core dependencies and synthetic inputs; no dataset download is
-required. The manuscript's frozen checkpoints are listed in
+synthetic examples use core dependencies and require no dataset download.
+The separate [real-data gallery](REAL_DATA_PLOTTING.md) accepts verified local
+public inputs or an explicit download request. The manuscript's frozen checkpoints are listed in
 [Reproducibility](REPRODUCIBILITY.md).
 
 ## One evidence figure, several distinct questions
@@ -85,7 +88,8 @@ available for `state_evidence_panel`, `representation_stability_heatmap`,
 `consensus_state_map`, `local_distortion_map`, `composition_drift`,
 `gallery_overview`, `robustness_matrix`, `velocity_shift_alignment`,
 `score_embedding`/`score_umap`, `evidence_comparison`, `replicate_effect`,
-`paga_shift_map`/`paga_scgeo`, and `velocity_field`.
+`paga_shift_map`/`paga_scgeo`, `velocity_field`, `state_flow_alluvial`,
+`state_flow_chord`, and `embedding_density`.
 Other plotting functions retain their documented interfaces.
 
 ## Compose panels in your own figure
@@ -121,6 +125,8 @@ Common named axes are:
 | Stored velocity alignment | `overlay`, `alignment` |
 | PAGA shift map | `map`, optional `colorbar` |
 | Local velocity field | `field`, optional `colorbar` |
+| State associations | `alluvial` or `chord` |
+| Embedding density | `density:<group>`, optional `colorbar` |
 | Contrast comparison | Contrast labels |
 | Biological replicates | State labels |
 | Robustness | `heatmap`, optional `summary` |
