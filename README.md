@@ -34,6 +34,8 @@ projected-velocity, PAGA, and stored evidence views, without rerunning an
 analysis:
 
 ```python
+import scgeo as sg
+
 result = sg.pl.geometry_dynamics_atlas(adata, color="cell_type", panels="auto", show=False)
 result.save("geometry_dynamics", formats=("pdf", "svg", "png"))
 ```

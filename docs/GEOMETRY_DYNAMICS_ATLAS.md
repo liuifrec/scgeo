@@ -98,7 +98,10 @@ is accepted as an alias for the PAGA panel.
 | `evidence` | Explicitly supplied precomputed ScGeo state report | Stored raw/normalized displacement magnitudes, eligibility and matching stored intervals, never estimated from UMAP positions |
 
 The embedding limits are shared across the first three panels. Categorical
-colors are stable; when `color` is the same as `node_key`, the PAGA nodes and
+colors reuse Scanpy's `adata.uns['<color>_colors']` when present and valid,
+otherwise they use ScGeo's deterministic label palette. Provide an explicit
+`palette` for curated publication colors. When `color` is the same as
+`node_key`, the PAGA nodes and
 evidence markers reuse the state colors. If `color` is numeric, its colorbar is
 specific to the states panel. The PAGA layout remains an overlay of the original
 existing graph; it does not alter topology or group counts.

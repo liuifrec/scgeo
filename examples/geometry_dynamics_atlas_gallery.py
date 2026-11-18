@@ -81,6 +81,8 @@ def run_gallery(output_dir, formats=("png", "svg", "pdf"), *, pbmc=None, pancrea
     adata = make_gallery_data(seed=17)
     states = ["State A", "State B", "State C"]
     adata.obs["state"] = pd.Categorical(adata.obs["state"], categories=states)
+    # Demonstrate reuse of Scanpy's standard categorical color convention.
+    adata.uns["state_colors"] = ["#3474A6", "#D7834B", "#419C91"]
     adata.uns["paga"] = {
         "groups": "state",
         "connectivities": sparse.csr_matrix([

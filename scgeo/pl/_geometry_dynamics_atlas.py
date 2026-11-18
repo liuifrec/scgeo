@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib.lines import Line2D
+from matplotlib.colors import is_color_like
 
 from ._result import PlotResult
 from ._style import category_palette, style_context
@@ -277,12 +278,26 @@ def geometry_dynamics_atlas(
         chosen, omitted = requested, {}
     if color is not None and not is_numeric:
         obs_colors, categories, missing_label = _get_categories(adata.obs[color])
-        colors = category_palette(categories, palette)
-        if missing_label is not None and palette is None:
-            colors[missing_label] = "#AEB5BB"
+        stored_palette = None
+        palette_origin = "explicit" if palette is not None else "stable_hash"
+        if palette is None and isinstance(adata.obs[color].dtype, pd.CategoricalDtype):
+            levels = [str(k) for k in adata.obs[color].cat.categories]
+            stored = adata.uns.get(f"{color}_colors")
+            if (stored is not None and len(stored) == len(levels)
+                    and all(is_color_like(c) for c in stored)):
+                stored_palette = dict(zip(levels, stored))
+                palette_origin = f"adata.uns['{color}_colors']"
+        if stored_palette is not None:
+            if missing_label is not None:
+                stored_palette[missing_label] = "#AEB5BB"
+            colors = category_palette(categories, stored_palette)
+        else:
+            colors = category_palette(categories, palette)
+            if missing_label is not None and palette is None:
+                colors[missing_label] = "#AEB5BB"
     else:
         obs_colors, categories, missing_label = None, [], None
-        colors = {}
+        colors, palette_origin = {}, "none"
         if palette is not None:
             raise ValueError("palette is only used for categorical color.")
     report_all, report_shown, metric = None, None, None
@@ -405,7 +420,7 @@ def geometry_dynamics_atlas(
                     positions = chosen_indices[highlighted[chosen_indices]]
                     artists["states_highlight"] = ax.scatter(
                         xy[positions, 0], xy[positions, 1], facecolors="none",
-                        edgecolors="#152B40", linewidths=0.55, s=16, alpha=0.9)
+                        edgecolors="#152B40", linewidths=0.38, s=14, alpha=0.7)
                 if label_states and node_key is not None:
                     states = list(pd.unique(cell_state[finite].dropna()))
                     if len(states) <= 14:
@@ -419,7 +434,8 @@ def geometry_dynamics_atlas(
                 ax.set_title("Cell-state landscape" if color is None else f"Cell-state landscape · {color}")
                 panel_provenance[panel] = {"color_key": color, "color_type": "numeric" if is_numeric else
                                            "categorical" if color else "none", "drawn": len(chosen_indices),
-                                           "palette": colors, "label_states": label_states}
+                                           "palette": colors, "palette_origin": palette_origin,
+                                           "label_states": label_states}
             elif panel == "velocity":
                 from ._velocity_field import velocity_field
                 velocity_kwargs = {

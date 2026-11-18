@@ -215,6 +215,16 @@ def test_filter_options_block_shared_coordinate_override(data):
         _common(data, paga_options={"basis": "pca"})
 
 
+def test_scanpy_categorical_palette_is_reused_across_panels(data):
+    data.uns["state_colors"] = ["#3474A6", "#D7834B", "#419C91"]
+    result = _common(data, panels=("states", "paga"))
+    palette = result.metadata["panel_provenance"]["states"]["palette"]
+    assert palette == {"C": "#3474A6", "A": "#D7834B", "B": "#419C91"}
+    assert result.metadata["panel_provenance"]["states"]["palette_origin"] == "adata.uns['state_colors']"
+    paga = result.metadata["panel_provenance"]["paga"]["node_palette"]
+    assert all(paga[key] == value for key, value in palette.items())
+
+
 def test_numeric_obs_coloring_and_missing_categories(data):
     data.obs["state2"] = data.obs.state.astype(object)
     data.obs.loc[data.obs.index[:5], "state2"] = None
