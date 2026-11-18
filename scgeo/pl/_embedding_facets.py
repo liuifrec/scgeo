@@ -18,7 +18,7 @@ from matplotlib.lines import Line2D
 from ._result import PlotResult
 from ._style import category_palette, style_context
 from ._table_plot_utils import panel_axes
-from ._utils import display_indices, resolve_embedding
+from ._utils import display_indices, resolve_embedding, observation_labels as _labels
 from ._velocity_grid import (
     _field_style,
     _grid_shape,
@@ -33,28 +33,6 @@ _FIELD_ALLOWED = {
     "scale", "color", "color_by", "cmap", "arrow_linewidth",
     "arrow_head_size", "stream_density", "stream_linewidth", "alpha",
 }
-
-
-def _labels(series, name):
-    """Keep true missing entries apart from literal labels such as 'NA'."""
-    raw = pd.Series(series).reset_index(drop=True)
-    present = pd.unique(raw.dropna().astype(object))
-    names = [str(x) for x in present]
-    if len(names) != len(set(names)):
-        raise ValueError(f"{name} has distinct values with colliding text labels.")
-    missing = "(missing)"
-    while missing in names:
-        missing = f"({missing})"
-    mapped = raw.map(lambda x: missing if pd.isna(x) else str(x))
-    if isinstance(series.dtype, pd.CategoricalDtype):
-        ordered = [str(x) for x in series.cat.categories if str(x) in names]
-        if len(ordered) != len(set(ordered)):
-            raise ValueError(f"{name} has colliding categorical levels.")
-    else:
-        ordered = names
-    if raw.isna().any():
-        ordered.append(missing)
-    return mapped, ordered, missing if raw.isna().any() else None
 
 
 def _order(observed, requested, name):

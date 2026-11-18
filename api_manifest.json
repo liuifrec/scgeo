@@ -313,30 +313,30 @@
     },
     {
       "name": "scgeo.pl.mapping_confidence_umap",
-      "signature": "(adata, conf_key: 'str' = 'map_confidence', *, basis: 'str' = 'umap', highlight_low_k: 'Optional[int]' = 200, title: 'Optional[str]' = None, show: 'bool' = True)",
-      "doc": "",
-      "docstring": "",
+      "signature": "(adata, conf_key: 'str' = 'map_confidence', *, basis: 'str' = 'umap', highlight_low_k: 'Optional[int]' = 200, title: 'Optional[str]' = None, show: 'bool' = True, ax=None, colorbar: 'bool' = True, cax=None, norm=None, vmin=None, vmax=None, return_data: 'bool' = False, return_result: 'bool' = False)",
+      "doc": "Show stored confidence and the lowest finite scores on any embedding.",
+      "docstring": "Show stored confidence and the lowest finite scores on any embedding.\n\nLowest-score selection uses all finite input scores, with input order for\nties. Selected cells lacking finite coordinates remain in the source table.\nThe legacy return remains ``(fig, array([ax]))``; ``return_data`` appends\nthe cell table and ``return_result`` enables figure/source exports.",
       "source": "scgeo/pl/_mapping_qc.py"
     },
     {
       "name": "scgeo.pl.mapping_qc_panel",
-      "signature": "(adata, *, pred_key: 'str' = 'map_pred', conf_key: 'str' = 'map_confidence', ood_key: 'str' = 'map_ood_score', basis: 'str' = 'umap', show: 'bool' = True, palette_from: 'str | None' = None, condition_key: 'str | None' = None, query_value: 'str | None' = None, show_ref_as_grey: 'bool' = True, return_legend_data: 'bool' = False)",
-      "doc": "",
-      "docstring": "",
+      "signature": "(adata, *, pred_key: 'str' = 'map_pred', conf_key: 'str' = 'map_confidence', ood_key: 'str' = 'map_ood_score', basis: 'str' = 'umap', show: 'bool' = True, palette_from: 'str | None' = None, condition_key: 'str | None' = None, query_value: 'str | None' = None, show_ref_as_grey: 'bool' = True, return_legend_data: 'bool' = False, axes=None, colorbar: 'bool' = True, return_data: 'bool' = False, return_result: 'bool' = False)",
+      "doc": "Compose predictions, confidence and OOD scores from stored obs columns.",
+      "docstring": "Compose predictions, confidence and OOD scores from stored obs columns.\n\n``axes`` names are ``prediction``, ``confidence``, ``ood``; when colorbars\nare enabled on supplied axes, also provide ``confidence_colorbar`` and\n``ood_colorbar``. Reference colors are reused for matching predictions;\nnovel labels receive deterministic colors and are never omitted. True\nmissing values remain separate from literal labels such as ``'nan'``.\nQuery filtering applies only to predictions; both scalar panels use all\ninput observations. No mapping model or threshold is computed here.\n\nLegacy ``(fig, axes)`` and ``return_legend_data`` returns are preserved.\n``return_data`` appends all source tables; ``return_result`` takes priority.",
       "source": "scgeo/pl/_mapping_qc.py"
     },
     {
       "name": "scgeo.pl.ood_cells",
-      "signature": "(adata, ood_key: 'str' = 'map_ood_score', *, basis: 'str' = 'umap', threshold: 'Optional[float]' = None, show_only_flagged: 'bool' = False, title: 'Optional[str]' = None, show: 'bool' = True)",
-      "doc": "",
-      "docstring": "",
+      "signature": "(adata, ood_key: 'str' = 'map_ood_score', *, basis: 'str' = 'umap', threshold: 'Optional[float]' = None, show_only_flagged: 'bool' = False, title: 'Optional[str]' = None, show: 'bool' = True, ax=None, colorbar: 'bool' = True, cax=None, cmap: 'str' = 'viridis', norm=None, vmin=None, vmax=None, return_data: 'bool' = False, return_result: 'bool' = False)",
+      "doc": "Display stored OOD scores or cells above an explicitly supplied threshold.",
+      "docstring": "Display stored OOD scores or cells above an explicitly supplied threshold.\n\nNo threshold is inferred: ``threshold=None`` draws all cells, as before,\nand exports nullable flags. With ``show_only_flagged=True`` and a threshold,\nthe legacy monochrome flagged-cell view is retained (no numeric colorbar).\nDefault returns ``(fig, array([ax]))``; data/results are opt-in.",
       "source": "scgeo/pl/_mapping_qc.py"
     },
     {
       "name": "scgeo.pl.ood_landscape",
-      "signature": "(adata, *, ood_key: 'str' = 'scgeo_ood', basis: 'str' = 'umap', threshold: 'Optional[float]' = None, show_only_flagged: 'bool' = False, flagged_outline: 'bool' = True, flagged_size: 'float' = 28.0, flagged_lw: 'float' = 0.8, bg_size: 'float' = 6.0, bg_alpha: 'float' = 0.12, score_size: 'float' = 10.0, score_alpha: 'float' = 0.85, cmap: 'str' = 'magma', contour: 'bool' = True, contour_quantile: 'float' = 0.95, contour_levels: 'int' = 1, contour_color: 'str' = 'cyan', contour_lw: 'float' = 1.6, contour_alpha: 'float' = 0.95, contour_gridsize: 'int' = 150, groupby: 'Optional[str]' = None, top_n_groups: 'int' = 10, summary_kind: 'str' = 'flagged_frac', figsize: 'tuple[float, float]' = (10.5, 5.2), title: 'Optional[str]' = None, ax=None, return_data: 'bool' = False, show: 'bool' = True)",
+      "signature": "(adata, *, ood_key: 'str' = 'scgeo_ood', basis: 'str' = 'umap', threshold: 'Optional[float]' = None, show_only_flagged: 'bool' = False, flagged_outline: 'bool' = True, flagged_size: 'float' = 28.0, flagged_lw: 'float' = 0.8, bg_size: 'float' = 6.0, bg_alpha: 'float' = 0.12, score_size: 'float' = 10.0, score_alpha: 'float' = 0.85, cmap: 'str' = 'magma', contour: 'bool' = True, contour_quantile: 'float' = 0.95, contour_levels: 'int' = 1, contour_color: 'str' = 'cyan', contour_lw: 'float' = 1.6, contour_alpha: 'float' = 0.95, contour_gridsize: 'int' = 150, groupby: 'Optional[str]' = None, top_n_groups: 'int' = 10, summary_kind: 'str' = 'flagged_frac', figsize: 'tuple[float, float]' = (10.5, 5.2), title: 'Optional[str]' = None, ax=None, return_data: 'bool' = False, show: 'bool' = True, axes=None, colorbar: 'bool' = True, cax=None, norm=None, vmin=None, vmax=None, return_result: 'bool' = False)",
       "doc": "Plot a continuous OOD landscape on an embedding, with optional contour and optional right-side group summary.",
-      "docstring": "Plot a continuous OOD landscape on an embedding, with optional contour and\noptional right-side group summary.\n\nParameters\n----------\nadata\n    AnnData with embedding in ``adata.obsm`` and numeric OOD scores in ``adata.obs``.\nood_key\n    Observation column containing numeric OOD scores.\nbasis\n    Embedding basis, e.g. ``'umap'`` or ``'X_umap'``.\nthreshold\n    OOD threshold for flagged cells. If None, uses the 95th percentile.\nshow_only_flagged\n    If True, only plot flagged cells in the score layer.\ngroupby\n    Optional obs column for a right-side group summary.\nsummary_kind\n    One of ``{'flagged_frac', 'flagged_n', 'mean_score', 'median_score'}``.\nreturn_data\n    If True, return computed summary artifacts.",
+      "docstring": "Plot a continuous OOD landscape on an embedding, with optional contour and\noptional right-side group summary.\n\nParameters\n----------\nadata\n    AnnData with embedding in ``adata.obsm`` and numeric OOD scores in ``adata.obs``.\nood_key\n    Observation column containing numeric OOD scores.\nbasis\n    Embedding basis, e.g. ``'umap'`` or ``'X_umap'``.\nthreshold\n    OOD threshold for flagged cells. If None, uses the 95th percentile.\nshow_only_flagged\n    If True, only plot flagged cells in the score layer.\ngroupby\n    Optional obs column for a right-side group summary.\nsummary_kind\n    One of ``{'flagged_frac', 'flagged_n', 'mean_score', 'median_score'}``.\nreturn_data\n    If True, return computed summary artifacts.\naxes\n    Optional mapping containing ``landscape`` and, with groupby, ``summary``.\n    Add ``colorbar`` to place the scale explicitly. Do not combine with ax.\nreturn_result\n    Export source cells, full group summaries, actual contour bin means,\n    counts and edges. Contours/thresholds are descriptive, not a test.",
       "source": "scgeo/pl/_ood_landscape.py"
     },
     {

@@ -355,6 +355,46 @@ shown separately. A completely unavailable row has an unavailable pass rate.
 Select `missing_policy='fail'` for the historical policy that counts missing
 settings as failures. Both policies are recorded in the returned metadata.
 
+## Mapping and descriptive OOD displays
+
+`mapping_confidence_umap` accepts any stored embedding, including an `X_`
+prefix, despite its historical name. Low-score selection uses finite scores
+from all cells; selected cells without finite coordinates remain in exported
+sources with `highlighted=False`. Ties follow input order.
+
+`mapping_qc_panel` composes on axes named `prediction`, `confidence`, `ood`,
+plus `confidence_colorbar` and `ood_colorbar` when colorbars are enabled. Use
+`colorbar=False` to omit scales. Reference Scanpy colors are reused where
+available; novel labels receive deterministic colors and stay visible. Query
+filtering applies only to predictions; scalar panels use all observations.
+The exported legend counts include cells without drawable coordinates.
+
+```python
+result = sg.pl.mapping_qc_panel(
+    adata, basis="umap", palette_from="reference_labels",
+    condition_key="dataset", query_value="query",
+    return_result=True, show=False,
+)
+result.save("figures/mapping_qc", formats=("png", "svg", "pdf"))
+```
+
+`ood_cells` never infers a threshold: without one, exported flags are unknown.
+With a threshold, missing scores remain unknown; the historical monochrome
+`show_only_flagged=True` view is retained. `ood_landscape` retains its historical
+95th-percentile default (over finite input scores), with that choice recorded.
+Its optional contours represent means within display-coordinate bins supported
+by at least three cells; they are descriptive, not inferential boundaries.
+Source exports contain every bin's location, count, mean, support status and
+edges, plus exact contour levels and reasons for absent contours. Group
+fractions retain all input group cells in their denominator, including cells
+with unavailable scores (which are not flagged). No statistical test is fitted.
+
+For caller-owned OOD summaries, pass `axes={"landscape": ax, "summary": summary_ax,
+"colorbar": cax}`. All four mapping/OOD renderers support `return_result=True`
+and retain their historical default returns. The executable
+[legacy gallery](../examples/legacy_plotting_gallery.py) uses only synthetic
+scores and explicitly labels them as illustrative; it fits no mapping model.
+
 ## Style, display size, and export
 
 Use `style_context('paper')` or `style_context('presentation')` for scoped font,

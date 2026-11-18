@@ -139,7 +139,7 @@ jobs:
           tests/test_plot_composition_upgrades.py tests/test_comparison_replicate_plots.py
           tests/test_score_panel_upgrades.py tests/test_alignment_panel.py
           tests/test_composition_evidence_exports.py tests/test_paga_composition_plots.py tests/test_distribution_test_volcano.py
-          tests/test_summary_plot_exports.py tests/test_pl_density_overlap.py tests/test_pl_distribution_test.py tests/test_distribution_report.py tests/test_density_overlap_plot.py
+          tests/test_mapping_ood_exports.py tests/test_summary_plot_exports.py tests/test_pl_density_overlap.py tests/test_pl_distribution_test.py tests/test_distribution_report.py tests/test_density_overlap_plot.py
           tests/test_ambiguity_panel.py tests/test_consensus_panel.py tests/test_highlight_topk_cells.py
           tests/test_paga_visual_upgrades.py tests/test_velocity_field.py
           tests/test_state_flow_upgrades.py tests/test_density_visual_upgrades.py tests/test_geometry_velocity_interpretation.py tests/test_geometry_dynamics_atlas.py tests/test_embedding_facets.py tests/test_state_reporting.py

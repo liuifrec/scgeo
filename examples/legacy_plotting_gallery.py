@@ -12,6 +12,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import scgeo as sg
 from plotting_gallery import make_gallery_data
 
@@ -20,6 +21,14 @@ def run(output_dir, formats=("png", "svg", "pdf")):
     output_dir = Path(output_dir)
     adata = make_gallery_data()
     adata.obs["illustrative_score"] = np.linalg.norm(adata.obsm["X_toy"], axis=1)
+    rng = np.random.default_rng(17)
+    adata.obs["map_confidence"] = rng.uniform(.1, 1., adata.n_obs)
+    adata.obs["map_ood_score"] = adata.obs["illustrative_score"]
+    predictions = adata.obs["state"].astype(object).to_numpy().copy()
+    query_positions = np.flatnonzero(adata.obs["condition"].eq("treated"))
+    predictions[query_positions[:20]] = "Novel label"
+    predictions[query_positions[20:30]] = None
+    adata.obs["map_pred"] = pd.Categorical(predictions)
     common = dict(condition_key="condition", group0="control", group1="treated", by="state")
     sg.tl.shift(adata, rep="X_toy", sample_key="sample", **common)
     sg.tl.density_overlap(adata, rep="X_display", **common)
@@ -47,6 +56,14 @@ def run(output_dir, formats=("png", "svg", "pdf")):
             metadata={"overlap": overlap.metadata, "ranking": ranking.metadata}))
         save("separate_distribution_metrics", sg.pl.distribution_test(
             adata, level="global", separate_metrics=True, return_result=True, show=False))
+        qc = sg.pl.mapping_qc_panel(adata, basis="display", palette_from="state",
+            condition_key="condition", query_value="treated", return_result=True, show=False)
+        qc.fig.suptitle("Synthetic mapping display · illustrative scores; no mapping model fitted")
+        save("mapping_qc", qc)
+        save("ood_landscape", sg.pl.ood_landscape(adata, basis="display", ood_key="map_ood_score",
+            groupby="state", contour_gridsize=12, contour_quantile=.75,
+            title="Synthetic OOD display · descriptive score threshold",
+            return_result=True, show=False))
     return outputs
 
 

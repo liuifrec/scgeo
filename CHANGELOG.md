@@ -24,6 +24,11 @@
   Global distribution tests can use separate metric axes while preserving the
   historical default return shape.
 
+- Add axes/results to mapping and OOD displays, retaining novel predictions
+  outside reference palettes and distinguishing genuine missing labels. Export
+  exact thresholds, display selections and supported contour bins; correct the
+  contour coordinate transpose without changing the binned-mean estimator.
+
 ## Unreleased flexible embedding and velocity faceting
 
 - Add `pl.embedding_facets` for one- or two-way faceting by any `adata.obs`

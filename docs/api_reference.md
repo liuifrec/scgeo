@@ -2486,10 +2486,33 @@ scgeo.pl.mapping_confidence_umap(
     highlight_low_k: 'Optional[int]' = 200,
     title: 'Optional[str]' = None,
     show: 'bool' = True,
+    ax=None,
+    colorbar: 'bool' = True,
+    cax=None,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
 [View implementation](../scgeo/pl/_mapping_qc.py)
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Show stored confidence and the lowest finite scores on any embedding.
+
+Lowest-score selection uses all finite input scores, with input order for
+ties. Selected cells lacking finite coordinates remain in the source table.
+The legacy return remains ``(fig, array([ax]))``; ``return_data`` appends
+the cell table and ``return_result`` enables figure/source exports.
+```
+
+</details>
 
 ### `scgeo.pl.mapping_qc_panel`
 
@@ -2509,10 +2532,35 @@ scgeo.pl.mapping_qc_panel(
     query_value: 'str | None' = None,
     show_ref_as_grey: 'bool' = True,
     return_legend_data: 'bool' = False,
+    axes=None,
+    colorbar: 'bool' = True,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
 [View implementation](../scgeo/pl/_mapping_qc.py)
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Compose predictions, confidence and OOD scores from stored obs columns.
+
+``axes`` names are ``prediction``, ``confidence``, ``ood``; when colorbars
+are enabled on supplied axes, also provide ``confidence_colorbar`` and
+``ood_colorbar``. Reference colors are reused for matching predictions;
+novel labels receive deterministic colors and are never omitted. True
+missing values remain separate from literal labels such as ``'nan'``.
+Query filtering applies only to predictions; both scalar panels use all
+input observations. No mapping model or threshold is computed here.
+
+Legacy ``(fig, axes)`` and ``return_legend_data`` returns are preserved.
+``return_data`` appends all source tables; ``return_result`` takes priority.
+```
+
+</details>
 
 ### `scgeo.pl.ood_cells`
 
@@ -2528,10 +2576,34 @@ scgeo.pl.ood_cells(
     show_only_flagged: 'bool' = False,
     title: 'Optional[str]' = None,
     show: 'bool' = True,
+    ax=None,
+    colorbar: 'bool' = True,
+    cax=None,
+    cmap: 'str' = 'viridis',
+    norm=None,
+    vmin=None,
+    vmax=None,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
 [View implementation](../scgeo/pl/_mapping_qc.py)
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Display stored OOD scores or cells above an explicitly supplied threshold.
+
+No threshold is inferred: ``threshold=None`` draws all cells, as before,
+and exports nullable flags. With ``show_only_flagged=True`` and a threshold,
+the legacy monochrome flagged-cell view is retained (no numeric colorbar).
+Default returns ``(fig, array([ax]))``; data/results are opt-in.
+```
+
+</details>
 
 ### `scgeo.pl.ood_landscape`
 
@@ -2568,6 +2640,13 @@ scgeo.pl.ood_landscape(
     ax=None,
     return_data: 'bool' = False,
     show: 'bool' = True,
+    axes=None,
+    colorbar: 'bool' = True,
+    cax=None,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -2599,6 +2678,12 @@ summary_kind
     One of ``{'flagged_frac', 'flagged_n', 'mean_score', 'median_score'}``.
 return_data
     If True, return computed summary artifacts.
+axes
+    Optional mapping containing ``landscape`` and, with groupby, ``summary``.
+    Add ``colorbar`` to place the scale explicitly. Do not combine with ax.
+return_result
+    Export source cells, full group summaries, actual contour bin means,
+    counts and edges. Contours/thresholds are descriptive, not a test.
 ```
 
 </details>

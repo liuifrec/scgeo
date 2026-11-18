@@ -23,6 +23,17 @@ changed by this work.
    background now share a scale; histograms use all input finite scores and
    export their exact edges/counts. Existing tuple returns remain the default.
 
+4. Upgraded composition/volcano evidence plots to retain missing values, validate
+   probabilities and preserve source scales. Added complete exports and named
+   composition axes without changing any statistical method.
+
+5. Extended distribution, overlap, ranking and report views with exact source
+   tables and caller-owned axes; added independent global metric scales and
+   corrected observation fallback and category legends.
+6. Extended mapping/OOD views, retaining novel predictions outside a reference
+   palette and true missing labels. Exported threshold/selection provenance and
+   actual contour bin counts/means; corrected transposed contour coordinates.
+
 The table describes interface coverage, **not a claim that every scientific or
 visual edge case is resolved**. `Yes` means `return_result=True` is available.
 `Missing` identifies remaining work. The Plotly and bundle contracts are
@@ -54,15 +65,15 @@ intentional and should not be replaced with another implementation.
 | `paga_composition_volcano` | ax | Yes | Now exports untouched sources/point transforms; missing evidence stays missing; raw OR uses null one. |
 | `paga_composition_bar` | ax | Yes | Now exports selection/order/source values; unavailable effects/probabilities receive explicit labels. |
 | `paga_composition_panel` | axes | Yes | Now composes the upgraded child renderers on named axes with complete source provenance. |
-| `mapping_confidence_umap` | Missing | Missing | Add axes/results; use canonical embedding resolver and finite-value low-score selection. |
-| `ood_cells` | Missing | Missing | Add axes/results and explicit threshold/display provenance; accept X-prefixed bases. |
-| `mapping_qc_panel` | Missing | Missing | Add named axes/results; retain labels absent from a reference palette and genuine missingness. |
+| `mapping_confidence_umap` | ax | Yes | Lowest finite scores; full selection/display identity and explicit colorbar axes. |
+| `ood_cells` | ax | Yes | Explicit threshold provenance; unavailable flags stay nullable; X-prefixed bases accepted. |
+| `mapping_qc_panel` | axes | Yes | Novel reference-palette labels retained; query and scalar display scopes exported. |
 | `consensus_structure` | ax | Missing | Add result/source tables and colorbar placement; avoid laying out caller figures. |
 | `legend_from_data` | Missing | Missing | Add supplied axes/result with complete entries and explicit truncation. |
 | `_get_scanpy_palette` | n/a | n/a | Exported compatibility palette helper; retain its name. |
 | `_fallback_palette` | n/a | n/a | Exported compatibility palette helper; retain its name. |
 | `paga_shift_map` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
-| `ood_landscape` | ax | Missing | Export cells, threshold, contour grid and omissions; allow supplied summary axes. |
+| `ood_landscape` | ax / axes | Yes | Full cells/summary/contour-bin exports; explicit thresholds, support and omission reasons. |
 | `velocity_shift_alignment` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
 | `velocity_field` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
 | `velocity_condition_compare` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
@@ -80,10 +91,6 @@ intentional and should not be replaced with another implementation.
 | `consensus_state_map` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
 | `perturbation_report` | Bundle | Bundle | Existing multi-figure exporter; strict availability and panel_kwargs already supported. |
 | `local_distortion_map` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
-
-4. Upgraded composition/volcano evidence plots to retain missing values, validate
-   probabilities and preserve source scales. Added complete exports and named
-   composition axes without changing any statistical method.
 
 ## Next reviewable increments
 
