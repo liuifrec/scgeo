@@ -209,6 +209,22 @@ def test_downsample_never_changes_velocity_numeric_grid(data):
     assert full.data["facets"].n_displayed.tolist() == [80, 80, 80]
 
 
+def test_unsupported_facet_exports_its_actual_local_grid(data):
+    missing = data.obs.condition.eq("treated").to_numpy()
+    data.obsm["X_umap"][missing, 0] += 12
+    data.obsm["velocity_umap"][missing] = np.nan
+    result = _plot(data, facet="condition", velocity="grid", shared_limits=False,
+                   velocity_options={"grid_size": (11, 9)})
+    panel = result.data["facets"].iloc[0]
+    grid = result.data["velocity_grid"].query("facet_id == 'panel_00'")
+    np.testing.assert_allclose(grid.x.unique(), np.linspace(panel.x_min, panel.x_max, 11))
+    np.testing.assert_allclose(grid.y.unique(), np.linspace(panel.y_min, panel.y_max, 9))
+    assert grid.reason.eq("no_eligible_vectors").all()
+    assert not grid.supported.any()
+    assert grid[["vx", "vy", "speed", "coherence"]].isna().all().all()
+    assert grid.n_neighbors.eq(0).all()
+
+
 def test_explicit_velocity_multipliers_and_variable_scales(data):
     opts = {"grid_size": 13, "n_neighbors": 10, "min_neighbors": 2, "scale": 0.17}
     result = _plot(data, facet="condition", velocity="grid", velocity_options=opts)

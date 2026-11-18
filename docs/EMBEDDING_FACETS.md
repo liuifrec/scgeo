@@ -182,6 +182,22 @@ and SHA-256 digest before processing.
 These independently sourced datasets test how the *software renderer* behaves;
 plotting them is not external validation of ScGeo's biological conclusions.
 
+### Verified PR #21 baseline
+
+At commit `57349cbb1fc46b2bb04aad5ef04f9377ed06b3dd`, all four CI workflows
+completed successfully: documentation and synthetic galleries, packaging,
+full library/release checks, and both public dataset renderings. The Python
+3.9 and 3.12 suites each reported **468 passed, 1 skipped** (the opt-in network
+integration test). Seventeen jobs succeeded; the two publishing jobs were
+intentionally skipped. The [verification record](validation/embedding_facets_pr21_20261118.json)
+links the exact runs and distinguishes remote results from local validation.
+
+The local continuation corrects the exported support-grid coordinates for a
+facet with no eligible velocity and `shared_limits=False`. The grid now matches
+that facet's displayed limits; all velocities remain missing and support remains
+false. A regression test covers this case. Subsequent local changes are not
+covered by the baseline CI until they are pushed and checked.
+
 ## How this relates to the unified atlas
 
 Use `geometry_dynamics_atlas()` to summarize **distinct evidence layers** in

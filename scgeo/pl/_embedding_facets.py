@@ -540,6 +540,14 @@ def embedding_facets(
                 # Preserve the attempted grid even when a facet has zero valid
                 # projected vectors; omissions must remain inspectable.
                 empty_grid = pooled["grid"].copy(deep=True)
+                # An independently framed facet still attempted its own grid.
+                # Reusing pooled coordinates here would misreport the support
+                # locations whenever that facet has no eligible vectors.
+                nx, ny = _grid_shape(field_config["grid_size"])
+                gx, gy = np.meshgrid(np.linspace(*limits[0], nx),
+                                     np.linspace(*limits[1], ny))
+                empty_grid["x"] = gx.ravel()
+                empty_grid["y"] = gy.ravel()
                 empty_grid["vx"] = np.nan
                 empty_grid["vy"] = np.nan
                 empty_grid["speed"] = np.nan
