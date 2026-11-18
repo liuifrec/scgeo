@@ -424,7 +424,11 @@ and insufficient condition support stay unavailable. Place numeric scales with
 Use `style_context('paper')` or `style_context('presentation')` for scoped font,
 line, and export defaults. Settings are restored when the context exits.
 `category_palette(labels)` gives stable colors across subsets; pass a curated
-mapping when specific publication colors matter.
+mapping when specific publication colors matter. Categorical score artists are
+available through `result.artists["categories"][label]`, including labels such
+as `"legend"` or `"missing"` that would collide with auxiliary artist names.
+True missing entries receive a distinct display label, retained in source data;
+distinct categories that stringify to the same text raise before rendering.
 
 For supported embedding maps, `max_points`, `random_state`, and
 `rasterized='auto'` control display cost. The sampler preserves each state and

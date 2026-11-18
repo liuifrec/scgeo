@@ -35,6 +35,11 @@
   Reuse PAGA graph validation and label compass values as descriptive display-
   coordinate summaries, with missing/insufficient alignment kept unavailable.
 
+- Harden categorical scores against colliding string labels and reserved artist
+  names, retain separate missing-label identity, and reject invalid category
+  scales before figure creation. Add an automated audit of all public plotting
+  exports and their axes/result contracts.
+
 ## Unreleased flexible embedding and velocity faceting
 
 - Add `pl.embedding_facets` for one- or two-way faceting by any `adata.obs`

@@ -94,8 +94,11 @@ def observation_labels(series, name):
     names = [str(x) for x in present]
     if len(names) != len(set(names)):
         raise ValueError(f"{name} has distinct values with colliding text labels.")
+    declared = [str(x) for x in series.cat.categories] if isinstance(series.dtype, pd.CategoricalDtype) else names
+    if len(declared) != len(set(declared)):
+        raise ValueError(f"{name} has colliding categorical levels.")
     missing = "(missing)"
-    while missing in names:
+    while missing in declared:
         missing = f"({missing})"
     mapped = raw.map(lambda x: missing if pd.isna(x) else str(x))
     if isinstance(series.dtype, pd.CategoricalDtype):

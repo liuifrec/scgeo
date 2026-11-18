@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from ._utils import _get_ax, display_indices, resolve_embedding
+from ._utils import _get_ax, display_indices, resolve_embedding, observation_labels
 
 
 def score_embedding(
@@ -56,7 +56,11 @@ def score_embedding(
     ``colorbar=False`` suppresses the numeric scale; ``cax`` places it on an
     explicit axis without changing the embedding panel's allocated space.
     ``legend=False`` suppresses categorical legends. Valid Scanpy category
-    colors are reused unless ``palette`` is explicitly supplied.
+    colors are reused unless ``palette`` is explicitly supplied. Category
+    artists are always accessible through ``artists['categories'][label]``;
+    this avoids collisions with auxiliary artist names such as ``'legend'``.
+    True missing values receive a distinct label and never merge with a literal
+    category. Invalid category/norm combinations fail before creating a figure.
     """
     from ._result import PlotResult
     from ._style import category_palette
@@ -79,6 +83,30 @@ def score_embedding(
     categorical = not pd.api.types.is_numeric_dtype(
         scores.dtype
     ) or pd.api.types.is_bool_dtype(scores.dtype)
+    if categorical:
+        if norm is not None or vmin is not None or vmax is not None:
+            raise ValueError(
+                "norm and numeric color limits cannot be used with categorical scores."
+            )
+        mapped_labels, observed_labels, missing_label = observation_labels(scores, score_key)
+        if cax is not None:
+            raise ValueError("Categorical scores have no numeric colorbar; omit cax.")
+        categories = (
+            list(scores.cat.categories.astype(str))
+            if isinstance(scores.dtype, pd.CategoricalDtype)
+            else [label for label in observed_labels if label != missing_label]
+        )
+        if len(set(categories)) != len(categories):
+            raise ValueError("Distinct categories collide after string conversion.")
+        palette_origin = "provided" if palette is not None else "deterministic_hash"
+        if palette is None:
+            from ._highlight import _get_scanpy_palette
+            from matplotlib.colors import is_color_like
+            stored = _get_scanpy_palette(adata, score_key)
+            if stored is not None and all(is_color_like(c) for c in stored.values()):
+                palette = stored
+                palette_origin = "scanpy_uns"
+        colors = category_palette(categories, palette=palette)
     if stratify_by is not None and stratify_by not in adata.obs:
         raise KeyError(f"{stratify_by} not found in adata.obs")
     labels = (
@@ -110,6 +138,7 @@ def score_embedding(
     )
     displayed = eligible[relative]
     rasterize = len(displayed) > 10000 if rasterized == "auto" else bool(rasterized)
+    owns_figure = ax is None
     fig, ax = _get_ax(ax=ax, figsize=figsize)
     source = pd.DataFrame(
         {
@@ -144,28 +173,12 @@ def score_embedding(
         "na_color": na_color,
         "colorbar": colorbar and not categorical,
         "legend": legend and categorical,
+        "owns_figure": owns_figure,
+        "export_scope": "created_figure" if owns_figure else "parent_figure",
     }
     if categorical:
-        if norm is not None or vmin is not None or vmax is not None:
-            raise ValueError(
-                "norm and numeric color limits cannot be used with categorical scores."
-            )
-        categories = (
-            list(scores.cat.categories.astype(str))
-            if isinstance(scores.dtype, pd.CategoricalDtype)
-            else list(pd.unique(scores.dropna().astype(str)))
-        )
-        if len(set(categories)) != len(categories):
-            raise ValueError("Distinct categories collide after string conversion.")
-        palette_origin = "provided" if palette is not None else "deterministic_hash"
-        if palette is None:
-            from ._highlight import _get_scanpy_palette
-            from matplotlib.colors import is_color_like
-            stored = _get_scanpy_palette(adata, score_key)
-            if stored is not None and all(is_color_like(c) for c in stored.values()):
-                palette = stored
-                palette_origin = "scanpy_uns"
-        colors = category_palette(categories, palette=palette)
+        source["value_label"] = mapped_labels.to_numpy()
+        artists["categories"] = {}
         values = scores.iloc[displayed]
         missing = values.isna().to_numpy()
         if missing.any():
@@ -177,12 +190,12 @@ def score_embedding(
                 c=na_color,
                 linewidths=0,
                 rasterized=rasterize,
-                label="Missing",
+                label=missing_label,
             )
         for category in categories:
             mask = (~missing) & values.astype(str).eq(category).to_numpy()
             if mask.any():
-                artists[category] = ax.scatter(
+                artist = ax.scatter(
                     coords[displayed[mask], 0],
                     coords[displayed[mask], 1],
                     s=size,
@@ -192,10 +205,14 @@ def score_embedding(
                     rasterized=rasterize,
                     label=category,
                 )
+                artists["categories"][category] = artist
+                if category not in {"categories", "missing", "legend", "scores", "colorbar"}:
+                    artists[category] = artist
         if legend:
             artists["legend"] = ax.legend(frameon=False, title=score_key, markerscale=1.5)
         metadata["palette"] = colors
         metadata["palette_origin"] = palette_origin
+        metadata["missing_label"] = missing_label
     else:
         values = pd.to_numeric(scores, errors="coerce").to_numpy(
             dtype=float, na_value=np.nan
