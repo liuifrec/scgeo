@@ -236,9 +236,9 @@
     },
     {
       "name": "scgeo.pl.distribution_test_volcano",
-      "signature": "(adata, *, key: 'str' = 'distribution_test', effect_col: 'str' = 'effect', p_col: 'str' = 'p_adj', label_col: 'str' = 'group', top_n_labels: 'int' = 10, ax=None, figsize=(6.0, 5.0), title: 'str | None' = None, show: 'bool' = True)",
+      "signature": "(adata, *, key: 'str' = 'distribution_test', effect_col: 'str' = 'effect', p_col: 'str' = 'p_adj', label_col: 'str' = 'group', top_n_labels: 'int' = 10, ax=None, figsize=(6.0, 5.0), title: 'str | None' = None, show: 'bool' = True, return_result: 'bool' = False, p_threshold: 'float | None' = 0.05)",
       "doc": "Volcano-like plot for distribution/comparison results.",
-      "docstring": "Volcano-like plot for distribution/comparison results.\n\nx = effect (distance / signed effect)\ny = -log10(p_adj)\n\nRequires a table with at least: effect_col, p_col.\nOptionally label the top hits by p-value.",
+      "docstring": "Volcano-like plot for distribution/comparison results.\n\nx = effect (distance / signed effect)\ny = -log10(p_adj)\n\nRequires a table with at least: effect_col, p_col.\nOptionally label the top hits by p-value.\n\nMissing values remain unavailable. Finite probabilities must lie in [0, 1];\nonly values below 1e-300 are clipped for the log display. ``p_threshold``\ncontrols the descriptive reference line (None disables it), not a new test.\nThe legacy return is ``(fig, ax, source_table)``. ``return_result=True``\nprovides original rows, exact plotted coordinates, labels and omissions.",
       "source": "scgeo/pl/_volcano.py"
     },
     {
@@ -341,23 +341,23 @@
     },
     {
       "name": "scgeo.pl.paga_composition_bar",
-      "signature": "(adata, *, store_key: 'str' = 'scgeo', kind: 'str' = 'paga_composition_stats', effect: 'Optional[str]' = None, p_col: 'Optional[str]' = None, top_k: 'int' = 15, sort_by: 'Optional[str]' = None, ax=None, figsize=(6.2, 4.2), title: 'str' = 'ScGeo: Top composition shifts', show: 'bool' = True)",
-      "doc": "Bar plot of top_k nodes by evidence + effect.",
-      "docstring": "Bar plot of top_k nodes by evidence + effect.",
+      "signature": "(adata, *, store_key: 'str' = 'scgeo', kind: 'str' = 'paga_composition_stats', effect: 'Optional[str]' = None, p_col: 'Optional[str]' = None, top_k: 'int' = 15, sort_by: 'Optional[str]' = None, ax=None, figsize=(6.2, 4.2), title: 'str' = 'ScGeo: Top composition shifts', show: 'bool' = True, return_data: 'bool' = False, return_result: 'bool' = False)",
+      "doc": "Display stored composition effects with explicit unavailable entries.",
+      "docstring": "Display stored composition effects with explicit unavailable entries.\n\nRank by p/q then distance from the null, or ``sort_by='abs_effect'``.\nMissing effects occupy labelled rows without a zero-length bar; missing\np-values are labelled unavailable. Original-scale OR effects use one as\ntheir null and bar baseline. No statistics or intervals are recomputed.\n``return_result=True`` exports the untouched source, full node table with\nselection flags, displayed row order and stored analysis parameters.\nLegacy returns remain ``(fig, axes_array)``; ``return_data=True`` adds tables.",
       "source": "scgeo/pl/_paga_composition.py"
     },
     {
       "name": "scgeo.pl.paga_composition_panel",
-      "signature": "(adata, *, store_key: 'str' = 'scgeo', kind: 'str' = 'paga_composition_stats', effect: 'Optional[str]' = None, p_col: 'Optional[str]' = None, top_k: 'int' = 10, figsize=(12, 4.2), show: 'bool' = True)",
-      "doc": "1×2 panel: volcano + top-k bars.",
-      "docstring": "1×2 panel: volcano + top-k bars.",
+      "signature": "(adata, *, store_key: 'str' = 'scgeo', kind: 'str' = 'paga_composition_stats', effect: 'Optional[str]' = None, p_col: 'Optional[str]' = None, top_k: 'int' = 10, figsize=(12, 4.2), show: 'bool' = True, axes=None, return_data: 'bool' = False, return_result: 'bool' = False)",
+      "doc": "Compose the existing composition volcano and effect bars.",
+      "docstring": "Compose the existing composition volcano and effect bars.\n\nSupply named ``volcano`` and ``bar`` axes from one Figure or SubFigure.\nCaller-owned size/layout are preserved. The default return remains\n``(fig, axes_array)``; opt into source tables with ``return_data=True`` or\nan exportable PlotResult with ``return_result=True``. Missing evidence is\nretained and labelled by each child renderer, never refitted or filled.",
       "source": "scgeo/pl/_paga_composition.py"
     },
     {
       "name": "scgeo.pl.paga_composition_volcano",
-      "signature": "(adata, *, store_key: 'str' = 'scgeo', kind: 'str' = 'paga_composition_stats', effect: 'Optional[str]' = None, p_col: 'Optional[str]' = None, top_k: 'int' = 10, label: 'bool' = True, ax=None, figsize=(5.2, 4.2), title: 'str' = 'ScGeo: PAGA composition volcano', show: 'bool' = True)",
-      "doc": "Volcano plot: x = signed effect (logOR/beta/effect), y = -log10(q or p). Highlights top_k by smallest p/q then largest |effect|.",
-      "docstring": "Volcano plot: x = signed effect (logOR/beta/effect), y = -log10(q or p).\nHighlights top_k by smallest p/q then largest |effect|.",
+      "signature": "(adata, *, store_key: 'str' = 'scgeo', kind: 'str' = 'paga_composition_stats', effect: 'Optional[str]' = None, p_col: 'Optional[str]' = None, top_k: 'int' = 10, label: 'bool' = True, ax=None, figsize=(5.2, 4.2), title: 'str' = 'ScGeo: PAGA composition volcano', show: 'bool' = True, return_data: 'bool' = False, return_result: 'bool' = False)",
+      "doc": "Plot stored composition effects against their supplied p/q values.",
+      "docstring": "Plot stored composition effects against their supplied p/q values.\n\nMissing effects or p-values are omitted and counted, never filled with zero\nor one. If no p/q column exists, show an explicitly labelled effect-only\nstrip whose constant ordinate has no inferential meaning. Zero p-values\nuse a display floor of 1e-300; original values remain in exported sources.\nProbabilities outside [0, 1] and infinite effects raise before drawing.\n\nAuto effect selection accepts logOR, beta, effect, coef, then OR. Stored\nodds ratios remain on their original scale with a null reference at one;\nother effects use zero. No p-values, FDR or confidence intervals are fitted.\n``return_result=True`` provides original source rows, transformed points,\nselection flags and stored analysis parameters. ``return_data=True`` adds\nthese tables to the legacy ``(fig, axes_array)`` return.",
       "source": "scgeo/pl/_paga_composition.py"
     },
     {

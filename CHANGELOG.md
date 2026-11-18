@@ -13,6 +13,9 @@
 - Add full selection/display source tables to `highlight_topk_cells`, explicit
   colorbar/legend controls and Scanpy palette reuse to `score_embedding`, and
   a synthetic composition gallery with checksummed source exports.
+- Preserve missing effects and p/q values in composition/volcano plots, validate
+  probability ranges and add source exports/named composition axes. Accept
+  stored odds ratios on their original scale with a null reference at one.
 - Audit all 50 plotting exports in [the API status matrix](docs/PLOTTING_API_STATUS.md).
   Remaining legacy functions are recorded explicitly; no statistical estimator
   or published release changes in this continuation.

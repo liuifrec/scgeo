@@ -12,6 +12,8 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 import scgeo as sg
 from embedding_facets_gallery import synthetic
@@ -75,7 +77,18 @@ def run(output_dir, formats=("png", "svg", "pdf")):
                       "panels": {name: result.metadata for name, result in results.items()}})
         score_output = bundle.save(output_dir / "composed_score_panels", formats=formats, dpi=180)
         plt.close(fig)
-    return {"atlas_facets": output, "score_panels": score_output}
+        adata.uns["scgeo"] = {"paga_composition_stats": {
+            "table": pd.DataFrame({"node": ["State A", "Missing effect", "Missing probability", "State D"],
+                                   "effect": [1.4, np.nan, -.8, .1], "q": [.003, .02, np.nan, .8]}),
+            "params": {"source": "explicitly synthetic stored values; no test fitted"}}}
+        fig, axes = plt.subplots(1, 2, figsize=(11, 4.5), constrained_layout=True)
+        fig.suptitle("Synthetic composition table · missing evidence remains unavailable")
+        table_result = sg.pl.paga_composition_panel(
+            adata, axes=dict(zip(("volcano", "bar"), axes)), return_result=True, show=False)
+        table_result.metadata["dataset"] = "fully_synthetic"
+        table_output = table_result.save(output_dir / "composition_missing_evidence", formats=formats, dpi=180)
+        plt.close(fig)
+    return {"atlas_facets": output, "score_panels": score_output, "composition_evidence": table_output}
 
 
 if __name__ == "__main__":

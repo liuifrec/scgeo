@@ -125,6 +125,27 @@ It also covers `embedding_facets`, `geometry_dynamics_atlas`,
 tracks every export and the remaining legacy contracts.
 Other plotting functions retain their documented interfaces.
 
+The stored composition renderers `paga_composition_volcano`,
+`paga_composition_bar`, and `paga_composition_panel`, plus
+`distribution_test_volcano`, also accept `return_result=True`. Their exports
+retain the original source table, transformed plot coordinates, missingness,
+selected rows and stored analysis parameters where available.
+
+Missing effects are never drawn as zero; missing p/q values are never filled
+with one. Composition bars reserve labelled rows for unavailable effects,
+while volcano plots omit incomplete effect/probability pairs and report the
+omission count. When no p/q column exists at all, the composition volcano
+uses an explicitly labelled effect-only strip. Its constant height carries
+no probability meaning. Values outside the probability range raise; values
+below `1e-300` use that floor only for display, with unchanged source values.
+
+Stored odds ratios (`OR`) are supported on their original scale, with a null
+reference of one; signed effects retain a reference of zero. No logarithm of
+the effect or interval transformation is inferred. Existing intervals remain
+in the source table; these plots do not manufacture or reinterpret intervals.
+The composition panel accepts named `volcano`/`bar` axes, and retains its
+historical `(fig, axes_array)` return by default.
+
 ## Compose panels in your own figure
 
 Pass `ax=` for an upgraded single-axis plot or named `axes=` for multi-panel

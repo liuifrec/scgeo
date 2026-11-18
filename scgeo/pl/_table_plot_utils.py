@@ -5,6 +5,19 @@ from collections.abc import Mapping
 from copy import deepcopy
 
 import pandas as pd
+import numpy as np
+
+
+def numeric_column(frame, column, *, probability=False):
+    """Read stored numeric evidence without replacing missing entries."""
+    if column not in frame:
+        raise KeyError(f"{column!r} is missing from the source table.")
+    values = pd.to_numeric(frame[column], errors="raise").to_numpy(dtype=float, na_value=np.nan)
+    if np.isinf(values).any():
+        raise ValueError(f"{column!r} must be finite or missing.")
+    if probability and ((values < 0) | (values > 1)).any():
+        raise ValueError(f"{column!r} probabilities must be between zero and one or missing.")
+    return values
 
 
 def ordered_labels(values, order, name):

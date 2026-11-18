@@ -642,6 +642,8 @@ scgeo.pl.distribution_test_volcano(
     figsize=(6.0, 5.0),
     title: 'str | None' = None,
     show: 'bool' = True,
+    return_result: 'bool' = False,
+    p_threshold: 'float | None' = 0.05,
 )
 ```
 
@@ -659,6 +661,12 @@ y = -log10(p_adj)
 
 Requires a table with at least: effect_col, p_col.
 Optionally label the top hits by p-value.
+
+Missing values remain unavailable. Finite probabilities must lie in [0, 1];
+only values below 1e-300 are clipped for the log display. ``p_threshold``
+controls the descriptive reference line (None disables it), not a new test.
+The legacy return is ``(fig, ax, source_table)``. ``return_result=True``
+provides original rows, exact plotted coordinates, labels and omissions.
 ```
 
 </details>
@@ -1487,7 +1495,7 @@ return_data
 
 ### `scgeo.pl.paga_composition_bar`
 
-Bar plot of top_k nodes by evidence + effect.
+Display stored composition effects with explicit unavailable entries.
 
 ```text
 scgeo.pl.paga_composition_bar(
@@ -1503,6 +1511,8 @@ scgeo.pl.paga_composition_bar(
     figsize=(6.2, 4.2),
     title: 'str' = 'ScGeo: Top composition shifts',
     show: 'bool' = True,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -1513,14 +1523,22 @@ scgeo.pl.paga_composition_bar(
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Bar plot of top_k nodes by evidence + effect.
+Display stored composition effects with explicit unavailable entries.
+
+Rank by p/q then distance from the null, or ``sort_by='abs_effect'``.
+Missing effects occupy labelled rows without a zero-length bar; missing
+p-values are labelled unavailable. Original-scale OR effects use one as
+their null and bar baseline. No statistics or intervals are recomputed.
+``return_result=True`` exports the untouched source, full node table with
+selection flags, displayed row order and stored analysis parameters.
+Legacy returns remain ``(fig, axes_array)``; ``return_data=True`` adds tables.
 ```
 
 </details>
 
 ### `scgeo.pl.paga_composition_panel`
 
-1×2 panel: volcano + top-k bars.
+Compose the existing composition volcano and effect bars.
 
 ```text
 scgeo.pl.paga_composition_panel(
@@ -1533,6 +1551,9 @@ scgeo.pl.paga_composition_panel(
     top_k: 'int' = 10,
     figsize=(12, 4.2),
     show: 'bool' = True,
+    axes=None,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -1543,14 +1564,20 @@ scgeo.pl.paga_composition_panel(
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-1×2 panel: volcano + top-k bars.
+Compose the existing composition volcano and effect bars.
+
+Supply named ``volcano`` and ``bar`` axes from one Figure or SubFigure.
+Caller-owned size/layout are preserved. The default return remains
+``(fig, axes_array)``; opt into source tables with ``return_data=True`` or
+an exportable PlotResult with ``return_result=True``. Missing evidence is
+retained and labelled by each child renderer, never refitted or filled.
 ```
 
 </details>
 
 ### `scgeo.pl.paga_composition_volcano`
 
-Volcano plot: x = signed effect (logOR/beta/effect), y = -log10(q or p). Highlights top_k by smallest p/q then largest |effect|.
+Plot stored composition effects against their supplied p/q values.
 
 ```text
 scgeo.pl.paga_composition_volcano(
@@ -1566,6 +1593,8 @@ scgeo.pl.paga_composition_volcano(
     figsize=(5.2, 4.2),
     title: 'str' = 'ScGeo: PAGA composition volcano',
     show: 'bool' = True,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -1576,8 +1605,20 @@ scgeo.pl.paga_composition_volcano(
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Volcano plot: x = signed effect (logOR/beta/effect), y = -log10(q or p).
-Highlights top_k by smallest p/q then largest |effect|.
+Plot stored composition effects against their supplied p/q values.
+
+Missing effects or p-values are omitted and counted, never filled with zero
+or one. If no p/q column exists, show an explicitly labelled effect-only
+strip whose constant ordinate has no inferential meaning. Zero p-values
+use a display floor of 1e-300; original values remain in exported sources.
+Probabilities outside [0, 1] and infinite effects raise before drawing.
+
+Auto effect selection accepts logOR, beta, effect, coef, then OR. Stored
+odds ratios remain on their original scale with a null reference at one;
+other effects use zero. No p-values, FDR or confidence intervals are fitted.
+``return_result=True`` provides original source rows, transformed points,
+selection flags and stored analysis parameters. ``return_data=True`` adds
+these tables to the legacy ``(fig, axes_array)`` return.
 ```
 
 </details>

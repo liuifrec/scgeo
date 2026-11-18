@@ -136,6 +136,7 @@ jobs:
           python -m pytest tests/test_plot_exports.py tests/test_plot_evidence_upgrades.py
           tests/test_plot_composition_upgrades.py tests/test_comparison_replicate_plots.py
           tests/test_score_panel_upgrades.py tests/test_alignment_panel.py
+          tests/test_composition_evidence_exports.py tests/test_paga_composition_plots.py tests/test_distribution_test_volcano.py
           tests/test_ambiguity_panel.py tests/test_consensus_panel.py tests/test_highlight_topk_cells.py
           tests/test_paga_visual_upgrades.py tests/test_velocity_field.py
           tests/test_state_flow_upgrades.py tests/test_density_visual_upgrades.py tests/test_geometry_velocity_interpretation.py tests/test_geometry_dynamics_atlas.py tests/test_embedding_facets.py tests/test_state_reporting.py

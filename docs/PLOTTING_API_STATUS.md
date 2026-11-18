@@ -41,7 +41,7 @@ intentional and should not be replaced with another implementation.
 | `score_umap` | ax | Yes | Delegates through kwargs to score_embedding; no duplicate implementation. |
 | `score_embedding` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
 | `highlight_topk_cells` | ax | Yes | Now exports full cell selection/display flags and accepts shared normalization. |
-| `distribution_test_volcano` | ax | Missing | Export transformed coordinates; validate p-values without manufacturing missing evidence. |
+| `distribution_test_volcano` | ax | Yes | Now exports source rows, exact coordinates, clipping/label flags; validates probability range. |
 | `embedding_density` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
 | `embedding_facets` | axes | Yes | Now composes in caller Figure/SubFigure; parent export and source scope recorded. |
 | `density_overlap` | Missing | Missing | Add named axes/results; retain missing metrics, source ordering and counts. |
@@ -51,9 +51,9 @@ intentional and should not be replaced with another implementation.
 | `alignment_panel` | axes | Yes | Now delegates to shared score/highlight renderers; one scale and exact all-input histogram sources. |
 | `ambiguity_panel` | axes | Yes | Now delegates to shared score/highlight renderers; one scale and exact all-input histogram sources. |
 | `consensus_subspace_panel` | axes | Yes | Now delegates to shared score/highlight renderers; one scale and exact all-input histogram sources. |
-| `paga_composition_volcano` | ax | Missing | Missing effects currently become zero and missing p-values become one; correct display and export original values. |
-| `paga_composition_bar` | ax | Missing | Preserve unavailable effects/p-values instead of zero/one filling; export selected rows. |
-| `paga_composition_panel` | Missing | Missing | Compose upgraded child plots with shared source provenance. |
+| `paga_composition_volcano` | ax | Yes | Now exports untouched sources/point transforms; missing evidence stays missing; raw OR uses null one. |
+| `paga_composition_bar` | ax | Yes | Now exports selection/order/source values; unavailable effects/probabilities receive explicit labels. |
+| `paga_composition_panel` | axes | Yes | Now composes the upgraded child renderers on named axes with complete source provenance. |
 | `mapping_confidence_umap` | Missing | Missing | Add axes/results; use canonical embedding resolver and finite-value low-score selection. |
 | `ood_cells` | Missing | Missing | Add axes/results and explicit threshold/display provenance; accept X-prefixed bases. |
 | `mapping_qc_panel` | Missing | Missing | Add named axes/results; retain labels absent from a reference palette and genuine missingness. |
@@ -81,11 +81,14 @@ intentional and should not be replaced with another implementation.
 | `perturbation_report` | Bundle | Bundle | Existing multi-figure exporter; strict availability and panel_kwargs already supported. |
 | `local_distortion_map` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
 
+4. Upgraded composition/volcano evidence plots to retain missing values, validate
+   probabilities and preserve source scales. Added complete exports and named
+   composition axes without changing any statistical method.
+
 ## Next reviewable increments
 
-1. **Stored tabular evidence:** fix missing-value display in PAGA composition
-   first, then add source exports/named axes across composition, distribution,
-   overlap and ranking. Never turn an unavailable effect into zero or an
+1. **Stored tabular evidence:** extend source exports/named axes across the remaining
+   distribution, overlap and ranking views. Never turn an unavailable effect into zero or an
    unavailable p-value into one; never refit a test in plotting code.
 2. **Mapping and OOD:** fix basis aliases and reference-palette omissions, then
    export observation identity, display selection, thresholds, group summaries,

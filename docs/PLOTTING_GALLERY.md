@@ -33,6 +33,14 @@ checksum-pinned public PBMC3k and pancreas reproduction.
 
 ## Caller-owned figures and stored score panels
 
+![Synthetic stored composition table with unavailable effects and probabilities explicitly retained](assets/plotting_composition_missing_evidence.png)
+
+The same executable gallery exercises missing evidence in stored composition
+tables. The volcano omits incomplete effect/probability pairs and reports how
+many were omitted; bars retain labelled rows for unavailable effects. Missing
+p/q values remain unavailable. These are explicitly constructed values for
+testing the renderer, not a fitted biological composition test.
+
 ![Synthetic atlas and velocity facets composed on one caller-owned canvas](assets/plotting_composed_atlas_facets.png)
 
 The [composition gallery](../examples/plotting_composition_gallery.py) places
