@@ -199,11 +199,20 @@
     "summary": "Compare group occupancy on a common embedding grid with explicit normalization, source counts, and composable panels.",
     "notes": [
       "Common bins preserve raw count totals. Contour mode optionally smooths once and applies log1p once; contour levels use the actual rendered values.",
-      "normalize=per_group uses a shared relative 0\u20131 scale with each group peak set to one; normalize=global uses one absolute count or transformed-count scale across panels.",
+      "normalize=per_group uses a shared relative 0–1 scale with each group peak set to one; normalize=global uses one absolute count or transformed-count scale across panels.",
       "Per-group peak normalization cannot establish relative abundance. Embedding density describes display coordinates and does not constitute sample-level enrichment inference.",
       "grid_extent controls computational binning. xlim/ylim only crop the view. Full cell sources retain nonfinite, missing-group, and outside-grid exclusions.",
       "For matched filled-contour bands, render comparison groups in one call. Automatic level boundaries depend on selected groups; a shared norm alone does not make separate calls use identical bands. Shared explicit color limits provide direct heatmap comparability.",
       "Supplied axes/cax and shared Normalize objects support composition. Default (fig, axes) is retained; return_data=True adds a source dictionary, and return_result=True supplies density:<group> and colorbar axes."
+    ]
+  },
+  "scgeo.pl.embedding_facets": {
+    "summary": "Facet existing AnnData embeddings with optional independently supported local projected velocity.",
+    "notes": [
+      "Uses the supplied embedding and matching projected velocity; no kinetics, transition probabilities or embedding are inferred.",
+      "Default shared axes, Gaussian radius and grid-arrow multiplier allow honest across-facet comparisons. Support masks are explicit.",
+      "One-way and two-way faceting accept any observation labels and preserve missing-value identity. Source tables retain all cells and grid reasons.",
+      "A valid Scanpy category palette can be reused. Separate numeric colors and velocity diagnostics have shared scales."
     ]
   }
 }

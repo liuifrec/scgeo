@@ -6,7 +6,7 @@ contrasts, and export the exact plotted tables with your figure.
 [Gallery](PLOTTING_GALLERY.md) · [PAGA shift maps](PAGA_SHIFT_MAP.md) · [Velocity fields](VELOCITY_FIELDS.md) · [Plotting API](api/pl.md) ·
 [Interpretation](RESULT_INTERPRETATION.md) · [Citation guide](CITING.md)
 
-[State associations and density](STATE_FLOW_AND_DENSITY.md) · [Real-data examples](REAL_DATA_PLOTTING.md) · [Geometry–velocity interpretation](GEOMETRY_VELOCITY_INTERPRETATION.md) · [Unified atlas](GEOMETRY_DYNAMICS_ATLAS.md)
+[State associations and density](STATE_FLOW_AND_DENSITY.md) · [Real-data examples](REAL_DATA_PLOTTING.md) · [Geometry–velocity interpretation](GEOMETRY_VELOCITY_INTERPRETATION.md) · [Unified atlas](GEOMETRY_DYNAMICS_ATLAS.md) · [Embedding facets](EMBEDDING_FACETS.md)
 
 ## Availability and installation
 
@@ -39,6 +39,21 @@ matched UMAP, projected-velocity, PAGA, and stored evidence panels when their
 inputs exist. A plain AnnData embedding requires no optional velocity or graph
 and creates a valid state-only panel. The atlas preserves all input analysis
 results and explicitly records unavailable optional panels.
+
+## Compare any metadata group with matched UMAP and projected velocity
+
+```python
+result = sg.pl.embedding_facets(
+    adata, facet="condition", color="cell_type", velocity="grid",
+    return_result=True, show=False,
+)
+result.save("figures/faceted_velocity", formats=("png", "svg", "pdf"))
+```
+
+The [faceting guide](EMBEDDING_FACETS.md) explains one- and two-way layouts,
+missing labels, shared color scales and velocity support masks. The function
+plots only existing coordinates and projected vectors; it has no organism- or
+experiment-specific assumptions. Omit `velocity` to facet any existing UMAP.
 
 ## One evidence figure, several distinct questions
 

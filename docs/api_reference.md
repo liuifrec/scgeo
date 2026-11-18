@@ -1,6 +1,6 @@
 # API reference
 
-Public API for **ScGeo 0.1.0** · **99 exported callables**.
+Public API for **ScGeo 0.1.0** · **100 exported callables**.
 
 This reference describes the current checkout. Plotting additions marked [unreleased in the changelog](../CHANGELOG.md) require that development checkout; they are not included in the published 0.1.0 distribution.
 
@@ -11,7 +11,7 @@ Start with `tl.robust_shift`, `get.state_report` and `pl.state_evidence_panel`. 
 | Namespace | Purpose | Browse separately |
 |---|---|---|
 | [`scgeo.tl`](#scgeotl) | Analysis | [20 callables](api/tl.md) |
-| [`scgeo.pl`](#scgeopl) | Figures | [47 callables](api/pl.md) |
+| [`scgeo.pl`](#scgeopl) | Figures | [48 callables](api/pl.md) |
 | [`scgeo.get`](#scgeoget) | Reports and tables | [9 callables](api/get.md) |
 | [`scgeo.pp`](#scgeopp) | Reference preparation | [6 callables](api/pp.md) |
 | [`scgeo.data`](#scgeodata) | Census access | [12 callables](api/data.md) |
@@ -1085,6 +1085,7 @@ Notes:
 - [`distribution_test`](#scgeopldistribution_test)
 - [`distribution_test_volcano`](#scgeopldistribution_test_volcano)
 - [`embedding_density`](#scgeoplembedding_density)
+- [`embedding_facets`](#scgeoplembedding_facets)
 - [`evidence_comparison`](#scgeoplevidence_comparison)
 - [`export_figure`](#scgeoplexport_figure)
 - [`gallery_overview`](#scgeoplgallery_overview)
@@ -1793,6 +1794,92 @@ return_data, return_result
     The grid's ``displayed`` flag records unmasked values at the contour
     threshold, independently of view cropping; contours interpolate those
     grid values. A SubFigure result exports its full parent canvas.
+```
+
+</details>
+
+### `scgeo.pl.embedding_facets`
+
+Facet existing AnnData embeddings with optional independently supported local projected velocity.
+
+```text
+scgeo.pl.embedding_facets(
+    adata,
+    *,
+    basis='umap',
+    facet=None,
+    facet_row=None,
+    facet_col=None,
+    facet_order=None,
+    row_order=None,
+    col_order=None,
+    col_wrap=4,
+    color=None,
+    palette=None,
+    cmap='viridis',
+    velocity=None,
+    velocity_basis=None,
+    velocity_options=None,
+    shared_limits=True,
+    shared_velocity_scale=True,
+    context='none',
+    max_points=None,
+    random_state=0,
+    point_size=7.0,
+    point_alpha=0.82,
+    highlight=None,
+    highlight_key=None,
+    legend=True,
+    show_colorbar=True,
+    style='paper',
+    figsize=None,
+    title=None,
+    return_data=False,
+    return_result=False,
+    show=True,
+)
+```
+
+[View implementation](../scgeo/pl/_embedding_facets.py)
+
+- Uses the supplied embedding and matching projected velocity; no kinetics, transition probabilities or embedding are inferred.
+- Default shared axes, Gaussian radius and grid-arrow multiplier allow honest across-facet comparisons. Support masks are explicit.
+- One-way and two-way faceting accept any observation labels and preserve missing-value identity. Source tables retain all cells and grid reasons.
+- A valid Scanpy category palette can be reused. Separate numeric colors and velocity diagnostics have shared scales.
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Facet an existing embedding, optionally overlaying projected velocity.
+
+``facet`` is an alias for ``facet_col``. ``facet_row`` and ``facet_col``
+can be combined for a two-way grid. Each observation belongs to precisely
+one panel, including a separate level for missing facet labels. Unobserved
+levels supplied in ``row_order``/``col_order`` produce explicit empty panels.
+
+All facets use one global categorical palette or numeric color scale.
+``shared_limits=True`` fixes both axes identically; with velocity, the
+support grid and Gaussian radius are also shared. The optional
+``shared_velocity_scale`` fixes the *grid-arrow multiplier* using supported
+local field speeds across all facets, not a separate auto scale per panel.
+The same velocity numeric colormap normalization is always shared.
+
+Velocity requires the *matching* ``velocity_<basis>`` array in ``adata.obsm``.
+Smoothing is calculated independently for each facet using the existing
+ScGeo local-field estimator. Unsupported positions remain blank. Streamlines
+are descriptive interpolations, not trajectories or elapsed time. No UMAP,
+kinetics, or quantitative ScGeo evidence is recomputed here.
+
+``max_points`` limits *drawing per facet* only; local velocity uses all
+eligible source cells. ``context='all'`` optionally draws the full embedding
+in muted grey behind each facet. Metadata and PlotResult exports record all
+source cells, facet membership, supported velocity grid, and vector/stream
+geometry. A supplied optional Scanpy categorical palette is honored.
+
+With ``return_result=True`` returns a :class:`PlotResult`. By default
+returns ``(fig, axes_dict)``; ``return_data=True`` adds source tables.
 ```
 
 </details>

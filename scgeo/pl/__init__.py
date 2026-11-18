@@ -10,6 +10,7 @@ from ._density import embedding_density
 from ._density_overlap import density_overlap
 from ._distribution_test import distribution_test
 from ._evidence_comparison import evidence_comparison
+from ._embedding_facets import embedding_facets
 from ._geometry_velocity_concordance import geometry_velocity_concordance
 from ._gallery import gallery_overview
 from ._geometry_dynamics_atlas import geometry_dynamics_atlas
@@ -63,6 +64,7 @@ __all__ = [
     "highlight_topk_cells",
     "distribution_test_volcano",
     "embedding_density",
+    "embedding_facets",
     "density_overlap",
     "density_overlap_grid",
     "distribution_test",

@@ -46,6 +46,23 @@ result.save("geometry_dynamics", formats=("pdf", "svg", "png"))
 
 *Synthetic demonstration only: constructed display coordinates, projected vectors and topology; quantitative effects computed on the simulated representation. [Reproduce the figure](https://github.com/liuifrec/scgeo/blob/main/examples/geometry_dynamics_atlas_gallery.py).*
 
+**Flexible UMAP and projected-velocity comparisons** are also available in
+the development checkout, without prescribing an experimental organism or
+design:
+
+```python
+import scgeo as sg
+
+result = sg.pl.embedding_facets(
+    adata, facet="condition", color="cell_type", velocity="stream",
+    return_result=True, show=False,
+)
+result.save("faceted_velocity", formats=("png", "svg", "pdf"))
+```
+
+[Facet plotting guide](https://github.com/liuifrec/scgeo/blob/main/docs/EMBEDDING_FACETS.md) ·
+[Reproducible faceting gallery](https://github.com/liuifrec/scgeo/blob/main/examples/embedding_facets_gallery.py)
+
 ## Start here
 
 | Your goal | Best starting point |
@@ -54,6 +71,7 @@ result.save("geometry_dynamics", formats=("pdf", "svg", "png"))
 | Try ScGeo without downloading a dataset | [Runnable synthetic example](https://github.com/liuifrec/scgeo/blob/main/examples/quickstart.py) |
 | Build evidence figures and compare contrasts | [Development plotting guide](https://github.com/liuifrec/scgeo/blob/main/docs/PLOTTING.md) and [visual gallery](https://github.com/liuifrec/scgeo/blob/main/docs/PLOTTING_GALLERY.md) |
 | Display state connectivity, condition shifts, and velocity | [PAGA shift-map guide](https://github.com/liuifrec/scgeo/blob/main/docs/PAGA_SHIFT_MAP.md) |
+| Compare conditions, timepoints, batches or cell types in matched UMAP/velocity facets | [Embedding faceting](https://github.com/liuifrec/scgeo/blob/main/docs/EMBEDDING_FACETS.md) |
 | Inspect local projected velocity and compare conditions | [Local velocity fields](https://github.com/liuifrec/scgeo/blob/main/docs/VELOCITY_FIELDS.md) |
 | Compose UMAP, velocity, PAGA and evidence in one figure | [Unified geometry–dynamics atlas](https://github.com/liuifrec/scgeo/blob/main/docs/GEOMETRY_DYNAMICS_ATLAS.md) |
 | Interpret stored geometry–velocity agreement and compare condition fields | [Geometry–velocity interpretation](https://github.com/liuifrec/scgeo/blob/main/docs/GEOMETRY_VELOCITY_INTERPRETATION.md) |

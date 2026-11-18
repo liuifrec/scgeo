@@ -1,0 +1,98 @@
+name: Public faceting dataset checks
+
+"on":
+  pull_request:
+    paths:
+      - "scgeo/pl/_embedding_facets.py"
+      - "examples/embedding_facets_gallery.py"
+      - "docs/EMBEDDING_FACETS.md"
+      - ".github/workflows/public-faceting.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-faceting-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  public-plot:
+    name: Public ${{ matrix.dataset }} rendering
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        dataset: [pbmc, pancreas]
+    env:
+      MPLBACKEND: Agg
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Install core package and plotting tests
+        run: python -m pip install ".[dev]"
+      - name: Download pinned public input and execute actual faceting renderer
+        run: >-
+          python examples/embedding_facets_gallery.py
+          --dataset "${{ matrix.dataset }}"
+          --download-public
+          --output-dir "$RUNNER_TEMP/scgeo-facets-public"
+          --formats png svg pdf
+      - name: Verify public source and exported supported-grid manifest
+        env:
+          REPORT_DIR: ${{ runner.temp }}/scgeo-facets-public
+          DATASET: ${{ matrix.dataset }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          import pandas as pd
+          root = Path(os.environ['REPORT_DIR'])
+          summary = json.loads((root / 'faceting_validation.json').read_text())
+          assert summary['dataset'] == os.environ['DATASET']
+          assert len(summary['figures']) == 1
+          item = summary['figures'][0]
+          assert item['panels'] >= 2 and item['cells'] > 0
+          stem = item['name']
+          manifest = json.loads((root / (stem + '.json')).read_text())
+          assert manifest['plot']['plot'] == 'embedding_facets'
+          assert manifest['plot']['n_cells_input'] == item['cells']
+          facets = pd.read_csv(root / (stem + '_facets.csv'))
+          cells = pd.read_csv(root / (stem + '_cells.csv'))
+          assert int(facets.n_cells.sum()) == item['cells']
+          assert len(cells) == item['cells']
+          assert facets.n_finite_embedding.sum() > 0
+          if os.environ['DATASET'] == 'pancreas':
+              grid = pd.read_csv(root / (stem + '_velocity_grid.csv'))
+              assert not grid.empty and 'supported' in grid
+              assert set(grid.facet_id) == set(facets.facet_id)
+          else:
+              grid_path = root / (stem + '_velocity_grid.csv')
+              try:
+                  assert pd.read_csv(grid_path).empty
+              except pd.errors.EmptyDataError:
+                  pass  # Empty source tables are intentionally exportable.
+          for fmt in ('png', 'svg', 'pdf'):
+              assert (root / f'{stem}.{fmt}').stat().st_size > 1000
+          print('PASS: verified public plotting export', stem, 'cells', len(cells),
+                'facets', len(facets), 'source SHA', summary['provenance']['sha256'])
+          PY
+      - name: Upload public figures, data tables, and input provenance
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+        with:
+          name: scgeo-public-facets-${{ matrix.dataset }}
+          path: |
+            ${{ runner.temp }}/scgeo-facets-public/*.png
+            ${{ runner.temp }}/scgeo-facets-public/*.svg
+            ${{ runner.temp }}/scgeo-facets-public/*.pdf
+            ${{ runner.temp }}/scgeo-facets-public/*.csv
+            ${{ runner.temp }}/scgeo-facets-public/*.json
+          if-no-files-found: error
+          retention-days: 14
