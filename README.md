@@ -29,6 +29,23 @@ for displacement, representation stability, local geometry, and dynamics.
 **Published in Bioinformatics Advances:**
 [Liu and Yoshida (2026), vbag266](https://doi.org/10.1093/bioadv/vbag266).
 
+**New in the development checkout:** One command composes available cell-state,
+projected-velocity, PAGA, and stored evidence views, without rerunning an
+analysis:
+
+```python
+import scgeo as sg
+
+result = sg.pl.geometry_dynamics_atlas(adata, color="cell_type", panels="auto", show=False)
+result.save("geometry_dynamics", formats=("pdf", "svg", "png"))
+```
+
+[See the reproducible atlas gallery and input requirements](https://github.com/liuifrec/scgeo/blob/main/docs/GEOMETRY_DYNAMICS_ATLAS.md).
+
+![Actual ScGeo unified atlas rendered from a fully synthetic example](https://raw.githubusercontent.com/liuifrec/scgeo/main/docs/assets/geometry_dynamics_atlas_synthetic.png)
+
+*Synthetic demonstration only: constructed display coordinates, projected vectors and topology; quantitative effects computed on the simulated representation. [Reproduce the figure](https://github.com/liuifrec/scgeo/blob/main/examples/geometry_dynamics_atlas_gallery.py).*
+
 ## Start here
 
 | Your goal | Best starting point |
@@ -38,6 +55,7 @@ for displacement, representation stability, local geometry, and dynamics.
 | Build evidence figures and compare contrasts | [Development plotting guide](https://github.com/liuifrec/scgeo/blob/main/docs/PLOTTING.md) and [visual gallery](https://github.com/liuifrec/scgeo/blob/main/docs/PLOTTING_GALLERY.md) |
 | Display state connectivity, condition shifts, and velocity | [PAGA shift-map guide](https://github.com/liuifrec/scgeo/blob/main/docs/PAGA_SHIFT_MAP.md) |
 | Inspect local projected velocity and compare conditions | [Local velocity fields](https://github.com/liuifrec/scgeo/blob/main/docs/VELOCITY_FIELDS.md) |
+| Compose UMAP, velocity, PAGA and evidence in one figure | [Unified geometry–dynamics atlas](https://github.com/liuifrec/scgeo/blob/main/docs/GEOMETRY_DYNAMICS_ATLAS.md) |
 | Interpret stored geometry–velocity agreement and compare condition fields | [Geometry–velocity interpretation](https://github.com/liuifrec/scgeo/blob/main/docs/GEOMETRY_VELOCITY_INTERPRETATION.md) |
 | Compare annotations with ribbons, chords, and density panels | [State associations and density](https://github.com/liuifrec/scgeo/blob/main/docs/STATE_FLOW_AND_DENSITY.md) |
 | Run plotting checks on public single-cell datasets | [Real-data plotting gallery](https://github.com/liuifrec/scgeo/blob/main/docs/REAL_DATA_PLOTTING.md) |

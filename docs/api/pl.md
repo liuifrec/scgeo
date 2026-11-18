@@ -25,6 +25,7 @@ Signatures and docstrings match the public exports. I/O tables record a small sy
 - [`evidence_comparison`](#scgeoplevidence_comparison)
 - [`export_figure`](#scgeoplexport_figure)
 - [`gallery_overview`](#scgeoplgallery_overview)
+- [`geometry_dynamics_atlas`](#scgeoplgeometry_dynamics_atlas)
 - [`geometry_velocity_concordance`](#scgeoplgeometry_velocity_concordance)
 - [`highlight_topk_cells`](#scgeoplhighlight_topk_cells)
 - [`legend_from_data`](#scgeopllegend_from_data)
@@ -901,6 +902,82 @@ Render four coordinated panels, including actual composition-change bars.
 ``composition``. The alignment panel is explicitly a display-space overlay;
 use ``velocity_shift_alignment(mode='stored')`` for stored quantitative
 alignment. The legacy return is ``(fig, (ax1, ax2, ax3, ax4))``.
+```
+
+</details>
+
+### `scgeo.pl.geometry_dynamics_atlas`
+
+Build coordinated states, projected-velocity, PAGA, and evidence panels.
+
+```text
+scgeo.pl.geometry_dynamics_atlas(
+    adata,
+    *,
+    basis='umap',
+    color=None,
+    node_key=None,
+    condition_key=None,
+    group0=None,
+    group1=None,
+    sample_key=None,
+    panels='auto',
+    velocity_mode='stream',
+    velocity_options=None,
+    paga_options=None,
+    report=None,
+    effect_metric='auto',
+    report_state_key=None,
+    max_states=12,
+    highlight_states=None,
+    palette=None,
+    max_points=6000,
+    random_state=0,
+    label_states=True,
+    style='paper',
+    figsize=None,
+    title=None,
+    return_result=True,
+    show=True,
+)
+```
+
+[View implementation](../../scgeo/pl/_geometry_dynamics_atlas.py)
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Build coordinated states, projected-velocity, PAGA, and evidence panels.
+
+A standard AnnData embedding is enough for a one-panel atlas. With
+``panels='auto'``, optional panels are included *only* when inputs exist:
+a matching ``velocity_<basis>`` projection, a PAGA graph plus a specified
+two-condition contrast, or an explicitly supplied stored report. Missing
+optional panels are recorded; an explicitly requested unavailable panel
+raises instead. Allowed panels are ``'states'``, ``'velocity'``, ``'paga'``
+(alias ``'geometry'``), and ``'evidence'``.
+
+The states panel reads ``adata.obs[color]`` (categorical or numeric).
+``node_key`` identifies states used for PAGA and highlighting; it defaults
+to ``color`` when that is categorical. ``condition_key`` can infer the
+contrast only when precisely two nonmissing groups are observed. When
+samples are available, ``sample_key`` adds descriptive counts to metadata
+without inventing statistical tests. ``max_points`` affects drawing only.
+
+The velocity and PAGA panels delegate to existing ScGeo plotting functions
+with common embedding limits and compatible node palettes. Projected
+velocity describes the *display* embedding. PAGA edges are undirected, and
+condition arrows are display-coordinate mean/median contrasts. The evidence
+panel displays stored ``delta_norm`` or ``normalized_delta_norm`` from
+``report`` without inferring effects or confidence intervals. Raw CIs are
+never reused on normalized effects. No results are written to AnnData.
+
+``velocity_options`` and ``paga_options`` pass through supported renderer
+settings, but cannot replace shared basis, axes, condition scope, palette,
+and output controls. Use ``return_result=True`` (default) to export PNG,
+SVG, PDF and each panel's source tables via ``PlotResult.save``.
 ```
 
 </details>

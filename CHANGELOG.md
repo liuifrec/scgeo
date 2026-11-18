@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased unified geometry–dynamics atlas
+
+- Add `pl.geometry_dynamics_atlas` as a composable, AnnData-native entry point for
+  matching cell-state UMAP, projected velocity, PAGA, and explicitly stored
+  evidence panels; a simple embedding still yields a valid one-panel atlas.
+- `panels='auto'` records omitted optional panels; explicit requests fail
+  clearly when their inputs are absent. Shared embedding limits, stable node
+  palettes, highlighting, reproducible display sampling and named axes make
+  figure assembly more consistent.
+- Preserve scientific roles: UMAP arrows are display projections, PAGA edges
+  undirected, and numeric effects come only from a compatible stored report.
+  State and condition provenance is verified; raw CIs never migrate to
+  normalized metrics. `sample_key` is optional and descriptive only.
+- Add an executable synthetic gallery, opt-in checksum-pinned public PBMC and
+  pancreas examples, complete `PlotResult` source-table exports, regression
+  tests, API documentation and CI checks.
+
+See [Unified geometry–dynamics atlas](docs/GEOMETRY_DYNAMICS_ATLAS.md).
+Development checkout only; not in the published `scgeo==0.1.0` wheel.
+
+
 ## Unreleased geometry–velocity interpretation upgrade
 
 - Add `pl.geometry_velocity_concordance` to relate stored state displacement magnitude to signed stored alignment while retaining all ineligible states and missing-data reasons.

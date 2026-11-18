@@ -6,7 +6,7 @@ contrasts, and export the exact plotted tables with your figure.
 [Gallery](PLOTTING_GALLERY.md) · [PAGA shift maps](PAGA_SHIFT_MAP.md) · [Velocity fields](VELOCITY_FIELDS.md) · [Plotting API](api/pl.md) ·
 [Interpretation](RESULT_INTERPRETATION.md) · [Citation guide](CITING.md)
 
-[State associations and density](STATE_FLOW_AND_DENSITY.md) · [Real-data examples](REAL_DATA_PLOTTING.md) · [Geometry–velocity interpretation](GEOMETRY_VELOCITY_INTERPRETATION.md)
+[State associations and density](STATE_FLOW_AND_DENSITY.md) · [Real-data examples](REAL_DATA_PLOTTING.md) · [Geometry–velocity interpretation](GEOMETRY_VELOCITY_INTERPRETATION.md) · [Unified atlas](GEOMETRY_DYNAMICS_ATLAS.md)
 
 ## Availability and installation
 
@@ -26,6 +26,19 @@ synthetic examples use core dependencies and require no dataset download.
 The separate [real-data gallery](REAL_DATA_PLOTTING.md) accepts verified local
 public inputs or an explicit download request. The manuscript's frozen checkpoints are listed in
 [Reproducibility](REPRODUCIBILITY.md).
+
+## Compose a complete figure from standard AnnData
+
+```python
+result = sg.pl.geometry_dynamics_atlas(adata, color="cell_type", panels="auto", show=False)
+result.save("figures/atlas", formats=("png", "svg", "pdf"))
+```
+
+The [unified geometry–dynamics atlas](GEOMETRY_DYNAMICS_ATLAS.md) combines
+matched UMAP, projected-velocity, PAGA, and stored evidence panels when their
+inputs exist. A plain AnnData embedding requires no optional velocity or graph
+and creates a valid state-only panel. The atlas preserves all input analysis
+results and explicitly records unavailable optional panels.
 
 ## One evidence figure, several distinct questions
 

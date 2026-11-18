@@ -7,7 +7,17 @@ specific display behaviors and known failure modes easy to inspect.
 
 [Plotting guide](PLOTTING.md) · [API reference](api/pl.md) ·
 [Public-data source](../examples/real_data_plotting_gallery.py) ·
-[Synthetic source](../examples/plotting_gallery.py) · [PAGA shift maps](PAGA_SHIFT_MAP.md)
+[Synthetic source](../examples/plotting_gallery.py) · [PAGA shift maps](PAGA_SHIFT_MAP.md) · [Unified atlas](GEOMETRY_DYNAMICS_ATLAS.md)
+
+The [unified atlas gallery](../examples/geometry_dynamics_atlas_gallery.py)
+assembles a four-panel synthetic geometry–dynamics figure and a minimal
+AnnData-only fallback, exporting their source tables. Pass optional,
+checksum-pinned public PBMC or pancreas files to see corresponding atlas panels
+without running any new kinetics, PAGA, or geometric analysis.
+
+![Actual synthetic ScGeo geometry-dynamics atlas](assets/geometry_dynamics_atlas_synthetic.png)
+
+*The linked source runs the composed four-panel atlas and exports the input tables and plotting manifest; this preview is synthetic.*
 
 These additions are **unreleased**. Install the matching source checkout as
 described in the plotting guide. To reproduce the public-data figures, use the
