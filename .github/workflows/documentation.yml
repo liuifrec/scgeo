@@ -79,6 +79,13 @@ jobs:
         run: python examples/velocity_field_gallery.py --output-dir "$RUNNER_TEMP/scgeo-velocity-gallery" --formats png svg pdf
       - name: Execute the unified geometry-dynamics atlas gallery
         run: python examples/geometry_dynamics_atlas_gallery.py --output-dir "$RUNNER_TEMP/scgeo-atlas-gallery" --formats png svg pdf
+      - name: Upload exact generated atlas figures and source tables
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+        with:
+          name: scgeo-geometry-dynamics-gallery
+          path: ${{ runner.temp }}/scgeo-atlas-gallery/
+          if-no-files-found: error
+          retention-days: 14
       - name: Check the explicit real-data gallery entry point
         run: python examples/real_data_plotting_gallery.py --help
       - name: Check the explicit in-house review entry point without data
