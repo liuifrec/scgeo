@@ -8,7 +8,8 @@ place. Statistical methods in `scgeo.tl` and stored biological results are not
 changed by this work.
 
 [Plotting guide](PLOTTING.md) · [API signatures](api/pl.md) ·
-[PR #21 baseline verification](validation/embedding_facets_pr21_20261118.json)
+[PR #21 baseline verification](validation/embedding_facets_pr21_20261118.json) ·
+[Local continuation validation](validation/plotting_api_continuation_20261118.json)
 
 ## Completed local increments
 
@@ -96,19 +97,30 @@ intentional and should not be replaced with another implementation.
 | `perturbation_report` | Bundle | Bundle | Existing multi-figure exporter; strict availability and panel_kwargs already supported. |
 | `local_distortion_map` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
 
-## Remaining validation and hardening
+## Validation milestone and remaining work
 
-Interface coverage is complete; scientific/visual coverage is maintained by
-semantic regression tests and executable galleries. Remaining work in this
-continuation is to run the full suite and all relevant galleries, review
-publication layouts, verify source/figure hashes, and record local validation
-separately from the remote PR baseline.
+The local continuation passed **524 tests**, with one explicitly opt-in public
+PBMC integration test skipped. Seven plotting galleries and the synthetic
+quickstart completed. Across 34 PlotResult exports, all 102 figure files and
+155 source tables matched their recorded hashes; CSV row counts also matched.
+Seven new/updated documentation previews are byte-identical to their exports.
 
-Cross-API cases to keep testing include nullable/missing/colliding labels,
-all-missing numeric columns, supplied color norms, explicit colorbar placement,
-deterministic sampling, early error paths, SubFigure scope and source-table
-completeness. No coverage claim substitutes for checking the intended study's
-units, sample structure, graph order and available evidence.
+Runtime signatures, generated documentation and link checks passed. A wheel
+built through the sdist passed the repository's source/metadata/dependency
+consistency audit and installation smoke test outside the checkout. No code in
+`scgeo.tl`, `scgeo.get` or `scgeo.pp` changed. This is an interface/rendering
+validation milestone, not new statistical or biological validation.
+
+The only pending release checks are external: these local commits need an
+approved push before GitHub can test their Python 3.9/3.12, operating-system,
+conda and public-data matrices. The prior remote successes apply only to the
+recorded PR #21 head. No push, merge, tag or publication was performed.
+
+Ongoing edge-case regression coverage includes nullable/missing/colliding
+labels, unknown evidence, supplied norms, explicit colorbars, deterministic
+sampling, early error paths, SubFigures and complete source tables. Study-
+specific units, sample structure, original graph order and evidence availability
+still need to be supplied by the caller; plots do not infer them.
 
 For each increment: preserve default return shapes and argument meanings,
 exercise the relevant synthetic gallery, inspect rendered output, add semantic

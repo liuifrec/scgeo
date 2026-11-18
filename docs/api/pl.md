@@ -2391,7 +2391,11 @@ The retained ``layer`` argument has no effect: scores come from ``obs``.
 ``colorbar=False`` suppresses the numeric scale; ``cax`` places it on an
 explicit axis without changing the embedding panel's allocated space.
 ``legend=False`` suppresses categorical legends. Valid Scanpy category
-colors are reused unless ``palette`` is explicitly supplied.
+colors are reused unless ``palette`` is explicitly supplied. Category
+artists are always accessible through ``artists['categories'][label]``;
+this avoids collisions with auxiliary artist names such as ``'legend'``.
+True missing values receive a distinct label and never merge with a literal
+category. Invalid category/norm combinations fail before creating a figure.
 ```
 
 </details>

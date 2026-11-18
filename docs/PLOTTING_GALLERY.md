@@ -74,6 +74,48 @@ python examples/plotting_gallery.py --output-dir results/plotting_gallery --form
 Each figure has source CSVs and a JSON manifest with plotting configuration,
 software versions, available analysis metadata, and file hashes.
 
+## Mapping, OOD and legacy summary contracts
+
+The [legacy API gallery](../examples/legacy_plotting_gallery.py) uses the same
+synthetic generator as the main gallery. Stored distribution/overlap summaries
+use unchanged ScGeo methods. Mapping confidence and OOD inputs are explicitly
+illustrative scores; no mapping model is fitted. These figures make no
+biological or performance claim.
+
+![Synthetic mapping panel retaining query labels outside the reference palette](assets/plotting_legacy_mapping_qc.png)
+
+Novel predicted labels and true missing entries remain visible. The separate
+exported legend includes every query prediction, while numeric panels show all
+input observations. Every cell retains its identity and display flags.
+
+![Synthetic OOD contour with descriptive threshold and complete group summary](assets/plotting_legacy_ood_landscape.png)
+
+Contours use supported display-bin score means; the source includes means,
+counts, bin edges and actual levels. The group summary reports the fraction
+above the full-input 95th percentile. Neither outline is a significance test.
+
+![Consensus score highlights and a separate legend on caller-owned axes](assets/plotting_legacy_consensus_structure.png)
+
+This view highlights the 150 largest illustrative scores, sharing an explicit
+colorbar axis and a separate legend. Selection counts are exported before
+coordinate-based display filtering; the underlying score is not an inferred
+biological consensus.
+
+![Synthetic recovery compass with constructed undirected connectivity and display-space summaries](assets/plotting_legacy_recovery_compass.png)
+
+The compass uses constructed topology and supplied vectors. Its coordinate
+means and cosine are descriptive display-space quantities, not evidence of
+biological recovery. Source tables retain all graph edges, exact arrow
+endpoints and missing/insufficient evidence.
+
+```bash
+python examples/legacy_plotting_gallery.py --output-dir results/legacy_plotting --formats png svg pdf
+```
+
+The same run exports ranking, density/overlap, distribution reports and separate
+global statistic/probability scales. All previews above are the actual exported
+PNGs; their vector versions and checksummed source tables come from the same run.
+
 ## Public PBMC data: annotation associations and rare categories
 
 ![Same 662 PBMC query cells shown as a chord diagram of supplied and held-out mapped annotations.](assets/real_pbmc_chord.png)
