@@ -7,6 +7,7 @@ Current-checkout reference: [unreleased plotting additions](../../CHANGELOG.md) 
 Signatures and docstrings match the public exports. I/O tables record a small synthetic probe; keys present before and after are not necessarily modified. [How this reference is generated](../contracts/README.md).
 **Figures.** Visualize stored results and assemble evidence panels, reports and figure-source exports.
 
+- [`PlotResult`](#scgeoplplotresult)
 - [`alignment_panel`](#scgeoplalignment_panel)
 - [`ambiguity_panel`](#scgeoplambiguity_panel)
 - [`category_palette`](#scgeoplcategory_palette)
@@ -38,7 +39,6 @@ Signatures and docstrings match the public exports. I/O tables record a small sy
 - [`paga_scgeo`](#scgeoplpaga_scgeo)
 - [`paga_shift_map`](#scgeoplpaga_shift_map)
 - [`perturbation_report`](#scgeoplperturbation_report)
-- [`PlotResult`](#scgeoplplotresult)
 - [`recovery_compass`](#scgeoplrecovery_compass)
 - [`replicate_effect`](#scgeoplreplicate_effect)
 - [`representation_stability_heatmap`](#scgeoplrepresentation_stability_heatmap)
@@ -53,6 +53,42 @@ Signatures and docstrings match the public exports. I/O tables record a small sy
 - [`velocity_condition_compare`](#scgeoplvelocity_condition_compare)
 - [`velocity_field`](#scgeoplvelocity_field)
 - [`velocity_shift_alignment`](#scgeoplvelocity_shift_alignment)
+
+### `scgeo.pl.PlotResult`
+
+A figure, named axes, plotted data, and interpretation metadata.
+
+```text
+scgeo.pl.PlotResult(
+    fig: 'Any',
+    axes: 'dict',
+    data: 'Any' = None,
+    metadata: 'dict' = <factory>,
+    warnings: 'list' = <factory>,
+    artists: 'dict' = <factory>,
+) -> None
+```
+
+[View implementation](../../scgeo/pl/_result.py)
+
+- Opt-in return type for upgraded plotting functions. Existing default returns remain supported. Holds fig, named axes, artists, source data, metadata, and warnings; save() delegates to export_figure.
+- SubFigure results reference and export the root parent canvas; source tables cover the named result axes, not independently added sibling panels.
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+A figure, named axes, plotted data, and interpretation metadata.
+
+Obtain this opt-in result with ``return_result=True`` on supported plots.
+Existing default return values remain available. ``data`` holds the values
+used by the plot; metadata records its metric, ordering, and display choices.
+Use :meth:`save` to export figures, source tables, and a JSON manifest.
+The result is editable: changing an artist does not update its source data.
+```
+
+</details>
 
 ### `scgeo.pl.alignment_panel`
 
@@ -1561,42 +1597,6 @@ raises if unavailable, before any files are written. Panel names are
 ``width_mm``/``height_mm`` specify export canvas dimensions. The default
 ``bbox_inches=None`` preserves those dimensions. The bundle retains legacy
 Figure entries and adds ``plot_results`` with source data and metadata.
-```
-
-</details>
-
-### `scgeo.pl.PlotResult`
-
-A figure, named axes, plotted data, and interpretation metadata.
-
-```text
-scgeo.pl.PlotResult(
-    fig: 'Any',
-    axes: 'dict',
-    data: 'Any' = None,
-    metadata: 'dict' = <factory>,
-    warnings: 'list' = <factory>,
-    artists: 'dict' = <factory>,
-) -> None
-```
-
-[View implementation](../../scgeo/pl/_result.py)
-
-- Opt-in return type for upgraded plotting functions. Existing default returns remain supported. Holds fig, named axes, artists, source data, metadata, and warnings; save() delegates to export_figure.
-- SubFigure results reference and export the root parent canvas; source tables cover the named result axes, not independently added sibling panels.
-
-
-<details>
-<summary>Parameters, returns and usage notes</summary>
-
-```text
-A figure, named axes, plotted data, and interpretation metadata.
-
-Obtain this opt-in result with ``return_result=True`` on supported plots.
-Existing default return values remain available. ``data`` holds the values
-used by the plot; metadata records its metric, ordering, and display choices.
-Use :meth:`save` to export figures, source tables, and a JSON manifest.
-The result is editable: changing an artist does not update its source data.
 ```
 
 </details>

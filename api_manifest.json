@@ -144,6 +144,13 @@
   ],
   "pl": [
     {
+      "name": "scgeo.pl.PlotResult",
+      "signature": "(fig: 'Any', axes: 'dict', data: 'Any' = None, metadata: 'dict' = <factory>, warnings: 'list' = <factory>, artists: 'dict' = <factory>) -> None",
+      "doc": "A figure, named axes, plotted data, and interpretation metadata.",
+      "docstring": "A figure, named axes, plotted data, and interpretation metadata.\n\nObtain this opt-in result with ``return_result=True`` on supported plots.\nExisting default return values remain available. ``data`` holds the values\nused by the plot; metadata records its metric, ordering, and display choices.\nUse :meth:`save` to export figures, source tables, and a JSON manifest.\nThe result is editable: changing an artist does not update its source data.",
+      "source": "scgeo/pl/_result.py"
+    },
+    {
       "name": "scgeo.pl.alignment_panel",
       "signature": "(adata, score_key: 'str', *, basis: 'str' = 'umap', topk: 'Optional[int]' = 200, cmap: 'str' = 'viridis', figsize=(11, 5), title: 'Optional[str]' = None, show: 'bool' = True)",
       "doc": "1×2 panel:   (A) embedding colored by alignment score   (B) histogram of alignment scores Optional: highlight top-k aligned cells.",
@@ -359,13 +366,6 @@
       "doc": "Create figures, source tables, and provenance for a perturbation report.",
       "docstring": "Create figures, source tables, and provenance for a perturbation report.\n\nPartial bundles remain the default when optional evidence is absent.\n``strict=True`` requires all three standard panels unless a narrower\n``required_panels`` list is supplied. An explicitly required panel always\nraises if unavailable, before any files are written. Panel names are\n``consensus_state_map``, ``state_evidence_panel``, ``representation_heatmap``;\n``panel_kwargs`` maps these names to their plotting options.\n\n``formats`` accepts PNG/SVG/PDF; ``dpi`` also controls rasterized artists.\n``width_mm``/``height_mm`` specify export canvas dimensions. The default\n``bbox_inches=None`` preserves those dimensions. The bundle retains legacy\nFigure entries and adds ``plot_results`` with source data and metadata.",
       "source": "scgeo/pl/_perturbation_report.py"
-    },
-    {
-      "name": "scgeo.pl.PlotResult",
-      "signature": "(fig: 'Any', axes: 'dict', data: 'Any' = None, metadata: 'dict' = <factory>, warnings: 'list' = <factory>, artists: 'dict' = <factory>) -> None",
-      "doc": "A figure, named axes, plotted data, and interpretation metadata.",
-      "docstring": "A figure, named axes, plotted data, and interpretation metadata.\n\nObtain this opt-in result with ``return_result=True`` on supported plots.\nExisting default return values remain available. ``data`` holds the values\nused by the plot; metadata records its metric, ordering, and display choices.\nUse :meth:`save` to export figures, source tables, and a JSON manifest.\nThe result is editable: changing an artist does not update its source data.",
-      "source": "scgeo/pl/_result.py"
     },
     {
       "name": "scgeo.pl.recovery_compass",
