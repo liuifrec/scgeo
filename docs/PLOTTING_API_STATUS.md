@@ -1,0 +1,105 @@
+# Plotting API upgrade audit
+
+This audit covers **all 50 names in `scgeo.pl.__all__`**, including compatibility
+aliases, the Plotly adapter, bundle export, and the two exported private palette
+helpers. It starts from PR #21 head `57349cb`, which contains merged PR #20,
+and records the local continuation. Existing implementations are extended in
+place. Statistical methods in `scgeo.tl` and stored biological results are not
+changed by this work.
+
+[Plotting guide](PLOTTING.md) · [API signatures](api/pl.md) ·
+[PR #21 baseline verification](validation/embedding_facets_pr21_20261118.json)
+
+## Completed local increments
+
+1. Reconciled PR #21: four successful workflows, 17 passing jobs, two intentional
+   publishing skips; 468 tests passed and one optional integration test skipped
+   independently on Python 3.9/3.12 and in the local Python 3.10 baseline. Fixed
+   unsupported-facet grid coordinates when panel limits are independent.
+2. Added caller-owned axes to facets and the atlas, with explicit colorbar
+   placement, Figure/SubFigure support, parent-canvas scope, source-equivalence
+   tests, and an executable composition gallery.
+3. Upgraded the three stored score panels and top-k renderer. Highlights and
+   background now share a scale; histograms use all input finite scores and
+   export their exact edges/counts. Existing tuple returns remain the default.
+
+The table describes interface coverage, **not a claim that every scientific or
+visual edge case is resolved**. `Yes` means `return_result=True` is available.
+`Missing` identifies remaining work. The Plotly and bundle contracts are
+intentional and should not be replaced with another implementation.
+
+| Export | Axes contract | PlotResult | Status / next work |
+|---|---|---|---|
+| `PlotResult` | n/a | n/a | Shared result/export/style utility. |
+| `export_figure` | n/a | n/a | Shared result/export/style utility. |
+| `category_palette` | n/a | n/a | Shared result/export/style utility. |
+| `style_context` | n/a | n/a | Shared result/export/style utility. |
+| `evidence_comparison` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+| `geometry_velocity_concordance` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+| `replicate_effect` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+| `delta_rank` | Missing | Missing | Add axes, source ranks and PlotResult; retain raw magnitude semantics. |
+| `score_umap` | ax | Yes | Delegates through kwargs to score_embedding; no duplicate implementation. |
+| `score_embedding` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+| `highlight_topk_cells` | ax | Yes | Now exports full cell selection/display flags and accepts shared normalization. |
+| `distribution_test_volcano` | ax | Missing | Export transformed coordinates; validate p-values without manufacturing missing evidence. |
+| `embedding_density` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+| `embedding_facets` | axes | Yes | Now composes in caller Figure/SubFigure; parent export and source scope recorded. |
+| `density_overlap` | Missing | Missing | Add named axes/results; retain missing metrics, source ordering and counts. |
+| `density_overlap_grid` | ax | Missing | Fix per-cell fallback axes/basis forwarding; export actual grid extent and values. |
+| `distribution_test` | Missing | Missing | Add axes/results; distinguish statistic and p-value scales, retain stored inference. |
+| `distribution_report` | Missing | Missing | Add named axes/results; make condition legend match point colors and preserve missing results. |
+| `alignment_panel` | axes | Yes | Now delegates to shared score/highlight renderers; one scale and exact all-input histogram sources. |
+| `ambiguity_panel` | axes | Yes | Now delegates to shared score/highlight renderers; one scale and exact all-input histogram sources. |
+| `consensus_subspace_panel` | axes | Yes | Now delegates to shared score/highlight renderers; one scale and exact all-input histogram sources. |
+| `paga_composition_volcano` | ax | Missing | Missing effects currently become zero and missing p-values become one; correct display and export original values. |
+| `paga_composition_bar` | ax | Missing | Preserve unavailable effects/p-values instead of zero/one filling; export selected rows. |
+| `paga_composition_panel` | Missing | Missing | Compose upgraded child plots with shared source provenance. |
+| `mapping_confidence_umap` | Missing | Missing | Add axes/results; use canonical embedding resolver and finite-value low-score selection. |
+| `ood_cells` | Missing | Missing | Add axes/results and explicit threshold/display provenance; accept X-prefixed bases. |
+| `mapping_qc_panel` | Missing | Missing | Add named axes/results; retain labels absent from a reference palette and genuine missingness. |
+| `consensus_structure` | ax | Missing | Add result/source tables and colorbar placement; avoid laying out caller figures. |
+| `legend_from_data` | Missing | Missing | Add supplied axes/result with complete entries and explicit truncation. |
+| `_get_scanpy_palette` | n/a | n/a | Exported compatibility palette helper; retain its name. |
+| `_fallback_palette` | n/a | n/a | Exported compatibility palette helper; retain its name. |
+| `paga_shift_map` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+| `ood_landscape` | ax | Missing | Export cells, threshold, contour grid and omissions; allow supplied summary axes. |
+| `velocity_shift_alignment` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+| `velocity_field` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+| `velocity_condition_compare` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+| `composition_drift` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+| `robustness_matrix` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+| `gallery_overview` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+| `geometry_dynamics_atlas` | axes | Yes | Now composes in caller Figure/SubFigure; parent export and source scope recorded. |
+| `recovery_compass` | ax | Missing | Export source cells/nodes/edges; retain explicit display-space alignment semantics. |
+| `state_flow_sankey` | Plotly | Native | Intentional Plotly adapter: complete counts in layout.meta; native HTML/JSON export. |
+| `state_flow_alluvial` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+| `state_flow_chord` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+| `paga_scgeo` | ax | Yes | Delegates through kwargs to paga_shift_map; no duplicate implementation. |
+| `state_evidence_panel` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+| `representation_stability_heatmap` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+| `consensus_state_map` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+| `perturbation_report` | Bundle | Bundle | Existing multi-figure exporter; strict availability and panel_kwargs already supported. |
+| `local_distortion_map` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+
+## Next reviewable increments
+
+1. **Stored tabular evidence:** fix missing-value display in PAGA composition
+   first, then add source exports/named axes across composition, distribution,
+   overlap and ranking. Never turn an unavailable effect into zero or an
+   unavailable p-value into one; never refit a test in plotting code.
+2. **Mapping and OOD:** fix basis aliases and reference-palette omissions, then
+   export observation identity, display selection, thresholds, group summaries,
+   and actual contour grids. Thresholds and contours remain descriptive.
+3. **Legacy summary views:** extend consensus structure, legends and recovery
+   compass using the same PlotResult and axes helpers. Label display-space
+   vectors separately from stored analysis-space effects.
+4. **Cross-API hardening:** check nullable/missing/colliding labels, all-missing
+   numeric columns, supplied color norms, explicit colorbar placement, deterministic
+   sampling, early error paths, SubFigure scope, and source table completeness.
+   Existing new APIs already cover many of these cases; avoid blanket rewrites.
+
+For each increment: preserve default return shapes and argument meanings,
+exercise the relevant synthetic gallery, inspect rendered output, add semantic
+regressions, regenerate the API reference, and run the appropriate CI-equivalent
+checks. Remote CI in the linked baseline record covers only its exact commit.
+New local commits require an approved push before their GitHub checks can run.

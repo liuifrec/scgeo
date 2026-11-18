@@ -32,6 +32,9 @@ def score_embedding(
     random_state: int = 0,
     required_indices=None,
     rasterized="auto",
+    colorbar: bool = True,
+    cax=None,
+    legend: bool = True,
     return_data: bool = False,
     return_result: bool = False,
     show: bool = True,
@@ -50,6 +53,10 @@ def score_embedding(
     table with a ``displayed`` indicator; ``return_result=True`` supplies a
     :class:`PlotResult` with the original displayed indices and random seed.
     The retained ``layer`` argument has no effect: scores come from ``obs``.
+    ``colorbar=False`` suppresses the numeric scale; ``cax`` places it on an
+    explicit axis without changing the embedding panel's allocated space.
+    ``legend=False`` suppresses categorical legends. Valid Scanpy category
+    colors are reused unless ``palette`` is explicitly supplied.
     """
     from ._result import PlotResult
     from ._style import category_palette
@@ -61,6 +68,13 @@ def score_embedding(
         raise ValueError("Supply norm or vmin/vmax, not both.")
     if rasterized not in (True, False, "auto"):
         raise ValueError("rasterized must be True, False, or 'auto'.")
+    if not isinstance(colorbar, bool) or not isinstance(legend, bool):
+        raise TypeError("colorbar and legend must be booleans.")
+    if cax is not None:
+        if ax is None or not colorbar:
+            raise ValueError("cax requires ax and colorbar=True.")
+        from ._table_plot_utils import panel_axes
+        panel_axes(["embedding", "colorbar"], {"embedding": ax, "colorbar": cax}, None)
     scores = adata.obs[score_key]
     categorical = not pd.api.types.is_numeric_dtype(
         scores.dtype
@@ -100,6 +114,7 @@ def score_embedding(
     source = pd.DataFrame(
         {
             "cell": adata.obs_names.astype(str),
+            "obs_position": np.arange(adata.n_obs),
             "x": coords[:, 0],
             "y": coords[:, 1],
             "value": scores.to_numpy(),
@@ -127,6 +142,8 @@ def score_embedding(
         "marker_size": size,
         "alpha": alpha,
         "na_color": na_color,
+        "colorbar": colorbar and not categorical,
+        "legend": legend and categorical,
     }
     if categorical:
         if norm is not None or vmin is not None or vmax is not None:
@@ -138,6 +155,16 @@ def score_embedding(
             if isinstance(scores.dtype, pd.CategoricalDtype)
             else list(pd.unique(scores.dropna().astype(str)))
         )
+        if len(set(categories)) != len(categories):
+            raise ValueError("Distinct categories collide after string conversion.")
+        palette_origin = "provided" if palette is not None else "deterministic_hash"
+        if palette is None:
+            from ._highlight import _get_scanpy_palette
+            from matplotlib.colors import is_color_like
+            stored = _get_scanpy_palette(adata, score_key)
+            if stored is not None and all(is_color_like(c) for c in stored.values()):
+                palette = stored
+                palette_origin = "scanpy_uns"
         colors = category_palette(categories, palette=palette)
         values = scores.iloc[displayed]
         missing = values.isna().to_numpy()
@@ -165,8 +192,10 @@ def score_embedding(
                     rasterized=rasterize,
                     label=category,
                 )
-        ax.legend(frameon=False, title=score_key, markerscale=1.5)
+        if legend:
+            artists["legend"] = ax.legend(frameon=False, title=score_key, markerscale=1.5)
         metadata["palette"] = colors
+        metadata["palette_origin"] = palette_origin
     else:
         values = pd.to_numeric(scores, errors="coerce").to_numpy(
             dtype=float, na_value=np.nan
@@ -205,7 +234,9 @@ def score_embedding(
             linewidths=0,
             rasterized=rasterize,
         )
-        fig.colorbar(artists["scores"], ax=ax).set_label(score_key)
+        if colorbar:
+            artists["colorbar"] = fig.colorbar(artists["scores"], ax=ax, cax=cax)
+            artists["colorbar"].set_label(score_key)
         metadata["cmap"] = artists["scores"].get_cmap().name
         metadata["norm"] = {
             "type": type(norm).__name__,
@@ -235,3 +266,94 @@ def score_embedding(
 
 def score_umap(adata, score_key: str, **kwargs):
     return score_embedding(adata, score_key=score_key, basis="umap", **kwargs)
+
+
+def _score_distribution_panel(
+    adata, score_key, *, basis, topk, cmap, figsize, title, axes, bins,
+    norm, vmin, vmax, colorbar, max_points, random_state, rasterized, plot_name,
+    return_data, return_result, show, singular_values=None, store_key=None,
+):
+    """Shared composition of the existing score and highlight renderers."""
+    from ._highlight import _topk_mask_robust, highlight_topk_cells
+    from ._result import PlotResult
+    from ._table_plot_utils import panel_axes
+
+    key, coords = resolve_embedding(adata, basis)
+    if score_key not in adata.obs:
+        raise KeyError(f"{score_key} not found in adata.obs")
+    if topk is not None and (isinstance(topk, bool) or not isinstance(topk, (int, np.integer)) or topk < 0):
+        raise ValueError("topk must be a nonnegative integer or None.")
+    if not pd.api.types.is_numeric_dtype(adata.obs[score_key]) or pd.api.types.is_bool_dtype(adata.obs[score_key]):
+        raise TypeError("Score distribution panels require a numeric observation column.")
+    if norm is not None and (vmin is not None or vmax is not None):
+        raise ValueError("Supply norm or vmin/vmax, not both.")
+    scores = pd.to_numeric(adata.obs[score_key], errors="raise").to_numpy(dtype=float, na_value=np.nan)
+    finite = np.isfinite(scores)
+    selected = _topk_mask_robust(scores, topk or 0)
+    required = np.flatnonzero(selected & np.isfinite(coords[:, :2]).all(axis=1))
+    # Both count computation and sampling validation precede canvas changes.
+    counts, edges = np.histogram(scores[finite], bins=bins)
+    if singular_values is not None and np.asarray(singular_values).ndim != 1:
+        raise ValueError("Stored singular_values must be one-dimensional.")
+    eligible = np.flatnonzero(np.isfinite(coords[:, :2]).all(axis=1))
+    if not len(eligible):
+        raise ValueError("No finite embedding coordinates are available to plot.")
+    display_indices(np.full(len(eligible), "all"), max_points=max_points,
+                    random_state=random_state, required_indices=np.searchsorted(eligible, required))
+    names = ["embedding", "histogram"]
+    if axes is not None:
+        if not isinstance(axes, Mapping):
+            raise TypeError("axes must be a mapping from panel labels to Matplotlib Axes.")
+        if colorbar and "colorbar" not in axes:
+            raise ValueError("Supply axes['colorbar'] or set colorbar=False.")
+        if "colorbar" in axes:
+            names.append("colorbar")
+    fig, mapped, owns_figure = panel_axes(names, axes, figsize)
+    ax, hist_ax = mapped["embedding"], mapped["histogram"]
+    score = score_embedding(
+        adata, score_key, basis=basis, ax=ax, cmap=cmap, title=title, norm=norm,
+        vmin=vmin, vmax=vmax, colorbar=colorbar, cax=mapped.get("colorbar") if colorbar else None,
+        max_points=max_points, random_state=random_state, required_indices=required,
+        rasterized=rasterized, return_result=True, show=False)
+    artists = dict(score.artists)
+    notes = []
+    if topk:
+        highlight = highlight_topk_cells(
+            adata, score_key, basis=basis, topk=topk, ax=ax, cmap=cmap,
+            norm=score.artists["scores"].norm, background=False, add_colorbar=False,
+            title=title, return_result=True, show=False)
+        artists["highlights"] = highlight.artists["highlights"]
+        notes.extend(highlight.warnings)
+    bars = hist_ax.bar(edges[:-1], counts, width=np.diff(edges), align="edge", color="#527F9A")
+    artists["histogram"] = bars
+    hist_ax.set(title="Score distribution", xlabel=score_key, ylabel="Cell count")
+    cells = score.data.copy(deep=True)
+    cells["selected"] = selected
+    cells["highlighted"] = selected & np.isfinite(coords[:, :2]).all(axis=1)
+    cells["histogram_included"] = finite & (scores >= edges[0]) & (scores <= edges[-1])
+    data = {"cells": cells,
+            "histogram": pd.DataFrame({"left": edges[:-1], "right": edges[1:], "count": counts})}
+    if singular_values is not None:
+        values = np.asarray(singular_values)
+        data["singular_values"] = pd.DataFrame({"singular_value": values})
+        artists["singular_values"] = hist_ax.text(
+            .98, .98, f"singular_values:\n{values[:5]}", ha="right", va="top",
+            transform=hist_ax.transAxes, fontsize=9)
+    if not finite.all():
+        notes.append(f"{int((~finite).sum())} nonfinite scores were excluded from the histogram.")
+    if owns_figure:
+        fig.tight_layout()
+    result = PlotResult(
+        fig, {"embedding": ax, "histogram": hist_ax}, data=data, artists=artists, warnings=notes,
+        metadata={**score.metadata, "plot": plot_name, "basis": key, "topk": topk,
+                  "histogram_source": "all finite input scores, independent of display sampling",
+                  "histogram_n": int(counts.sum()), "store_key": store_key,
+                  "owns_figure": owns_figure,
+                  "export_scope": "created_figure" if owns_figure else "parent_figure",
+                  "score_source": f"adata.obs[{score_key!r}]", "analysis_recomputed": False})
+    if show:
+        plt.show()
+    if return_result:
+        return result
+    legacy_axes = np.array([ax, hist_ax], dtype=object)
+    return (fig, legacy_axes, data) if return_data else (fig, legacy_axes)

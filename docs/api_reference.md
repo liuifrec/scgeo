@@ -1157,7 +1157,7 @@ The result is editable: changing an artist does not update its source data.
 
 ### `scgeo.pl.alignment_panel`
 
-1×2 panel:   (A) embedding colored by alignment score   (B) histogram of alignment scores Optional: highlight top-k aligned cells.
+Plot stored alignment scores and their full-data histogram.
 
 ```text
 scgeo.pl.alignment_panel(
@@ -1170,6 +1170,17 @@ scgeo.pl.alignment_panel(
     figsize=(11, 5),
     title: 'Optional[str]' = None,
     show: 'bool' = True,
+    axes=None,
+    bins=40,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    colorbar: 'bool' = True,
+    max_points=None,
+    random_state=0,
+    rasterized='auto',
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -1180,17 +1191,25 @@ scgeo.pl.alignment_panel(
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-1×2 panel:
-  (A) embedding colored by alignment score
-  (B) histogram of alignment scores
-Optional: highlight top-k aligned cells.
+Plot stored alignment scores and their full-data histogram.
+
+Highlights share the embedding color normalization. ``axes`` accepts named
+``embedding`` and ``histogram`` axes, plus ``colorbar`` unless
+``colorbar=False``. Supplied figures retain their size and layout.
+``max_points`` affects background drawing only and must accommodate every
+drawable top-k cell. The histogram always uses all finite input scores.
+No analysis or biological interpretation is recomputed.
+
+The legacy return is ``(fig, axes_array)``. ``return_data=True`` adds cell
+and histogram tables. ``return_result=True`` supplies a PlotResult with
+exact bin edges/counts, cell identities, selections, and displayed flags.
 ```
 
 </details>
 
 ### `scgeo.pl.ambiguity_panel`
 
-1×2 panel:   (A) embedding colored by ambiguity/disagreement score   (B) histogram of ambiguity scores Optional: highlight top-k ambiguous cells.
+Plot stored ambiguity scores and their full-data histogram.
 
 ```text
 scgeo.pl.ambiguity_panel(
@@ -1203,6 +1222,17 @@ scgeo.pl.ambiguity_panel(
     figsize=(11, 5),
     title: 'Optional[str]' = None,
     show: 'bool' = True,
+    axes=None,
+    bins=40,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    colorbar: 'bool' = True,
+    max_points=None,
+    random_state=0,
+    rasterized='auto',
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -1213,10 +1243,18 @@ scgeo.pl.ambiguity_panel(
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-1×2 panel:
-  (A) embedding colored by ambiguity/disagreement score
-  (B) histogram of ambiguity scores
-Optional: highlight top-k ambiguous cells.
+Plot stored ambiguity scores and their full-data histogram.
+
+Highlights share the embedding color normalization. ``axes`` accepts named
+``embedding`` and ``histogram`` axes, plus ``colorbar`` unless
+``colorbar=False``. Supplied figures retain their size and layout.
+``max_points`` affects background drawing only and must accommodate every
+drawable top-k cell. The histogram always uses all finite input scores.
+No analysis or biological interpretation is recomputed.
+
+The legacy return is ``(fig, axes_array)``. ``return_data=True`` adds cell
+and histogram tables. ``return_result=True`` supplies a PlotResult with
+exact bin edges/counts, cell identities, selections, and displayed flags.
 ```
 
 </details>
@@ -1408,7 +1446,7 @@ Note:
 
 ### `scgeo.pl.consensus_subspace_panel`
 
-Panel for consensus subspace:   (A) embedding colored by cs_score   (B) histogram of cs_score + optional text for singular values
+Plot stored consensus scores, their histogram, and existing singular values.
 
 ```text
 scgeo.pl.consensus_subspace_panel(
@@ -1420,6 +1458,17 @@ scgeo.pl.consensus_subspace_panel(
     topk: 'Optional[int]' = 200,
     figsize=(11, 5),
     show: 'bool' = True,
+    axes=None,
+    bins=40,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    colorbar: 'bool' = True,
+    max_points=None,
+    random_state=0,
+    rasterized='auto',
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -1430,9 +1479,16 @@ scgeo.pl.consensus_subspace_panel(
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Panel for consensus subspace:
-  (A) embedding colored by cs_score
-  (B) histogram of cs_score + optional text for singular values
+Plot stored consensus scores, their histogram, and existing singular values.
+
+Uses the same composition and source-export contract as ``alignment_panel``:
+named ``embedding``/``histogram`` axes, optional ``colorbar`` axis,
+a shared color scale for highlights, and draw-only sampling. The histogram
+uses all finite scores; singular values are read from the selected stored
+consensus result and never recomputed.
+
+The default return remains ``(fig, axes_array)``; ``return_data=True`` adds
+source tables, and ``return_result=True`` returns an exportable PlotResult.
 ```
 
 </details>
@@ -2239,6 +2295,13 @@ scgeo.pl.highlight_topk_cells(
     outline_lw: 'float' = 1.6,
     outline_alpha: 'float' = 0.95,
     add_colorbar: 'bool' = True,
+    cax=None,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    background: 'bool' = True,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -2258,6 +2321,15 @@ Default look:
 If groupby is provided and outline_topk=True:
   - top-k points get edgecolors from group palette (Scanpy palette if available)
   - gives Scanpy-like cluster structure without hull polygons
+
+``norm`` or ``vmin``/``vmax`` can match an existing score layer. Without
+these, the scale uses the selected finite scores. ``background=False``
+adds only the highlighted layer. ``cax`` places an optional colorbar.
+``topk=0`` selects no cells. Ranking uses finite scores from all input
+observations; selected cells with nonfinite coordinates remain in the
+source table but cannot be drawn. Ties follow input order deterministically.
+The default return is ``(fig, ax)``; ``return_data=True`` adds the full cell
+table, and ``return_result=True`` enables checksummed PlotResult exports.
 ```
 
 </details>
@@ -3143,6 +3215,9 @@ scgeo.pl.score_embedding(
     random_state: 'int' = 0,
     required_indices=None,
     rasterized='auto',
+    colorbar: 'bool' = True,
+    cax=None,
+    legend: 'bool' = True,
     return_data: 'bool' = False,
     return_result: 'bool' = False,
     show: 'bool' = True,
@@ -3170,6 +3245,10 @@ The legacy return is ``(fig, ax)``. ``return_data=True`` adds the full source
 table with a ``displayed`` indicator; ``return_result=True`` supplies a
 :class:`PlotResult` with the original displayed indices and random seed.
 The retained ``layer`` argument has no effect: scores come from ``obs``.
+``colorbar=False`` suppresses the numeric scale; ``cax`` places it on an
+explicit axis without changing the embedding panel's allocated space.
+``legend=False`` suppresses categorical legends. Valid Scanpy category
+colors are reused unless ``palette`` is explicitly supplied.
 ```
 
 </details>

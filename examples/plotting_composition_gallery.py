@@ -53,7 +53,29 @@ def run(output_dir, formats=("png", "svg", "pdf")):
             artists={"atlas": atlas.artists, "facets": facets.artists})
         output = result.save(output_dir / "composed_atlas_facets", formats=formats, dpi=180)
         plt.close(fig)
-    return output
+        fig = plt.figure(figsize=(10, 10), constrained_layout=True)
+        grid = fig.add_gridspec(3, 3, width_ratios=[1.2, 1, .04])
+        fig.suptitle("Fully synthetic score panels · one scale, all-input histograms")
+        results = {}
+        values = adata.obs["illustrative_score"]
+        norm = plt.Normalize(values.min(), values.max())
+        for row, name in enumerate(("alignment_panel", "ambiguity_panel", "consensus_subspace_panel")):
+            axes = dict(zip(("embedding", "histogram", "colorbar"),
+                            [fig.add_subplot(grid[row, col]) for col in range(3)]))
+            results[name] = getattr(sg.pl, name)(
+                adata, score_key="illustrative_score", axes=axes, topk=20, bins=30,
+                max_points=240, norm=norm, return_result=True, show=False)
+            axes["embedding"].set_title(name.replace("_", " "))
+        bundle = sg.pl.PlotResult(
+            fig=fig,
+            axes={f"{name}_{key}": ax for name, result in results.items() for key, ax in result.axes.items()},
+            data={name: result.data for name, result in results.items()},
+            metadata={"plot": "score_panel_gallery", "dataset": "fully_synthetic",
+                      "scores": "illustrative random scores, not fitted alignment or consensus evidence",
+                      "panels": {name: result.metadata for name, result in results.items()}})
+        score_output = bundle.save(output_dir / "composed_score_panels", formats=formats, dpi=180)
+        plt.close(fig)
+    return {"atlas_facets": output, "score_panels": score_output}
 
 
 if __name__ == "__main__":

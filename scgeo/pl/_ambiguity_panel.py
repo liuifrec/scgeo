@@ -2,11 +2,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-import numpy as np
-import matplotlib.pyplot as plt
-
-from ._score import score_embedding
-from ._highlight import highlight_topk_cells
+from ._score import _score_distribution_panel
 
 
 def ambiguity_panel(
@@ -19,46 +15,34 @@ def ambiguity_panel(
     figsize=(11, 5),
     title: Optional[str] = None,
     show: bool = True,
+    axes=None,
+    bins=40,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    colorbar: bool = True,
+    max_points=None,
+    random_state=0,
+    rasterized="auto",
+    return_data: bool = False,
+    return_result: bool = False,
 ):
+    """Plot stored ambiguity scores and their full-data histogram.
+
+    Highlights share the embedding color normalization. ``axes`` accepts named
+    ``embedding`` and ``histogram`` axes, plus ``colorbar`` unless
+    ``colorbar=False``. Supplied figures retain their size and layout.
+    ``max_points`` affects background drawing only and must accommodate every
+    drawable top-k cell. The histogram always uses all finite input scores.
+    No analysis or biological interpretation is recomputed.
+
+    The legacy return is ``(fig, axes_array)``. ``return_data=True`` adds cell
+    and histogram tables. ``return_result=True`` supplies a PlotResult with
+    exact bin edges/counts, cell identities, selections, and displayed flags.
     """
-    1×2 panel:
-      (A) embedding colored by ambiguity/disagreement score
-      (B) histogram of ambiguity scores
-    Optional: highlight top-k ambiguous cells.
-    """
-    if score_key not in adata.obs:
-        raise KeyError(f"{score_key} not found in adata.obs")
-
-    fig, axes = plt.subplots(1, 2, figsize=figsize)
-    axA, axB = axes
-
-    score_embedding(
-        adata,
-        score_key,
-        basis=basis,
-        ax=axA,
-        cmap=cmap,
-        title=title or f"Ambiguity score: {score_key}",
-        show=False,
-    )
-    if topk is not None and topk > 0:
-        highlight_topk_cells(
-            adata,
-            score_key,
-            basis=basis,
-            topk=int(topk),
-            ax=axA,
-            show=False,
-        )
-
-    s = np.asarray(adata.obs[score_key].to_numpy(), dtype=float)
-    s = s[np.isfinite(s)]
-    axB.hist(s, bins=40)
-    axB.set_title("Score distribution")
-    axB.set_xlabel(score_key)
-    axB.set_ylabel("count")
-
-    fig.tight_layout()
-    if show:
-        plt.show()
-    return fig, axes
+    return _score_distribution_panel(
+        adata, score_key, basis=basis, topk=topk, cmap=cmap, figsize=figsize,
+        title=title or f"Ambiguity score: {score_key}", axes=axes, bins=bins,
+        norm=norm, vmin=vmin, vmax=vmax, colorbar=colorbar, max_points=max_points,
+        random_state=random_state, rasterized=rasterized, plot_name="ambiguity_panel",
+        return_data=return_data, return_result=return_result, show=show)

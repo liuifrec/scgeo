@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased plotting composition and source exports
+
+- Reconcile PR #21's successful CI and public-data checks; correct unsupported
+  facets' exported grids when using independent panel limits.
+- Accept caller-owned Figure/SubFigure axes in embedding facets and the atlas,
+  with explicit colorbar placement and parent-canvas export scope.
+- Upgrade alignment, ambiguity and consensus score panels to shared rendering,
+  named axes and opt-in `PlotResult`, retaining default tuple returns. Highlights
+  now match the full score normalization and use a single colorbar. Histograms
+  retain all finite scores independently of background drawing limits.
+- Add full selection/display source tables to `highlight_topk_cells`, explicit
+  colorbar/legend controls and Scanpy palette reuse to `score_embedding`, and
+  a synthetic composition gallery with checksummed source exports.
+- Audit all 50 plotting exports in [the API status matrix](docs/PLOTTING_API_STATUS.md).
+  Remaining legacy functions are recorded explicitly; no statistical estimator
+  or published release changes in this continuation.
+
 ## Unreleased flexible embedding and velocity faceting
 
 - Add `pl.embedding_facets` for one- or two-way faceting by any `adata.obs`

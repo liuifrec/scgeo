@@ -118,6 +118,11 @@ available for `state_evidence_panel`, `representation_stability_heatmap`,
 `score_embedding`/`score_umap`, `evidence_comparison`, `replicate_effect`,
 `paga_shift_map`/`paga_scgeo`, `velocity_field`, `state_flow_alluvial`,
 `state_flow_chord`, and `embedding_density`.
+It also covers `embedding_facets`, `geometry_dynamics_atlas`,
+`geometry_velocity_concordance`, `velocity_condition_compare`,
+`highlight_topk_cells`, `alignment_panel`, `ambiguity_panel`, and
+`consensus_subspace_panel`. The [API upgrade audit](PLOTTING_API_STATUS.md)
+tracks every export and the remaining legacy contracts.
 Other plotting functions retain their documented interfaces.
 
 ## Compose panels in your own figure
@@ -163,6 +168,41 @@ When axes belong to a SubFigure, the returned result references the root Figure;
 export saves the full parent canvas and records that scope.
 The accompanying source tables cover the named result axes; sibling panels or
 annotations added separately by the caller are not reconstructed automatically.
+
+## Compose stored score panels
+
+`alignment_panel`, `ambiguity_panel`, and `consensus_subspace_panel` reuse the
+existing score and highlight renderers. Their top-k layer uses the same color
+normalization as the full score layer, with one colorbar. Stored values are
+never recalculated. Supply `axes={"embedding": ax0, "histogram": ax1,
+"colorbar": cax}` or disable the scale with `colorbar=False`.
+
+```python
+result = sg.pl.alignment_panel(
+    adata, score_key="stored_alignment", topk=30, bins=40,
+    max_points=2000, return_result=True, show=False,
+)
+result.save("figures/alignment", formats=("png", "svg", "pdf"))
+```
+
+The histogram uses all finite input scores, including observations that cannot
+be drawn because their embedding is nonfinite. Background sampling preserves
+all drawable top-k cells or raises if the budget is too small. Exports include
+every cell's selection/display flags and the exact histogram bin edges and
+counts. Missing scores stay missing. `topk=0` or `None` disables highlighting.
+The consensus panel also exports supplied singular values if available.
+
+For a standalone overlay, `highlight_topk_cells(..., background=False,
+norm=existing_norm, add_colorbar=False, return_result=True)` adds the selected
+cells without repainting the background or changing its scale. A standalone
+highlight plot without explicit limits retains its selected-score scale.
+`score_embedding`/`score_umap` now allow `colorbar=False`, `cax=`, and
+`legend=False`; valid Scanpy categorical palettes are reused automatically.
+
+The [composition gallery](../examples/plotting_composition_gallery.py) exports
+all three score panels from explicitly synthetic scores, as well as a composed
+atlas/facet figure. Those examples exercise rendering; the scores are not
+biological alignment or consensus evidence.
 
 ## Compare representations on meaningful scales
 
