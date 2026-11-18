@@ -38,24 +38,6 @@ jobs:
           python-version: "3.12"
       - name: Install core package and plotting tests
         run: python -m pip install ".[dev]"
-      - name: Inspect public fallback metadata for PBMC source continuity
-        if: ${{ matrix.dataset == 'pbmc' }}
-        run: |
-          python - <<'PY'
-          import json
-          from urllib.request import Request, urlopen
-          url = "https://api.figshare.com/v2/articles/16447278"
-          req = Request(url, headers={"User-Agent": "ScGeo-source-validation/0.1"})
-          try:
-              with urlopen(req, timeout=30) as response:
-                  article = json.load(response)
-              print("Alternate published PBMC record", article.get("id"), article.get("doi"))
-              for item in article.get("files", []):
-                  print("Alternate file metadata", {key:item.get(key) for key in
-                        ("id", "name", "size", "computed_md5", "download_url")})
-          except Exception as exc:
-              print("Optional alternative-source metadata unavailable:", repr(exc))
-          PY
       - name: Download pinned public input and execute actual faceting renderer
         run: >-
           python examples/embedding_facets_gallery.py
