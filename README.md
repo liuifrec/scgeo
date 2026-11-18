@@ -42,6 +42,10 @@ result.save("geometry_dynamics", formats=("pdf", "svg", "png"))
 
 [See the reproducible atlas gallery and input requirements](https://github.com/liuifrec/scgeo/blob/main/docs/GEOMETRY_DYNAMICS_ATLAS.md).
 
+![Actual ScGeo unified atlas rendered from a fully synthetic example](https://raw.githubusercontent.com/liuifrec/scgeo/main/docs/assets/geometry_dynamics_atlas_synthetic.png)
+
+*Synthetic demonstration only: constructed display coordinates, projected vectors and topology; quantitative effects computed on the simulated representation. [Reproduce the figure](https://github.com/liuifrec/scgeo/blob/main/examples/geometry_dynamics_atlas_gallery.py).*
+
 ## Start here
 
 | Your goal | Best starting point |
