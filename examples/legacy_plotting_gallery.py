@@ -20,6 +20,8 @@ from plotting_gallery import make_gallery_data
 def run(output_dir, formats=("png", "svg", "pdf")):
     output_dir = Path(output_dir)
     adata = make_gallery_data()
+    adata.obs["state"] = pd.Categorical(adata.obs["state"], categories=["State A", "State B", "State C"])
+    adata.uns["state_colors"] = ["#427CB3", "#D88843", "#4E9B85"]
     adata.obs["illustrative_score"] = np.linalg.norm(adata.obsm["X_toy"], axis=1)
     rng = np.random.default_rng(17)
     adata.obs["map_confidence"] = rng.uniform(.1, 1., adata.n_obs)
@@ -59,11 +61,32 @@ def run(output_dir, formats=("png", "svg", "pdf")):
         qc = sg.pl.mapping_qc_panel(adata, basis="display", palette_from="state",
             condition_key="condition", query_value="treated", return_result=True, show=False)
         qc.fig.suptitle("Synthetic mapping display · illustrative scores; no mapping model fitted")
+        save("mapping_legend", sg.pl.legend_from_data(qc.data["legend"].to_dict(orient="records"),
+            title="Query predictions · synthetic", return_result=True, show=False))
         save("mapping_qc", qc)
         save("ood_landscape", sg.pl.ood_landscape(adata, basis="display", ood_key="map_ood_score",
             groupby="state", contour_gridsize=12, contour_quantile=.75,
             title="Synthetic OOD display · descriptive score threshold",
             return_result=True, show=False))
+        fig, axs = plt.subplots(1, 3, figsize=(10, 4.5), gridspec_kw={"width_ratios": [4, .2, 2]}, constrained_layout=True)
+        structure = sg.pl.consensus_structure(adata, basis="display", groupby="state",
+            score_key="illustrative_score", topk=150, ax=axs[0], cax=axs[1],
+            title="Synthetic top-score structure", print_legend=False, return_result=True, show=False)
+        legend = sg.pl.legend_from_data(structure.data["legend"].to_dict(orient="records"), ax=axs[2],
+            title="Selected cells", return_result=True, show=False)
+        save("consensus_structure", sg.pl.PlotResult(fig, {**structure.axes, **legend.axes},
+            data={"structure": structure.data, "legend": legend.data},
+            metadata={"structure": structure.metadata, "legend": legend.metadata}))
+        # Constructed undirected topology for renderer demonstration, not inferred PAGA.
+        adata.uns["paga"] = {"groups": "state", "node_order": ["State A", "State B", "State C"],
+            "connectivities": np.array([[0., .8, .5], [.8, 0., 0.], [.5, 0., 0.]])}
+        compass = sg.pl.recovery_compass(adata, node_key="state", condition_key="condition",
+            group0="control", group1="treated", basis="display", ood_key="map_ood_score",
+            bg_alpha=.25,
+            title="Synthetic display-space compass · constructed graph",
+            return_result=True, show=False)
+        compass.metadata["graph_source"] = "constructed synthetic topology; not inferred PAGA"
+        save("recovery_compass", compass)
     return outputs
 
 

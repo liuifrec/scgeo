@@ -34,9 +34,13 @@ changed by this work.
    palette and true missing labels. Exported threshold/selection provenance and
    actual contour bin counts/means; corrected transposed contour coordinates.
 
+7. Completed consensus structure, standalone legend and recovery-compass source
+   exports. Preserved legacy returns and descriptive means; reused PAGA graph
+   validation and made display-coordinate semantics explicit.
+
 The table describes interface coverage, **not a claim that every scientific or
 visual edge case is resolved**. `Yes` means `return_result=True` is available.
-`Missing` identifies remaining work. The Plotly and bundle contracts are
+All Matplotlib renderers now expose this opt-in contract. The Plotly and bundle contracts are
 intentional and should not be replaced with another implementation.
 
 | Export | Axes contract | PlotResult | Status / next work |
@@ -68,8 +72,8 @@ intentional and should not be replaced with another implementation.
 | `mapping_confidence_umap` | ax | Yes | Lowest finite scores; full selection/display identity and explicit colorbar axes. |
 | `ood_cells` | ax | Yes | Explicit threshold provenance; unavailable flags stay nullable; X-prefixed bases accepted. |
 | `mapping_qc_panel` | axes | Yes | Novel reference-palette labels retained; query and scalar display scopes exported. |
-| `consensus_structure` | ax | Missing | Add result/source tables and colorbar placement; avoid laying out caller figures. |
-| `legend_from_data` | Missing | Missing | Add supplied axes/result with complete entries and explicit truncation. |
+| `consensus_structure` | ax | Yes | Full selection/group summaries, separate legend and caller colorbar; preserved four-item legacy return. |
+| `legend_from_data` | ax | Yes | Full entry exports with explicit truncation; composable legend-only axes. |
 | `_get_scanpy_palette` | n/a | n/a | Exported compatibility palette helper; retain its name. |
 | `_fallback_palette` | n/a | n/a | Exported compatibility palette helper; retain its name. |
 | `paga_shift_map` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
@@ -81,7 +85,7 @@ intentional and should not be replaced with another implementation.
 | `robustness_matrix` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
 | `gallery_overview` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
 | `geometry_dynamics_atlas` | axes | Yes | Now composes in caller Figure/SubFigure; parent export and source scope recorded. |
-| `recovery_compass` | ax | Missing | Export source cells/nodes/edges; retain explicit display-space alignment semantics. |
+| `recovery_compass` | ax | Yes | Cells/nodes/graph/glyph sources; shared PAGA validation; display-space means and cosine explicitly labeled. |
 | `state_flow_sankey` | Plotly | Native | Intentional Plotly adapter: complete counts in layout.meta; native HTML/JSON export. |
 | `state_flow_alluvial` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
 | `state_flow_chord` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
@@ -92,21 +96,19 @@ intentional and should not be replaced with another implementation.
 | `perturbation_report` | Bundle | Bundle | Existing multi-figure exporter; strict availability and panel_kwargs already supported. |
 | `local_distortion_map` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
 
-## Next reviewable increments
+## Remaining validation and hardening
 
-1. **Stored tabular evidence:** core source exports and axes now cover composition,
-   distribution, overlap and ranking; continue edge-case and layout hardening. Never turn an unavailable effect into zero or an
-   unavailable p-value into one; never refit a test in plotting code.
-2. **Mapping and OOD:** fix basis aliases and reference-palette omissions, then
-   export observation identity, display selection, thresholds, group summaries,
-   and actual contour grids. Thresholds and contours remain descriptive.
-3. **Legacy summary views:** extend consensus structure, legends and recovery
-   compass using the same PlotResult and axes helpers. Label display-space
-   vectors separately from stored analysis-space effects.
-4. **Cross-API hardening:** check nullable/missing/colliding labels, all-missing
-   numeric columns, supplied color norms, explicit colorbar placement, deterministic
-   sampling, early error paths, SubFigure scope, and source table completeness.
-   Existing new APIs already cover many of these cases; avoid blanket rewrites.
+Interface coverage is complete; scientific/visual coverage is maintained by
+semantic regression tests and executable galleries. Remaining work in this
+continuation is to run the full suite and all relevant galleries, review
+publication layouts, verify source/figure hashes, and record local validation
+separately from the remote PR baseline.
+
+Cross-API cases to keep testing include nullable/missing/colliding labels,
+all-missing numeric columns, supplied color norms, explicit colorbar placement,
+deterministic sampling, early error paths, SubFigure scope and source-table
+completeness. No coverage claim substitutes for checking the intended study's
+units, sample structure, graph order and available evidence.
 
 For each increment: preserve default return shapes and argument meanings,
 exercise the relevant synthetic gallery, inspect rendered output, add semantic

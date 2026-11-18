@@ -4,10 +4,15 @@ from dataclasses import dataclass
 from typing import Optional, Dict, Any, List
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.colors import is_color_like
 
-from ._utils import _get_embedding_xy, _get_ax
-from ._highlight import _topk_mask_robust, _get_scanpy_palette, _fallback_palette
+from ._utils import resolve_embedding, observation_labels
+from ._highlight import _topk_mask_robust, _get_scanpy_palette
+from ._result import PlotResult
+from ._style import category_palette
+from ._table_plot_utils import panel_axes
 
 
 @dataclass
@@ -52,9 +57,15 @@ def consensus_structure(
 
     # legend handling (separate)
     print_legend: bool = True,
-) -> tuple[Any, Any, ConsensusStructureStats, List[Dict[str, Any]]]:
+    colorbar: bool = True,
+    cax=None,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    return_result: bool = False,
+):
     """
-    Consensus structure (UMAP only) + legend returned separately.
+    Consensus score structure on a stored embedding, with a separate legend.
 
     Figure:
       - Background: all cells colored by `groupby`
@@ -69,25 +80,45 @@ def consensus_structure(
     Note:
       - This function NEVER draws a legend inside the plot.
       - If you want a legend figure, build it from legend_data.
+      - ``return_result=True`` exports all cells, selection/display flags and
+        full group summaries (including groups excluded from the legend).
+      - ``colorbar=False`` or ``cax`` supports composition. Supplied axes are
+        never laid out or resized. The default four-item return is unchanged.
     """
     if score_key not in adata.obs:
         raise KeyError(f"obs['{score_key}'] not found")
     if groupby not in adata.obs:
         raise KeyError(f"obs['{groupby}'] not found")
 
-    x, y = _get_embedding_xy(adata, basis=basis)
-    score = np.asarray(adata.obs[score_key].to_numpy(), dtype=float)
-    g = adata.obs[groupby].astype(str).to_numpy()
+    if isinstance(topk, bool) or not isinstance(topk, (int, np.integer)) or topk < 0:
+        raise ValueError("topk must be a nonnegative integer.")
+    if norm is not None and (vmin is not None or vmax is not None):
+        raise ValueError("Supply norm or vmin/vmax, not both.")
+    if cax is not None:
+        if ax is None or not colorbar:
+            raise ValueError("cax requires ax and colorbar=True.")
+        panel_axes(["embedding", "colorbar"], {"embedding": ax, "colorbar": cax}, None)
+    key, xy = resolve_embedding(adata, basis=basis)
+    x, y = xy[:, 0], xy[:, 1]
+    finite_xy = np.isfinite(xy[:, :2]).all(axis=1)
+    score = pd.to_numeric(adata.obs[score_key], errors="raise").to_numpy(dtype=float, na_value=np.nan)
+    groups, categories, missing = observation_labels(adata.obs[groupby], groupby)
+    g = groups.to_numpy()
 
     # palette
     pal = _get_scanpy_palette(adata, groupby) if use_scanpy_colors else None
-    if pal is None:
-        pal = _fallback_palette(g)
+    if pal is None or not all(is_color_like(c) for c in pal.values()):
+        pal = category_palette(categories)
+        palette_origin = "deterministic_hash"
+    else:
+        palette_origin = "scanpy_uns"
+    if missing is not None:
+        pal[missing] = "lightgrey"
 
     # top-k
     mask = _topk_mask_robust(score, int(topk))
     n_topk = int(mask.sum())
-    if n_topk == 0:
+    if n_topk == 0 and topk != 0:
         raise ValueError(
             f"topk={topk} produced 0 selected cells "
             f"(score_key='{score_key}' may be all-NaN/inf or constant?)"
@@ -134,13 +165,15 @@ def consensus_structure(
         print("\n".join(lines))
 
     # ----- plot: UMAP only (no legend drawn) -----
-    fig, ax = _get_ax(ax=ax, figsize=figsize)
+    fig, panels, owns = panel_axes(["embedding"], None if ax is None else {"embedding": ax}, figsize)
+    ax = panels["embedding"]
+    artists = {"background": {}}
 
     # background colored by group
     for k in uniq:
-        m = (g == k)
+        m = (g == k) & finite_xy
         if m.any():
-            ax.scatter(
+            artists["background"][k] = ax.scatter(
                 x[m], y[m],
                 s=bg_size,
                 c=[pal.get(k, "grey")],
@@ -150,27 +183,37 @@ def consensus_structure(
             )
 
     # top-k colored by score, outlined by group color
-    edgecolors = [pal.get(k, "k") for k in g[mask]]
+    displayed = mask & finite_xy
+    edgecolors = [pal.get(k, "k") for k in g[displayed]]
+    if norm is None:
+        norm = plt.Normalize(vmin=vmin, vmax=vmax)
+    norm.autoscale_None(score[mask] if n_topk else np.array([0., 1.]))
     sc = ax.scatter(
-        x[mask], y[mask],
+        x[displayed], y[displayed],
         s=hi_size,
-        c=score[mask],
+        c=score[displayed],
         cmap=cmap,
+        norm=norm,
         alpha=hi_alpha,
         linewidths=float(outline_lw),
         edgecolors=edgecolors,
         zorder=3,
     )
     sc.set_alpha(float(outline_alpha))
+    artists["selected"] = sc
 
-    cb = fig.colorbar(sc, ax=ax, fraction=0.046, pad=0.04)
-    cb.set_label(score_key)
+    if colorbar:
+        cb = fig.colorbar(sc, ax=ax, cax=cax, fraction=0.046, pad=0.04)
+        cb.set_label(score_key)
+        artists["colorbar"] = cb
 
-    ax.set_xlabel(f"{basis.upper()}1")
-    ax.set_ylabel(f"{basis.upper()}2")
+    basis_name = key.removeprefix("X_").upper()
+    ax.set_xlabel(f"{basis_name}1")
+    ax.set_ylabel(f"{basis_name}2")
     ax.set_aspect("equal", adjustable="datalim")
     ax.set_title(title or f"Consensus structure: top-{n_topk} by {score_key} (groupby={groupby})")
-    fig.tight_layout()
+    if owns:
+        fig.tight_layout()
 
     stats = ConsensusStructureStats(
         topk=int(topk),
@@ -183,4 +226,20 @@ def consensus_structure(
     if show:
         plt.show()
 
+    if return_result:
+        cells = pd.DataFrame({"cell": adata.obs_names.astype(str), "obs_position": np.arange(adata.n_obs),
+            "x": x, "y": y, "score": score, "group": adata.obs[groupby].to_numpy(),
+            "group_label": g, "selected": mask, "highlighted": displayed, "background_displayed": finite_xy})
+        included = {d["group"] for d in legend_data}
+        summary = pd.DataFrame({"group": uniq, "count": [group_counts[k] for k in uniq],
+            "fraction": [group_fracs[k] for k in uniq], "median_score": [group_median_score[k] for k in uniq],
+            "color": [pal[k] for k in uniq], "legend_included": [k in included for k in uniq]})
+        return PlotResult(fig, panels, {"cells": cells, "summary": summary,
+            "legend": pd.DataFrame(legend_data, columns=["group", "fraction", "count", "color"])},
+            {"plot": "consensus_structure", "basis": key, "score_key": score_key, "groupby": groupby,
+             "topk": topk, "n_selected": n_topk, "selection_scope": "all_finite_input_scores",
+             "min_frac_in_legend": min_frac_in_legend, "missing_label": missing,
+             "palette": pal, "palette_origin": palette_origin, "color_scale_scope": "selected_scores",
+             "norm": {"type": type(norm).__name__, "vmin": norm.vmin, "vmax": norm.vmax},
+             "owns_figure": owns, "export_scope": "created_figure" if owns else "parent_figure"}, artists=artists)
     return fig, ax, stats, legend_data

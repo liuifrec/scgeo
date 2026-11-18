@@ -17,8 +17,9 @@
   probability ranges and add source exports/named composition axes. Accept
   stored odds ratios on their original scale with a null reference at one.
 - Audit all 50 plotting exports in [the API status matrix](docs/PLOTTING_API_STATUS.md).
-  Remaining legacy functions are recorded explicitly; no statistical estimator
-  or published release changes in this continuation.
+  All Matplotlib renderers now expose the opt-in result contract; Plotly and
+  bundle exports retain their native contracts. No statistical estimator or
+  published release changes in this continuation.
 - Extend ranking, overlap, distribution and report views with axes/source
   exports; fix density fallback axis forwarding and report legend colors.
   Global distribution tests can use separate metric axes while preserving the
@@ -28,6 +29,11 @@
   outside reference palettes and distinguishing genuine missing labels. Export
   exact thresholds, display selections and supported contour bins; correct the
   contour coordinate transpose without changing the binned-mean estimator.
+
+- Complete consensus structure, standalone legend and recovery-compass exports.
+  Retain full source data when legends are truncated; preserve parent figures.
+  Reuse PAGA graph validation and label compass values as descriptive display-
+  coordinate summaries, with missing/insufficient alignment kept unavailable.
 
 ## Unreleased flexible embedding and velocity faceting
 

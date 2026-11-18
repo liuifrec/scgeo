@@ -328,7 +328,7 @@ use the full data. The returned source table records which cells are shown.
 
 ### `scgeo.pl.consensus_structure`
 
-Consensus structure (UMAP only) + legend returned separately.
+Consensus score structure on a stored embedding, with a separate legend.
 
 ```text
 scgeo.pl.consensus_structure(
@@ -352,7 +352,13 @@ scgeo.pl.consensus_structure(
     ax=None,
     show: 'bool' = True,
     print_legend: 'bool' = True,
-) -> 'tuple[Any, Any, ConsensusStructureStats, List[Dict[str, Any]]]'
+    colorbar: 'bool' = True,
+    cax=None,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    return_result: 'bool' = False,
+)
 ```
 
 [View implementation](../../scgeo/pl/_consensus_structure.py)
@@ -362,7 +368,7 @@ scgeo.pl.consensus_structure(
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Consensus structure (UMAP only) + legend returned separately.
+Consensus score structure on a stored embedding, with a separate legend.
 
 Figure:
   - Background: all cells colored by `groupby`
@@ -377,6 +383,10 @@ Outputs:
 Note:
   - This function NEVER draws a legend inside the plot.
   - If you want a legend figure, build it from legend_data.
+  - ``return_result=True`` exports all cells, selection/display flags and
+    full group summaries (including groups excluded from the legend).
+  - ``colorbar=False`` or ``cax`` supports composition. Supplied axes are
+    never laid out or resized. The default four-item return is unchanged.
 ```
 
 </details>
@@ -1341,6 +1351,9 @@ scgeo.pl.legend_from_data(
     title: 'str | None' = None,
     figsize: 'Tuple[float, float] | None' = None,
     show: 'bool' = True,
+    ax=None,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -1355,6 +1368,10 @@ Render a tiny legend-only figure from legend_data produced by sg.pl.consensus_st
 
 legend_data items:
   {"group": str, "fraction": float, "count": int, "color": <matplotlib color>}
+
+``ax`` accepts a caller-owned legend area. Source exports retain every
+supplied entry, with a displayed flag when ``max_items`` truncates it.
+The default return remains ``(fig, ax)``.
 ```
 
 </details>
@@ -2075,6 +2092,9 @@ scgeo.pl.recovery_compass(
     ax=None,
     return_data: 'bool' = False,
     show: 'bool' = True,
+    caxes=None,
+    graph_node_order=None,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -2098,6 +2118,19 @@ If return_data is False:
     (fig, ax) or ax
 If return_data is True:
     (fig, ax, node_df, edges)
+If return_result is True:
+    PlotResult with all input cells, node summaries, graph edges and exact
+    node/arrow encodings. This takes priority over return_data.
+
+Notes
+-----
+Centroids, shifts and cosine values here are descriptive computations in
+the first two display coordinates, not stored analysis-space effects or
+evidence of biological recovery. Velocity means pool all input conditions.
+PAGA edges are undirected; graph order/metadata are validated by the shared
+PAGA renderer. ``graph_node_order`` can declare the matrix order explicitly.
+``caxes`` maps ``fill`` and/or ``arrow`` to explicit colorbar axes when ax
+and legend=True are supplied. Legacy tuple/axis returns remain available.
 ```
 
 </details>

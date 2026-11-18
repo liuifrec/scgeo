@@ -111,19 +111,13 @@ Supported upgraded plots accept `return_result=True`:
 | `result.metadata` | Metric, ordering, display choices, and available provenance |
 | `result.warnings` | Interpretation or availability notes |
 
-Existing default return values remain supported. This opt-in result is
-available for `state_evidence_panel`, `representation_stability_heatmap`,
-`consensus_state_map`, `local_distortion_map`, `composition_drift`,
-`gallery_overview`, `robustness_matrix`, `velocity_shift_alignment`,
-`score_embedding`/`score_umap`, `evidence_comparison`, `replicate_effect`,
-`paga_shift_map`/`paga_scgeo`, `velocity_field`, `state_flow_alluvial`,
-`state_flow_chord`, and `embedding_density`.
-It also covers `embedding_facets`, `geometry_dynamics_atlas`,
-`geometry_velocity_concordance`, `velocity_condition_compare`,
-`highlight_topk_cells`, `alignment_panel`, `ambiguity_panel`, and
-`consensus_subspace_panel`. The [API upgrade audit](PLOTTING_API_STATUS.md)
-tracks every export and the remaining legacy contracts.
-Other plotting functions retain their documented interfaces.
+Existing default return values remain supported. All Matplotlib rendering
+functions in `scgeo.pl` now accept `return_result=True`, including compatibility
+aliases `score_umap` and `paga_scgeo`. `state_flow_sankey` retains its native
+Plotly figure and `layout.meta` provenance; `perturbation_report` retains its
+multi-figure bundle exporter. Utilities do not need a result flag. The
+[API audit](PLOTTING_API_STATUS.md) records all 50 exported names and their
+axes/result contracts.
 
 The stored composition renderers `paga_composition_volcano`,
 `paga_composition_bar`, and `paga_composition_panel`, plus
@@ -394,6 +388,36 @@ For caller-owned OOD summaries, pass `axes={"landscape": ax, "summary": summary_
 and retain their historical default returns. The executable
 [legacy gallery](../examples/legacy_plotting_gallery.py) uses only synthetic
 scores and explicitly labels them as illustrative; it fits no mapping model.
+
+## Consensus legends and the legacy recovery compass
+
+`consensus_structure(..., return_result=True)` exports all input cells, exact
+finite-score top-k selection, visible highlights, complete group summaries and
+the filtered legend. Selection statistics include cells without finite display
+coordinates; the table makes that distinction explicit. Use `cax` or
+`colorbar=False` to compose the view without changing neighbouring axes.
+Without the result flag, the historical `(fig, ax, stats, legend_data)` remains.
+
+`legend_from_data(legend_data, ax=legend_ax, return_result=True)` accepts a
+caller-owned area. Its source table retains all entries when `max_items`
+truncates the visible legend, and the result records that omission. Default
+`(fig, ax)` returns and input dictionaries remain supported.
+
+`recovery_compass` keeps its legacy display-space calculations and return
+values. Its name does **not** imply evidence of biological recovery. Centroids,
+shifts and cosine values are computed in the first two display coordinates;
+velocity means pool all input conditions. OOD fractions use all input node
+cells and the finite-score 95th percentile. These are descriptive summaries,
+not sample-level tests, stored analysis-space effects, or inferred lineage.
+For fixed quantitative evidence use the stored modes described above.
+
+The compass now validates PAGA dimensions, symmetry, grouping and matrix order
+through the existing PAGA renderer. Supply `graph_node_order` when needed;
+otherwise the chosen source of matrix order is recorded. Its opt-in result
+exports cells, node summaries, all nonzero graph edges (including suppressed
+ones), matrix labels, and actual glyph sizes/arrow endpoints. Unknown alignment
+and insufficient condition support stay unavailable. Place numeric scales with
+`caxes={"fill": fill_ax, "arrow": arrow_ax}` alongside `ax`, or use `legend=False`.
 
 ## Style, display size, and export
 

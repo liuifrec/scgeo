@@ -6,26 +6,22 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-try:
-    from scipy import sparse
-except Exception:  # pragma: no cover
-    sparse = None
+from ._paga_shift_map import _graph, _string_labels
+from ._result import PlotResult
+from ._table_plot_utils import panel_axes
+from ._utils import resolve_embedding
 
 
 def _get_basis_xy(adata, basis: str) -> np.ndarray:
-    key = basis if basis.startswith("X_") else f"X_{basis}"
-    if key not in adata.obsm:
-        raise KeyError(f"Embedding '{key}' not found in adata.obsm.")
-    xy = np.asarray(adata.obsm[key])
-    if xy.ndim != 2 or xy.shape[1] < 2:
-        raise ValueError(f"Embedding '{key}' must have shape (n_cells, >=2).")
+    try:
+        _, xy = resolve_embedding(adata, basis)
+    except KeyError as exc:
+        raise KeyError(f"Embedding {basis!r} not found in adata.obsm.") from exc
     return xy[:, :2]
 
 
 def _as_str_series(s: pd.Series) -> pd.Series:
-    if pd.api.types.is_categorical_dtype(s):
-        return s.astype(str)
-    return s.astype("category").astype(str)
+    return _string_labels(s, str(s.name))
 
 
 def _compute_shift_summary(
@@ -51,7 +47,7 @@ def _compute_shift_summary(
     df = pd.DataFrame(
         {
             node_key: _as_str_series(adata.obs[node_key]),
-            condition_key: adata.obs[condition_key].astype(str).values,
+            condition_key: _as_str_series(adata.obs[condition_key]).to_numpy(),
             "x": xy[:, 0],
             "y": xy[:, 1],
         },
@@ -162,7 +158,7 @@ def _compute_composition_summary(
     df = pd.DataFrame(
         {
             node_key: _as_str_series(adata.obs[node_key]),
-            condition_key: adata.obs[condition_key].astype(str).values,
+            condition_key: _as_str_series(adata.obs[condition_key]).to_numpy(),
         },
         index=adata.obs_names,
     )
@@ -214,7 +210,7 @@ def _compute_ood_node_summary(
     if ood_key not in adata.obs:
         raise KeyError(f"'{ood_key}' not found in adata.obs.")
 
-    scores = pd.to_numeric(adata.obs[ood_key], errors="coerce").to_numpy(dtype=float)
+    scores = pd.to_numeric(adata.obs[ood_key], errors="coerce").to_numpy(dtype=float, na_value=np.nan)
     finite = np.isfinite(scores)
     if not np.any(finite):
         raise ValueError(f"No finite values found in '{ood_key}'.")
@@ -255,47 +251,6 @@ def _safe_cosine(dx: np.ndarray, dy: np.ndarray, vx: np.ndarray, vy: np.ndarray)
     mask = np.isfinite(denom) & (denom > 0)
     out[mask] = dot[mask] / denom[mask]
     return out
-
-
-def _get_paga_connectivities(adata, paga_key: str = "paga"):
-    if paga_key not in adata.uns:
-        raise KeyError(f"adata.uns['{paga_key}'] not found.")
-    paga = adata.uns[paga_key]
-    if "connectivities" not in paga:
-        raise KeyError(f"adata.uns['{paga_key}']['connectivities'] not found.")
-    conn = paga["connectivities"]
-    if sparse is not None and sparse.issparse(conn):
-        return conn.tocsr()
-    return np.asarray(conn)
-
-
-def _get_node_categories(adata, node_key: str) -> list[str]:
-    if node_key not in adata.obs:
-        raise KeyError(f"'{node_key}' not found in adata.obs.")
-    s = adata.obs[node_key]
-    if pd.api.types.is_categorical_dtype(s):
-        return [str(x) for x in s.cat.categories]
-    return sorted(map(str, pd.unique(s)))
-
-
-def _extract_edge_list(connectivities, node_names: list[str], threshold: float) -> list[tuple[str, str, float]]:
-    edges: list[tuple[str, str, float]] = []
-    n = len(node_names)
-
-    if sparse is not None and sparse.issparse(connectivities):
-        coo = connectivities.tocoo()
-        for i, j, w in zip(coo.row, coo.col, coo.data):
-            if i < j and i < n and j < n and float(w) >= threshold:
-                edges.append((node_names[i], node_names[j], float(w)))
-        return edges
-
-    arr = np.asarray(connectivities)
-    for i in range(n):
-        for j in range(i + 1, n):
-            w = float(arr[i, j])
-            if w >= threshold:
-                edges.append((node_names[i], node_names[j], w))
-    return edges
 
 
 def _assemble_recovery_compass_table(
@@ -414,6 +369,9 @@ def recovery_compass(
     ax=None,
     return_data: bool = False,
     show: bool = True,
+    caxes=None,
+    graph_node_order=None,
+    return_result: bool = False,
 ):
     """
     Signature ScGeo synthesis plot combining:
@@ -429,8 +387,49 @@ def recovery_compass(
         (fig, ax) or ax
     If return_data is True:
         (fig, ax, node_df, edges)
+    If return_result is True:
+        PlotResult with all input cells, node summaries, graph edges and exact
+        node/arrow encodings. This takes priority over return_data.
+
+    Notes
+    -----
+    Centroids, shifts and cosine values here are descriptive computations in
+    the first two display coordinates, not stored analysis-space effects or
+    evidence of biological recovery. Velocity means pool all input conditions.
+    PAGA edges are undirected; graph order/metadata are validated by the shared
+    PAGA renderer. ``graph_node_order`` can declare the matrix order explicitly.
+    ``caxes`` maps ``fill`` and/or ``arrow`` to explicit colorbar axes when ax
+    and legend=True are supplied. Legacy tuple/axis returns remain available.
     """
+    for name, value, allowed in (
+        ("node_size_mode", node_size_mode, {"group1_n", "group0_n", "delta_abs", "constant"}),
+        ("fill_color_mode", fill_color_mode, {"alignment", "delta_frac", "constant"}),
+        ("arrow_color_mode", arrow_color_mode, {"shift", "constant"}),
+        ("ring_mode", ring_mode, {"ood_frac", "none"}),
+    ):
+        if value not in allowed:
+            raise ValueError(f"{name} must be one of {sorted(allowed)}.")
+    if str(group0) == str(group1):
+        raise ValueError("group0 and group1 must be distinct.")
+    if isinstance(min_cells, bool) or not isinstance(min_cells, (int, np.integer)) or min_cells < 1:
+        raise ValueError("min_cells must be a positive integer.")
+    if not np.isfinite(connectivity_threshold) or connectivity_threshold < 0:
+        raise ValueError("connectivity_threshold must be finite and nonnegative.")
+    if not np.isfinite(arrow_scale) or arrow_scale < 0:
+        raise ValueError("arrow_scale must be finite and nonnegative.")
+    if caxes is not None:
+        from collections.abc import Mapping
+        if not isinstance(caxes, Mapping):
+            raise TypeError("caxes must be a mapping of colorbar names to Axes.")
+        allowed = ({"fill"} if fill_color_mode != "constant" else set()) | ({"arrow"} if arrow_color_mode == "shift" else set())
+        if ax is None or not legend or set(caxes) - allowed:
+            raise ValueError("caxes requires ax, legend=True and active fill/arrow color encodings.")
+        panel_axes(["compass", *caxes], {"compass": ax, **caxes}, None)
     xy = _get_basis_xy(adata, basis)
+    labels = _as_str_series(adata.obs[node_key])
+    node_names, edge_table, graph_order_source = _graph(
+        adata, node_key, paga_key, graph_node_order, labels.dropna().unique().tolist(),
+    )
     node_df = _assemble_recovery_compass_table(
         adata,
         node_key=node_key,
@@ -443,28 +442,30 @@ def recovery_compass(
         min_cells=min_cells,
     )
 
-    node_names = _get_node_categories(adata, node_key)
-    conn = _get_paga_connectivities(adata, paga_key=paga_key)
-    edges = _extract_edge_list(conn, node_names=node_names, threshold=connectivity_threshold)
-
     node_idx = node_df.set_index(node_key, drop=False)
     placeable = {
         n for n in node_names
         if n in node_idx.index and bool(node_idx.loc[n, "present0"])
+        and np.isfinite(node_idx.loc[n, ["x0", "y0"]].to_numpy(dtype=float)).all()
     }
-    edges = [(a, b, w) for a, b, w in edges if a in placeable and b in placeable]
-
-    made_fig = False
-    if ax is None:
-        fig, ax = plt.subplots(figsize=figsize)
-        made_fig = True
-    else:
-        fig = ax.figure
+    edge_table["displayed"] = (~edge_table.self_loop & (edge_table.weight >= connectivity_threshold)
+        & edge_table.source.isin(placeable) & edge_table.target.isin(placeable))
+    edges = list(edge_table.loc[edge_table.displayed, ["source", "target", "weight"]].itertuples(index=False, name=None))
+    fig, panels, made_fig = panel_axes(["compass"], None if ax is None else {"compass": ax}, figsize)
+    ax = panels["compass"]
+    if made_fig:
+        if hasattr(fig, "set_layout_engine"):
+            fig.set_layout_engine("constrained")
+        else:  # Matplotlib 3.5
+            fig.set_constrained_layout(True)
+    artists = {"edges": [], "nodes": {}, "arrows": {}, "labels": {}}
+    glyphs = []
+    finite_xy = np.isfinite(xy).all(axis=1)
 
     # Step 2: base plot
-    ax.scatter(
-        xy[:, 0],
-        xy[:, 1],
+    artists["background"] = ax.scatter(
+        xy[finite_xy, 0],
+        xy[finite_xy, 1],
         s=bg_size,
         c="lightgrey",
         alpha=bg_alpha,
@@ -476,14 +477,14 @@ def recovery_compass(
     for a, b, w in edges:
         ra = node_idx.loc[a]
         rb = node_idx.loc[b]
-        ax.plot(
+        artists["edges"].extend(ax.plot(
             [float(ra["x0"]), float(rb["x0"])],
             [float(ra["y0"]), float(rb["y0"])],
             color="black",
             lw=edge_lw * max(w, 0.15),
             alpha=edge_alpha,
             zorder=1,
-        )
+        ))
 
     # node size encoding
     if node_size_mode == "group1_n":
@@ -501,7 +502,8 @@ def recovery_compass(
 
     # node fill encoding
     if fill_color_mode == "alignment":
-        fill_values = node_df["alignment_cosine"].to_numpy(dtype=float)
+        fill_values = node_df["alignment_cosine"].to_numpy(dtype=float, copy=True)
+        fill_values[~node_df.usable_velocity.to_numpy(dtype=bool)] = np.nan
     elif fill_color_mode == "delta_frac":
         fill_values = node_df["delta_frac"].to_numpy(dtype=float)
         fill_vmin = float(np.nanmin(fill_values)) if np.any(np.isfinite(fill_values)) else -1.0
@@ -542,7 +544,7 @@ def recovery_compass(
     for _, row in node_df.iterrows():
         n = str(row[node_key])
 
-        if not bool(row["present0"]):
+        if n not in placeable:
             continue
 
         x0 = float(row["x0"])
@@ -566,7 +568,7 @@ def recovery_compass(
         else:
             ring_lw = 0.8
 
-        ax.scatter(
+        artists["nodes"][n] = ax.scatter(
             x0,
             y0,
             s=node_size,
@@ -577,7 +579,14 @@ def recovery_compass(
             zorder=3,
         )
 
-        if bool(row["usable_shift"]):
+        draw_arrow = bool(row["usable_shift"]) and np.isfinite([row["dx"], row["dy"]]).all()
+        glyphs.append({"node": n, "x": x0, "y": y0, "size": node_size, "fill_value": fval,
+            "fill_available": np.isfinite(fval), "ring_lw": ring_lw,
+            "ring_available": ring_mode == "ood_frac" and pd.notna(row["ood_frac"]),
+            "arrow_displayed": draw_arrow, "label_displayed": label and n in label_nodes,
+            "arrow_end_x": x0 + float(row["dx"]) * arrow_scale if draw_arrow else np.nan,
+            "arrow_end_y": y0 + float(row["dy"]) * arrow_scale if draw_arrow else np.nan})
+        if draw_arrow:
             dx = float(row["dx"]) * arrow_scale
             dy = float(row["dy"]) * arrow_scale
 
@@ -586,7 +595,7 @@ def recovery_compass(
             else:
                 acolor = arrow_color
 
-            ax.arrow(
+            artists["arrows"][n] = ax.arrow(
                 x0,
                 y0,
                 dx,
@@ -595,13 +604,15 @@ def recovery_compass(
                 head_width=arrow_width * 8.0,
                 head_length=max(np.hypot(dx, dy) * 0.12, arrow_width * 8.0),
                 length_includes_head=True,
-                color=acolor,
+                facecolor=acolor,
+                edgecolor="0.3",
+                linewidth=.55,
                 alpha=0.95,
                 zorder=4,
             )
 
         if label and n in label_nodes:
-            ax.text(
+            artists["labels"][n] = ax.text(
                 x0,
                 y0,
                 n,
@@ -617,22 +628,24 @@ def recovery_compass(
         if fill_color_mode != "constant":
             sm_fill = plt.cm.ScalarMappable(norm=fill_norm, cmap=fill_cmap_obj)
             sm_fill.set_array([])
-            cbar_fill = fig.colorbar(sm_fill, ax=ax, fraction=0.046, pad=0.04)
+            cbar_fill = fig.colorbar(sm_fill, ax=ax, cax=None if caxes is None else caxes.get("fill"), fraction=0.046, pad=0.04)
+            artists["fill_colorbar"] = cbar_fill
             if fill_color_mode == "alignment":
-                cbar_fill.set_label("cosine(shift, velocity)")
+                cbar_fill.set_label("Display-space cosine(shift, velocity)")
             elif fill_color_mode == "delta_frac":
                 cbar_fill.set_label("Δ fraction")
 
         if arrow_color_mode == "shift":
             sm_arrow = plt.cm.ScalarMappable(norm=arrow_norm, cmap=arrow_cmap_obj)
             sm_arrow.set_array([])
-            cbar_arrow = fig.colorbar(sm_arrow, ax=ax, fraction=0.046, pad=0.10)
-            cbar_arrow.set_label("shift magnitude")
+            cbar_arrow = fig.colorbar(sm_arrow, ax=ax, cax=None if caxes is None else caxes.get("arrow"), fraction=0.046, pad=0.10)
+            cbar_arrow.set_label("Display-space shift magnitude")
+            artists["arrow_colorbar"] = cbar_arrow
 
         # small manual annotation
         annotation_lines = [
             f"node size: {node_size_mode}",
-            f"ring: {ring_mode}",
+            f"ring: {ring_mode if ood_key is not None or ring_mode == 'none' else 'OOD unavailable'}",
             f"fill: {fill_color_mode}",
         ]
         ax.text(
@@ -650,18 +663,64 @@ def recovery_compass(
     basis_name = basis[2:] if basis.startswith("X_") else basis
     ax.set_xlabel(f"{basis_name.upper()}1")
     ax.set_ylabel(f"{basis_name.upper()}2")
+    ax.set_aspect("equal", adjustable="datalim")
     ax.set_xticks([])
     ax.set_yticks([])
     for spine in ax.spines.values():
         spine.set_visible(False)
 
     if title is None:
-        title = f"ScGeo recovery compass ({group0} → {group1})"
+        title = f"ScGeo recovery compass ({group0} → {group1})\nDisplay-space centroids and projected-vector cosine"
     ax.set_title(title)
 
     if show:
         plt.show()
 
+    if return_result:
+        vel_key = (f"velocity_{basis.removeprefix('X_')}" if velocity_basis is None else
+                   velocity_basis if velocity_basis.startswith("velocity_") else f"velocity_{velocity_basis}")
+        cells = pd.DataFrame({"cell": adata.obs_names.astype(str), "obs_position": np.arange(adata.n_obs),
+            "node": adata.obs[node_key].to_numpy(), "node_label": labels.to_numpy(),
+            "condition": adata.obs[condition_key].to_numpy(), "x": xy[:, 0], "y": xy[:, 1],
+            "background_displayed": finite_xy})
+        cells["contrast_included"] = _as_str_series(adata.obs[condition_key]).isin([str(group0), str(group1)]).to_numpy() & labels.notna().to_numpy()
+        if vel_key in adata.obsm:
+            cells["vx"] = np.asarray(adata.obsm[vel_key])[:, 0]
+            cells["vy"] = np.asarray(adata.obsm[vel_key])[:, 1]
+        threshold_used = None
+        if ood_key is not None:
+            cells["ood_score"] = pd.to_numeric(adata.obs[ood_key], errors="coerce").to_numpy(dtype=float, na_value=np.nan)
+            threshold_used = float(node_df.ood_threshold_used.dropna().iloc[0]) if node_df.ood_threshold_used.notna().any() else None
+            cells["ood_flagged"] = np.isfinite(cells.ood_score) & (cells.ood_score >= threshold_used) if threshold_used is not None else False
+        node_source = node_df.copy()
+        node_source["displayed"] = node_source[node_key].isin(placeable)
+        data = {"cells": cells, "nodes": node_source, "edges": edge_table,
+                "graph_nodes": pd.DataFrame({"node": node_names, "matrix_position": np.arange(len(node_names))}),
+                "glyphs": pd.DataFrame(glyphs, columns=["node", "x", "y", "size", "fill_value", "fill_available",
+                    "ring_lw", "ring_available", "arrow_displayed", "label_displayed", "arrow_end_x", "arrow_end_y"])}
+        warnings = []
+        if vel_key not in adata.obsm:
+            warnings.append(f"Projected velocity {vel_key!r} unavailable; alignment remains missing.")
+        if ood_key is None and ring_mode == "ood_frac":
+            warnings.append("OOD score not supplied; node borders do not encode OOD burden.")
+        if graph_order_source in {"current_categorical_order", "sorted_observed_labels"}:
+            warnings.append("PAGA matrix order is inferred from current labels; supply graph_node_order when original order is known.")
+        metadata = {"plot": "recovery_compass", "basis": resolve_embedding(adata, basis)[0],
+            "node_key": node_key, "condition_key": condition_key, "group0": str(group0), "group1": str(group1),
+            "alignment_source": "display_coordinates", "centroid_aggregation": "mean",
+            "velocity_key": vel_key, "velocity_scope": "all_input_conditions", "velocity_aggregation": "mean",
+            "ood_key": ood_key, "ood_threshold": threshold_used, "ood_threshold_scope": "finite_scores_all_input_cells",
+            "ood_fraction_denominator": "all_input_node_cells; unavailable scores are not flagged",
+            "paga_key": paga_key, "graph_order_source": graph_order_source, "graph_node_order": node_names,
+            "connectivity_threshold": connectivity_threshold, "graph_directed": False,
+            "min_cells": min_cells, "node_size_mode": node_size_mode, "node_size_scale": node_size_scale,
+            "fill_color_mode": fill_color_mode, "fill_norm": {"vmin": fill_norm.vmin, "vmax": fill_norm.vmax},
+            "fill_cmap": fill_cmap, "ring_mode": ring_mode, "arrow_color_mode": arrow_color_mode,
+            "arrow_scale": arrow_scale, "arrow_cmap": arrow_cmap,
+            "arrow_norm": None if arrow_norm is None else {"vmin": arrow_norm.vmin, "vmax": arrow_norm.vmax},
+            "owns_figure": made_fig, "export_scope": "created_figure" if made_fig else "parent_figure",
+            "interpretation": "Display-space summary, not stored analysis-space evidence, inferred lineage or biological recovery."}
+        return PlotResult(fig, panels, data, metadata, warnings, artists)
     if return_data:
         return fig, ax, node_df, edges
     if made_fig:
