@@ -77,6 +77,8 @@ jobs:
         run: python examples/paga_shift_map_gallery.py --output-dir "$RUNNER_TEMP/scgeo-paga-gallery" --formats png svg pdf
       - name: Execute the local velocity-field gallery
         run: python examples/velocity_field_gallery.py --output-dir "$RUNNER_TEMP/scgeo-velocity-gallery" --formats png svg pdf
+      - name: Execute the unified geometry-dynamics atlas gallery
+        run: python examples/geometry_dynamics_atlas_gallery.py --output-dir "$RUNNER_TEMP/scgeo-atlas-gallery" --formats png svg pdf
       - name: Check the explicit real-data gallery entry point
         run: python examples/real_data_plotting_gallery.py --help
       - name: Check the explicit in-house review entry point without data
@@ -109,5 +111,5 @@ jobs:
           python -m pytest tests/test_plot_exports.py tests/test_plot_evidence_upgrades.py
           tests/test_plot_composition_upgrades.py tests/test_comparison_replicate_plots.py
           tests/test_paga_visual_upgrades.py tests/test_velocity_field.py
-          tests/test_state_flow_upgrades.py tests/test_density_visual_upgrades.py tests/test_geometry_velocity_interpretation.py tests/test_state_reporting.py
+          tests/test_state_flow_upgrades.py tests/test_density_visual_upgrades.py tests/test_geometry_velocity_interpretation.py tests/test_geometry_dynamics_atlas.py tests/test_state_reporting.py
           tests/test_robust_shift.py tests/pl -q

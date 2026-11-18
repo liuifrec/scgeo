@@ -12,6 +12,7 @@ from ._distribution_test import distribution_test
 from ._evidence_comparison import evidence_comparison
 from ._geometry_velocity_concordance import geometry_velocity_concordance
 from ._gallery import gallery_overview
+from ._geometry_dynamics_atlas import geometry_dynamics_atlas
 from ._highlight import _fallback_palette, _get_scanpy_palette, highlight_topk_cells
 from ._legend import legend_from_data
 from ._mapping_qc import mapping_confidence_umap, mapping_qc_panel, ood_cells
@@ -87,6 +88,7 @@ __all__ = [
     "composition_drift",
     "robustness_matrix",
     "gallery_overview",
+    "geometry_dynamics_atlas",
     "recovery_compass",
     "state_flow_sankey",
     "state_flow_alluvial",
