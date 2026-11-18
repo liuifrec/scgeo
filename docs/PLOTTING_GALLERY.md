@@ -7,7 +7,7 @@ specific display behaviors and known failure modes easy to inspect.
 
 [Plotting guide](PLOTTING.md) · [API reference](api/pl.md) ·
 [Public-data source](../examples/real_data_plotting_gallery.py) ·
-[Synthetic source](../examples/plotting_gallery.py) · [PAGA shift maps](PAGA_SHIFT_MAP.md) · [Unified atlas](GEOMETRY_DYNAMICS_ATLAS.md)
+[Synthetic source](../examples/plotting_gallery.py) · [PAGA shift maps](PAGA_SHIFT_MAP.md) · [Unified atlas](GEOMETRY_DYNAMICS_ATLAS.md) · [Embedding facets](EMBEDDING_FACETS.md)
 
 The [unified atlas gallery](../examples/geometry_dynamics_atlas_gallery.py)
 assembles a four-panel synthetic geometry–dynamics figure and a minimal
@@ -18,6 +18,18 @@ without running any new kinetics, PAGA, or geometric analysis.
 ![Actual synthetic ScGeo geometry-dynamics atlas](assets/geometry_dynamics_atlas_synthetic.png)
 
 *The linked source runs the composed four-panel atlas and exports the input tables and plotting manifest; this preview is synthetic.*
+
+## Faceted UMAP and projected velocity
+
+![Synthetic, matched condition-specific velocity streamlines](assets/embedding_facets_synthetic_stream.png)
+
+This is a fully synthetic demonstration from the
+[executable faceting gallery](../examples/embedding_facets_gallery.py).
+Conditions use common UMAP limits, categorical colors, local-field support
+settings and radius; the displayed line directions are constructed vectors,
+not observed cell trajectories. The separate
+[faceting guide](EMBEDDING_FACETS.md) includes two-way designs and opt-in
+checksum-pinned public PBMC3k and pancreas reproduction.
 
 These additions are **unreleased**. Install the matching source checkout as
 described in the plotting guide. To reproduce the public-data figures, use the

@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased flexible embedding and velocity faceting
+
+- Add `pl.embedding_facets` for one- or two-way faceting by any `adata.obs`
+  categories, including ordered levels, literal-versus-missing identity,
+  explicit empty combinations, and deterministic drawing-only subsampling.
+- Reuse existing UMAP/embedding coordinates and matching projected velocity.
+  Condition, batch, sample or cell-type facets share display limits, a
+  pooled Gaussian support radius, common local velocity grid positions and
+  optionally one grid-arrow multiplier. No kinetics or trajectory is fitted.
+- Preserve Scanpy palettes and one global numeric color norm; export complete
+  cell membership, supported/unsupported velocity grids, actual arrows or
+  support-audited streamline vertices, and figure provenance.
+- Add a synthetic five-view gallery, strict size/SHA-256 pinned public PBMC3k
+  and CellRank pancreas checks, documentation and Python 3.9/3.12 regression
+  coverage. Public examples never invent contrasts absent from their source.
+
+See [Embedding faceting](docs/EMBEDDING_FACETS.md). The features require this
+unreleased development checkout; they are not in PyPI `scgeo==0.1.0`.
+
+
 ## Unreleased unified geometry–dynamics atlas
 
 - Add `pl.geometry_dynamics_atlas` as a composable, AnnData-native entry point for
