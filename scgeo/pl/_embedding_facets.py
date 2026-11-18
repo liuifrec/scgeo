@@ -433,7 +433,25 @@ def embedding_facets(
     artists = {}
     axes = {}
     with style_context(style):
-        fig, axs = plt.subplots(nrows, ncols, squeeze=False, figsize=dims, constrained_layout=True)
+        # Figure legends are not included in constrained-layout calculations;
+        # reserve an actual GridSpec row rather than floating a legend over
+        # bottom-row facet labels or relying on bbox_inches='tight'.
+        use_legend_row = bool(color_type == "categorical" and legend and colors
+                              and len(categories) <= 30)
+        if use_legend_row:
+            legend_columns = min(6, len(categories))
+            legend_rows = (len(categories) + legend_columns - 1) // legend_columns
+            fig = plt.figure(figsize=dims, constrained_layout=True)
+            gs = fig.add_gridspec(nrows + 1, ncols,
+                                  height_ratios=[1.0] * nrows + [0.19 * legend_rows])
+            axs = np.asarray([[fig.add_subplot(gs[r, c]) for c in range(ncols)]
+                              for r in range(nrows)], dtype=object)
+            legend_ax = fig.add_subplot(gs[-1, :])
+            legend_ax.axis("off")
+        else:
+            fig, axs = plt.subplots(nrows, ncols, squeeze=False, figsize=dims,
+                                   constrained_layout=True)
+            legend_ax = None
         for ax in axs.ravel()[len(items):]:
             ax.set_visible(False)
         for index, ((row, col), mask, key) in enumerate(zip(items, panel_masks, frame_keys)):
@@ -553,8 +571,11 @@ def embedding_facets(
             handles = [Line2D([], [], color=colors[c], linestyle="none", marker="o",
                               markersize=6, label=c) for c in categories]
             if len(handles) <= 30:
-                fig.legend(handles=handles, loc="lower center", bbox_to_anchor=(0.5, 0.005),
-                           frameon=False, ncol=min(6, len(handles)), fontsize=8)
+                artists["legend"] = legend_ax.legend(
+                    handles=handles, loc="center", frameon=False,
+                    ncol=min(6, len(handles)), fontsize=8,
+                    columnspacing=1.0, handletextpad=0.35,
+                )
             else:
                 warning.append("More than 30 categories; the figure legend was omitted. All palette entries remain in metadata.")
         if color_type == "numeric" and show_colorbar and color_norm is not None:

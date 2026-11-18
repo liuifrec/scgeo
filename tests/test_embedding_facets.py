@@ -279,3 +279,24 @@ def test_bad_options_and_facet_designs(data):
         _plot(data, context="all-cells-with-labels")
     with pytest.raises(KeyError, match="facet_col"):
         _plot(data, facet_col="unknown")
+
+
+def test_multiline_categorical_legend_reserves_a_separate_row(data):
+    # Eight real annotation categories, like processed PBMC3k, must never
+    # collide with the axes/labels in a wrapped multirow embedding figure.
+    labels = [f"state_{i % 8}" for i in range(data.n_obs)]
+    data.obs["cell_type"] = pd.Categorical(labels)
+    data.uns.pop("cell_type_colors", None)
+    result = _plot(data, facet="condition", color="cell_type", col_wrap=2,
+                   legend=True)
+    fig = result.fig
+    assert len(result.axes) == 3
+    assert len(fig.axes) == 5  # four grid slots, including one unused, plus legend row
+    assert "legend" in result.artists
+    legend_ax = fig.axes[-1]
+    assert not legend_ax.axison
+    fig.canvas.draw()
+    assert legend_ax.get_position().y1 < min(
+        ax.get_position().y0 for ax in result.axes.values()
+    )
+    assert len(result.artists["legend"].get_texts()) == 8
