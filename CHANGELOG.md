@@ -19,6 +19,10 @@
 - Audit all 50 plotting exports in [the API status matrix](docs/PLOTTING_API_STATUS.md).
   Remaining legacy functions are recorded explicitly; no statistical estimator
   or published release changes in this continuation.
+- Extend ranking, overlap, distribution and report views with axes/source
+  exports; fix density fallback axis forwarding and report legend colors.
+  Global distribution tests can use separate metric axes while preserving the
+  historical default return shape.
 
 ## Unreleased flexible embedding and velocity faceting
 

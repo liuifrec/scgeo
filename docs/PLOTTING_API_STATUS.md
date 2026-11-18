@@ -37,17 +37,17 @@ intentional and should not be replaced with another implementation.
 | `evidence_comparison` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
 | `geometry_velocity_concordance` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
 | `replicate_effect` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
-| `delta_rank` | Missing | Missing | Add axes, source ranks and PlotResult; retain raw magnitude semantics. |
+| `delta_rank` | ax | Yes | Now exports exact original/displayed sources and accepts caller axes; see summary guide. |
 | `score_umap` | ax | Yes | Delegates through kwargs to score_embedding; no duplicate implementation. |
 | `score_embedding` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
 | `highlight_topk_cells` | ax | Yes | Now exports full cell selection/display flags and accepts shared normalization. |
 | `distribution_test_volcano` | ax | Yes | Now exports source rows, exact coordinates, clipping/label flags; validates probability range. |
 | `embedding_density` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
 | `embedding_facets` | axes | Yes | Now composes in caller Figure/SubFigure; parent export and source scope recorded. |
-| `density_overlap` | Missing | Missing | Add named axes/results; retain missing metrics, source ordering and counts. |
-| `density_overlap_grid` | ax | Missing | Fix per-cell fallback axes/basis forwarding; export actual grid extent and values. |
-| `distribution_test` | Missing | Missing | Add axes/results; distinguish statistic and p-value scales, retain stored inference. |
-| `distribution_report` | Missing | Missing | Add named axes/results; make condition legend match point colors and preserve missing results. |
+| `density_overlap` | axes | Yes | Now exports exact original/displayed sources and accepts caller axes; see summary guide. |
+| `density_overlap_grid` | ax | Yes | Now exports exact original/displayed sources and accepts caller axes; see summary guide. |
+| `distribution_test` | axes | Yes | Now exports exact original/displayed sources and accepts caller axes; see summary guide. |
+| `distribution_report` | axes | Yes | Now exports exact original/displayed sources and accepts caller axes; see summary guide. |
 | `alignment_panel` | axes | Yes | Now delegates to shared score/highlight renderers; one scale and exact all-input histogram sources. |
 | `ambiguity_panel` | axes | Yes | Now delegates to shared score/highlight renderers; one scale and exact all-input histogram sources. |
 | `consensus_subspace_panel` | axes | Yes | Now delegates to shared score/highlight renderers; one scale and exact all-input histogram sources. |
@@ -87,8 +87,8 @@ intentional and should not be replaced with another implementation.
 
 ## Next reviewable increments
 
-1. **Stored tabular evidence:** extend source exports/named axes across the remaining
-   distribution, overlap and ranking views. Never turn an unavailable effect into zero or an
+1. **Stored tabular evidence:** core source exports and axes now cover composition,
+   distribution, overlap and ranking; continue edge-case and layout hardening. Never turn an unavailable effect into zero or an
    unavailable p-value into one; never refit a test in plotting code.
 2. **Mapping and OOD:** fix basis aliases and reference-palette omissions, then
    export observation identity, display selection, thresholds, group summaries,

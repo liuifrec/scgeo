@@ -42,4 +42,5 @@ data/
 results/state_flow/
 results/real_data_plotting/
 results/plotting_composition/
+results/legacy_plotting/
 data/plotting_public/

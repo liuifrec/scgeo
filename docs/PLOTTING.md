@@ -148,6 +148,24 @@ historical `(fig, axes_array)` return by default.
 
 ## Compose panels in your own figure
 
+The legacy summary family also supports `PlotResult`: `delta_rank`,
+`density_overlap`, `density_overlap_grid`, `distribution_test`, and
+`distribution_report`. Default return shapes are retained. Density summaries
+accept named metric axes (`bc`, `hellinger`) or `summary` for global mode;
+distribution summaries use `summary`. The report accepts `embedding`,
+`density`, `test`, and `score` axes, with a categorical legend matching its
+actual points. Source exports retain original and displayed rows, exact summary
+text, and histogram counts.
+
+For a global distribution-test figure, use `separate_metrics=True` to place
+the statistic and probability on separate `statistic`/`probability` axes.
+They have different units; the historical single-axis view remains the default
+for compatibility. Density-grid exports record pixel centers, missing pixels,
+the actual extent and whether any bounds came from the embedding. Its per-cell
+fallback uses `score_embedding` and honors `ax`, `cax` and `colorbar=False`.
+The [legacy API gallery](../examples/legacy_plotting_gallery.py) runs unchanged
+ScGeo summary methods on the existing synthetic generator and exports their views.
+
 Pass `ax=` for an upgraded single-axis plot or named `axes=` for multi-panel
 functions. Supplied figures are not automatically resized or laid out.
 

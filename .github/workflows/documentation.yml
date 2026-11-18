@@ -83,6 +83,8 @@ jobs:
         run: python examples/embedding_facets_gallery.py --dataset synthetic --output-dir "$RUNNER_TEMP/scgeo-facets-gallery" --formats png svg pdf
       - name: Execute composed plotting gallery
         run: python examples/plotting_composition_gallery.py --output-dir "$RUNNER_TEMP/scgeo-composition-gallery" --formats png svg pdf
+      - name: Execute legacy plotting API gallery
+        run: python examples/legacy_plotting_gallery.py --output-dir "$RUNNER_TEMP/scgeo-composition-gallery/legacy" --formats png svg pdf
       - name: Upload composed plots and both panel sources
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
         with:
@@ -137,6 +139,7 @@ jobs:
           tests/test_plot_composition_upgrades.py tests/test_comparison_replicate_plots.py
           tests/test_score_panel_upgrades.py tests/test_alignment_panel.py
           tests/test_composition_evidence_exports.py tests/test_paga_composition_plots.py tests/test_distribution_test_volcano.py
+          tests/test_summary_plot_exports.py tests/test_pl_density_overlap.py tests/test_pl_distribution_test.py tests/test_distribution_report.py tests/test_density_overlap_plot.py
           tests/test_ambiguity_panel.py tests/test_consensus_panel.py tests/test_highlight_topk_cells.py
           tests/test_paga_visual_upgrades.py tests/test_velocity_field.py
           tests/test_state_flow_upgrades.py tests/test_density_visual_upgrades.py tests/test_geometry_velocity_interpretation.py tests/test_geometry_dynamics_atlas.py tests/test_embedding_facets.py tests/test_state_reporting.py

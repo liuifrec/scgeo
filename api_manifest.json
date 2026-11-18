@@ -201,37 +201,37 @@
     },
     {
       "name": "scgeo.pl.delta_rank",
-      "signature": "(adata, store_key: 'str' = 'scgeo', kind: 'str' = 'shift', level: 'str' = 'by', *, top_n: 'int | None' = None, rotate_xticks: 'int' = 60)",
+      "signature": "(adata, store_key: 'str' = 'scgeo', kind: 'str' = 'shift', level: 'str' = 'by', *, top_n: 'int | None' = None, rotate_xticks: 'int' = 60, ax=None, figsize=None, return_data: 'bool' = False, return_result: 'bool' = False, show: 'bool' = False)",
       "doc": "Rank groups by delta magnitude (||Δ||) and plot with readable x tick labels.",
-      "docstring": "Rank groups by delta magnitude (||Δ||) and plot with readable x tick labels.\n\nNotes\n-----\nUses sg.get.table(...). Expected to contain:\n  - delta_norm column\n  - some label column identifying the group (often 'label', or sometimes `level`)",
+      "docstring": "Rank groups by delta magnitude (||Δ||) and plot with readable x tick labels.\n\nNotes\n-----\nUses sg.get.table(...). Expected to contain:\n  - delta_norm column\n  - some label column identifying the group (often 'label', or sometimes `level`)\n\nSupplied axes retain their layout. ``return_result=True`` exports original\nand ranked rows; ``return_data=True`` returns ``(ax, ranked_table)``.\nThe default return remains an Axes and does not call ``plt.show``.",
       "source": "scgeo/pl/_delta_rank.py"
     },
     {
       "name": "scgeo.pl.density_overlap",
-      "signature": "(adata, *, store_key: 'str' = 'density_overlap', level: 'str' = 'by', metrics: 'Tuple[str, ...]' = ('bc', 'hellinger'), top_k: 'Optional[int]' = 10, highlight: 'str' = 'worst', sort_by: 'Optional[str]' = None, style: \"Literal['bar', 'lollipop']\" = 'lollipop', annotate: 'bool' = True, grid: 'bool' = True, figsize=None, show: 'bool' = True)",
+      "signature": "(adata, *, store_key: 'str' = 'density_overlap', level: 'str' = 'by', metrics: 'Tuple[str, ...]' = ('bc', 'hellinger'), top_k: 'Optional[int]' = 10, highlight: 'str' = 'worst', sort_by: 'Optional[str]' = None, style: \"Literal['bar', 'lollipop']\" = 'lollipop', annotate: 'bool' = True, grid: 'bool' = True, figsize=None, show: 'bool' = True, axes=None, return_data: 'bool' = False, return_result: 'bool' = False)",
       "doc": "Plot density overlap summaries from ``sg.tl.density_overlap``.",
-      "docstring": "Plot density overlap summaries from ``sg.tl.density_overlap``.\n\nGlobal:\n  - Shows one summary value per metric.\n\nBy-group:\n  - Shows per-group values for each metric.\n  - ``highlight`` + ``top_k`` helps focus on worst/best groups.\n\nNotes:\n  - For Bhattacharyya coefficient (bc): **lower = more different**.\n  - For Hellinger distance: **higher = more different**.",
+      "docstring": "Plot density overlap summaries from ``sg.tl.density_overlap``.\n\nGlobal:\n  - Shows one summary value per metric.\n\nBy-group:\n  - Shows per-group values for each metric.\n  - ``highlight`` + ``top_k`` helps focus on worst/best groups.\n\nNotes:\n  - For Bhattacharyya coefficient (bc): **lower = more different**.\n  - For Hellinger distance: **higher = more different**.\n\n``axes`` maps ``summary`` (global) or metric names (by-group) to existing\naxes. ``return_result=True`` exports all stored and selected rows with\nshared ordering; ``return_data=True`` adds them to the legacy tuple.",
       "source": "scgeo/pl/_density_overlap.py"
     },
     {
       "name": "scgeo.pl.density_overlap_grid",
-      "signature": "(adata, *, key: 'str' = 'density_overlap', basis: 'str' = 'umap', panel: 'str' = 'overlap', ax=None, figsize=(5.5, 5.0), cmap: 'str' = 'magma', alpha_points: 'float' = 0.05, show_points: 'bool' = True, title: 'Optional[str]' = None, show: 'bool' = True)",
+      "signature": "(adata, *, key: 'str' = 'density_overlap', basis: 'str' = 'umap', panel: 'str' = 'overlap', ax=None, figsize=(5.5, 5.0), cmap: 'str' = 'magma', alpha_points: 'float' = 0.05, show_points: 'bool' = True, title: 'Optional[str]' = None, show: 'bool' = True, norm=None, vmin=None, vmax=None, colorbar: 'bool' = True, cax=None, return_data: 'bool' = False, return_result: 'bool' = False)",
       "doc": "Visualize density overlap results from `tl.density_overlap`.",
-      "docstring": "Visualize density overlap results from `tl.density_overlap`.\n\nSupports:\n- grid-based fields stored in `adata.uns[\"scgeo\"][key]`\n- or per-cell scores in `adata.obs[key]` (fallback)",
+      "docstring": "Visualize density overlap results from `tl.density_overlap`.\n\nSupports:\n- grid-based fields stored in `adata.uns[\"scgeo\"][key]`\n- or per-cell scores in `adata.obs[key]` (fallback)\n\nThe per-cell fallback forwards the supplied axis and color controls to\n``score_embedding``. Grid exports include every pixel's value/center and\nall observation coordinates; metadata records whether extent was supplied\nor inferred. Missing pixels remain missing. ``return_result=True`` opts\ninto PlotResult, and ``return_data=True`` adds tables to the legacy tuple.",
       "source": "scgeo/pl/_overlap.py"
     },
     {
       "name": "scgeo.pl.distribution_report",
-      "signature": "(adata, *, basis: 'str' = 'umap', condition_key: 'str' = 'condition', group0: 'Optional[str]' = None, group1: 'Optional[str]' = None, density_key: 'str' = 'density_overlap', test_key: 'str' = 'distribution_test', score_key: 'Optional[str]' = None, top_k: 'int' = 8, figsize=(11, 8), show: 'bool' = True)",
+      "signature": "(adata, *, basis: 'str' = 'umap', condition_key: 'str' = 'condition', group0: 'Optional[str]' = None, group1: 'Optional[str]' = None, density_key: 'str' = 'density_overlap', test_key: 'str' = 'distribution_test', score_key: 'Optional[str]' = None, top_k: 'int' = 8, figsize=(11, 8), show: 'bool' = True, axes=None, return_data: 'bool' = False, return_result: 'bool' = False)",
       "doc": "2×2 report panel for cross-condition embedding comparison.",
-      "docstring": "2×2 report panel for cross-condition embedding comparison.\n\nPanels:\n  (A) embedding colored by condition\n  (B) density overlap summary (global + worst groups)\n  (C) distribution test summary (global + strongest groups)\n  (D) optional score histogram (or empty text if score_key None)\n\nRequires tl outputs stored in adata.uns['scgeo'] under density_key/test_key.",
+      "docstring": "2×2 report panel for cross-condition embedding comparison.\n\nPanels:\n  (A) embedding colored by condition\n  (B) density overlap summary (global + worst groups)\n  (C) distribution test summary (global + strongest groups)\n  (D) optional score histogram (or empty text if score_key None)\n\nRequires tl outputs stored in adata.uns['scgeo'] under density_key/test_key.\nNamed axes are ``embedding``, ``density``, ``test`` and ``score``.\n``return_result=True`` exports source cells, stored summaries, exact text\nand histogram bins without recalculating tests. Default returns remain\n``(fig, axes_2d_array)``; ``return_data=True`` adds these source tables.",
       "source": "scgeo/pl/_report.py"
     },
     {
       "name": "scgeo.pl.distribution_test",
-      "signature": "(adata, *, store_key: 'str' = 'distribution_test', level: 'str' = 'by', value: 'str' = 'p_perm', stat_key: 'str' = 'stat', top_k: 'Optional[int]' = 10, highlight: 'str' = 'strongest', figsize=None, show: 'bool' = True)",
+      "signature": "(adata, *, store_key: 'str' = 'distribution_test', level: 'str' = 'by', value: 'str' = 'p_perm', stat_key: 'str' = 'stat', top_k: 'Optional[int]' = 10, highlight: 'str' = 'strongest', figsize=None, show: 'bool' = True, axes=None, return_data: 'bool' = False, return_result: 'bool' = False, separate_metrics: 'bool' = False)",
       "doc": "Plot distribution test summaries from `sg.tl.distribution_test`.",
-      "docstring": "Plot distribution test summaries from `sg.tl.distribution_test`.\n\nGlobal: prints and plots stat + p_perm.\nBy: bar chart by group; highlight top-k strongest (smallest p) groups by default.\n\nAssumes dict schema:\n  global: {\"stat\":..., \"p_perm\":..., \"n0\":..., \"n1\":..., \"n_perm\":...}\n  by: {group: {\"stat\":..., \"p_perm\":..., ...}, ...}",
+      "docstring": "Plot distribution test summaries from `sg.tl.distribution_test`.\n\nGlobal: prints and plots stat + p_perm.\nBy: bar chart by group; highlight top-k strongest (smallest p) groups by default.\n\nAssumes dict schema:\n  global: {\"stat\":..., \"p_perm\":..., \"n0\":..., \"n1\":..., \"n_perm\":...}\n  by: {group: {\"stat\":..., \"p_perm\":..., ...}, ...}\n\nCompose with ``axes={'summary': ax}``. ``return_result=True`` exports\noriginal and displayed rows without rerunning inference. The global legacy\npanel displays two different quantities; its common axis does not imply\ncomparable units. ``return_data=True`` adds source tables to the tuple.\nUse ``separate_metrics=True`` for separate ``statistic`` and ``probability``\naxes in global mode; the default preserves the historical single-axis view.",
       "source": "scgeo/pl/_distribution_test.py"
     },
     {

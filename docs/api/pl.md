@@ -443,6 +443,11 @@ scgeo.pl.delta_rank(
     *,
     top_n: 'int | None' = None,
     rotate_xticks: 'int' = 60,
+    ax=None,
+    figsize=None,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
+    show: 'bool' = False,
 )
 ```
 
@@ -460,6 +465,10 @@ Notes
 Uses sg.get.table(...). Expected to contain:
   - delta_norm column
   - some label column identifying the group (often 'label', or sometimes `level`)
+
+Supplied axes retain their layout. ``return_result=True`` exports original
+and ranked rows; ``return_data=True`` returns ``(ax, ranked_table)``.
+The default return remains an Axes and does not call ``plt.show``.
 ```
 
 </details>
@@ -483,6 +492,9 @@ scgeo.pl.density_overlap(
     grid: 'bool' = True,
     figsize=None,
     show: 'bool' = True,
+    axes=None,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -505,6 +517,10 @@ By-group:
 Notes:
   - For Bhattacharyya coefficient (bc): **lower = more different**.
   - For Hellinger distance: **higher = more different**.
+
+``axes`` maps ``summary`` (global) or metric names (by-group) to existing
+axes. ``return_result=True`` exports all stored and selected rows with
+shared ordering; ``return_data=True`` adds them to the legacy tuple.
 ```
 
 </details>
@@ -527,6 +543,13 @@ scgeo.pl.density_overlap_grid(
     show_points: 'bool' = True,
     title: 'Optional[str]' = None,
     show: 'bool' = True,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    colorbar: 'bool' = True,
+    cax=None,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -542,6 +565,12 @@ Visualize density overlap results from `tl.density_overlap`.
 Supports:
 - grid-based fields stored in `adata.uns["scgeo"][key]`
 - or per-cell scores in `adata.obs[key]` (fallback)
+
+The per-cell fallback forwards the supplied axis and color controls to
+``score_embedding``. Grid exports include every pixel's value/center and
+all observation coordinates; metadata records whether extent was supplied
+or inferred. Missing pixels remain missing. ``return_result=True`` opts
+into PlotResult, and ``return_data=True`` adds tables to the legacy tuple.
 ```
 
 </details>
@@ -564,6 +593,9 @@ scgeo.pl.distribution_report(
     top_k: 'int' = 8,
     figsize=(11, 8),
     show: 'bool' = True,
+    axes=None,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -583,6 +615,10 @@ Panels:
   (D) optional score histogram (or empty text if score_key None)
 
 Requires tl outputs stored in adata.uns['scgeo'] under density_key/test_key.
+Named axes are ``embedding``, ``density``, ``test`` and ``score``.
+``return_result=True`` exports source cells, stored summaries, exact text
+and histogram bins without recalculating tests. Default returns remain
+``(fig, axes_2d_array)``; ``return_data=True`` adds these source tables.
 ```
 
 </details>
@@ -603,6 +639,10 @@ scgeo.pl.distribution_test(
     highlight: 'str' = 'strongest',
     figsize=None,
     show: 'bool' = True,
+    axes=None,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
+    separate_metrics: 'bool' = False,
 )
 ```
 
@@ -621,6 +661,13 @@ By: bar chart by group; highlight top-k strongest (smallest p) groups by default
 Assumes dict schema:
   global: {"stat":..., "p_perm":..., "n0":..., "n1":..., "n_perm":...}
   by: {group: {"stat":..., "p_perm":..., ...}, ...}
+
+Compose with ``axes={'summary': ax}``. ``return_result=True`` exports
+original and displayed rows without rerunning inference. The global legacy
+panel displays two different quantities; its common axis does not imply
+comparable units. ``return_data=True`` adds source tables to the tuple.
+Use ``separate_metrics=True`` for separate ``statistic`` and ``probability``
+axes in global mode; the default preserves the historical single-axis view.
 ```
 
 </details>
