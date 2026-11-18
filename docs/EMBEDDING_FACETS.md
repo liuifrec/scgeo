@@ -135,6 +135,44 @@ basis, palette provenance, and velocity-support settings.
 
 ## Reproducible gallery
 
+### Compose facets in an existing figure
+
+```python
+import matplotlib.pyplot as plt
+
+fig, axs = plt.subplots(1, 3, figsize=(11, 3.5))
+result = sg.pl.embedding_facets(
+    adata, facet="condition", facet_order=["control", "treated", "recovery"],
+    color="cell_type", axes={f"panel_{i:02d}": ax for i, ax in enumerate(axs)},
+    legend=False, return_result=True, show=False,
+)
+```
+
+Panel identifiers follow the resolved facet order (row-major for two-way
+facets). Supply every panel with a distinct Axes from the same Figure or
+SubFigure. The renderer preserves the caller's canvas size, layout, parent
+title, and sibling axes. `figsize` and `title` configure only standalone figures.
+
+For numeric observation colors, supply `axes["colorbar"]` for a horizontal
+scale; for velocity colors, supply `axes["velocity_colorbar"]` for a vertical
+scale. Alternatively disable both with `show_colorbar=False`. This prevents
+colorbars from taking space from caller-positioned panels. A supplied
+`axes["legend"]` holds the categorical legend; otherwise it is placed inside
+the first facet. `result.axes` contains the panels and `result.artists` exposes
+the legend and colorbars.
+
+Saving a composed result exports the full parent figure. Its source tables
+describe only its facets; combine child results' data and metadata in a
+`PlotResult` to document additional panels. The executable
+[composition gallery](../examples/plotting_composition_gallery.py) demonstrates
+this with an atlas, three matched velocity facets, and separately placed scales.
+
+```bash
+python examples/plotting_composition_gallery.py --output-dir results/plotting_composition
+```
+
+### Standalone views
+
 The gallery is executable without downloading anything:
 
 ```bash

@@ -316,3 +316,75 @@ def test_multiline_categorical_legend_reserves_a_separate_row(data):
         ax.get_position().y0 for ax in result.axes.values()
     )
     assert len(result.artists["legend"].get_texts()) == 8
+
+
+def test_supplied_axes_preserve_canvas_and_source(data):
+    reference = _plot(data, facet="condition", color="cell_type", legend=False)
+    fig, axs = plt.subplots(2, 2, figsize=(9, 6))
+    fig.suptitle("Caller title")
+    axs.flat[3].plot([0, 1], [2, 3])
+    positions = [ax.get_position(original=True).bounds for ax in axs.flat]
+    mapping = {f"panel_{i:02d}": ax for i, ax in enumerate(axs.flat[:3])}
+    result = _plot(data, facet="condition", color="cell_type", axes=mapping,
+                   legend=False, figsize=(1, 1), title="Do not replace parent title")
+    assert result.fig is fig and result.axes == mapping
+    np.testing.assert_array_equal(fig.get_size_inches(), [9, 6])
+    assert fig._suptitle.get_text() == "Caller title"
+    assert len(fig.axes) == 4 and len(axs.flat[3].lines) == 1
+    np.testing.assert_allclose([ax.get_position(original=True).bounds for ax in axs.flat], positions)
+    for name in reference.data:
+        pd.testing.assert_frame_equal(reference.data[name], result.data[name])
+    assert result.metadata["export_scope"] == "parent_figure"
+
+
+def test_supplied_subfigure_with_explicit_colorbars_exports_root(data, tmp_path):
+    fig = plt.figure(figsize=(11, 6))
+    left, right = fig.subfigures(1, 2)
+    sibling = right.subplots()
+    sibling.set_title("Sibling")
+    axs = left.subplots(2, 3)
+    mapping = {f"panel_{i:02d}": axs[0, i] for i in range(3)}
+    mapping.update(colorbar=axs[1, 0], velocity_colorbar=axs[1, 1])
+    result = _plot(data, facet="condition", color="score", velocity="grid",
+                   velocity_options={"grid_size": 12, "color_by": "coherence"}, axes=mapping)
+    assert result.fig is fig
+    assert result.artists["colorbar"].ax is mapping["colorbar"]
+    assert result.artists["velocity_colorbar"].ax is mapping["velocity_colorbar"]
+    assert len(fig.axes) == 7
+    assert sibling.get_title() == "Sibling"
+    output = result.save(tmp_path / "composed", formats=("svg",), dpi=60)
+    manifest = json.loads(open(output["metadata"]).read())
+    assert manifest["plot"]["export_scope"] == "parent_figure"
+    assert manifest["tables"]["cells"]["rows"] == data.n_obs
+
+
+def test_axes_and_sampling_validation_before_drawing(data):
+    fig, axs = plt.subplots(1, 3)
+    valid = {f"panel_{i:02d}": ax for i, ax in enumerate(axs)}
+    for axes, error, match in [
+        (list(axs), TypeError, "mapping"),
+        ({"panel_00": axs[0]}, ValueError, "missing panels"),
+        (dict.fromkeys(valid, axs[0]), ValueError, "distinct Axes"),
+        ({**valid, "panel_02": object()}, TypeError, "Matplotlib Axes"),
+    ]:
+        with pytest.raises(error, match=match):
+            _plot(data, facet="condition", axes=axes)
+    with pytest.raises(ValueError, match="colorbar"):
+        _plot(data, facet="condition", axes=valid, color="score")
+    with pytest.raises(ValueError, match="velocity_colorbar"):
+        _plot(data, facet="condition", axes=valid, velocity="grid",
+              velocity_options={"color_by": "speed"})
+    with pytest.raises(ValueError, match="max_points"):
+        _plot(data, facet="condition", axes=valid, color="cell_type", max_points=1)
+    assert all(not ax.collections for ax in axs)
+    assert len(plt.get_fignums()) == 1
+
+
+def test_explicit_legend_axis(data):
+    fig, axs = plt.subplots(2, 2)
+    mapping = {f"panel_{i:02d}": ax for i, ax in enumerate(axs.flat[:3])}
+    mapping["legend"] = axs.flat[3]
+    result = _plot(data, facet="condition", color="cell_type", axes=mapping)
+    assert result.artists["legend"].axes is mapping["legend"]
+    assert len(result.axes) == 3
+    assert len(fig.axes) == 4

@@ -24,6 +24,7 @@ def ordered_labels(values, order, name):
 
 def panel_axes(names, axes, figsize, *, sharex=False, sharey=False):
     import matplotlib.pyplot as plt
+    from matplotlib.axes import Axes
 
     if axes is None:
         fig, array = plt.subplots(1, len(names), figsize=figsize, squeeze=False,
@@ -35,6 +36,8 @@ def panel_axes(names, axes, figsize, *, sharex=False, sharey=False):
     if missing:
         raise ValueError(f"axes is missing panels: {missing}")
     selected = {name: axes[name] for name in names}
+    if any(not isinstance(ax, Axes) for ax in selected.values()):
+        raise TypeError("axes values must be Matplotlib Axes.")
     figures = {id(ax.figure): ax.figure for ax in selected.values()}
     if len(figures) != 1 or len({id(ax) for ax in selected.values()}) != len(names):
         raise ValueError("Each panel needs a distinct Axes in the same Figure.")

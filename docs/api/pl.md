@@ -771,6 +771,7 @@ scgeo.pl.embedding_facets(
     style='paper',
     figsize=None,
     title=None,
+    axes=None,
     return_data=False,
     return_result=False,
     show=True,
@@ -817,6 +818,16 @@ geometry. A supplied optional Scanpy categorical palette is honored.
 
 With ``return_result=True`` returns a :class:`PlotResult`. By default
 returns ``(fig, axes_dict)``; ``return_data=True`` adds source tables.
+
+``axes`` accepts a mapping named ``panel_00``, ``panel_01``, ... in facet
+order, all in one Figure or SubFigure. A supplied canvas is neither resized
+nor laid out and its title is preserved. Optional ``legend``, ``colorbar``
+(horizontal observation scale), and ``velocity_colorbar`` (vertical) axes
+place those artists explicitly. Enabled numeric scales require their
+colorbar axes when composing; alternatively set ``show_colorbar=False``.
+Without a supplied legend axis, the first facet contains the legend.
+``result.axes`` retains only the facet panels; auxiliary artists are in
+``result.artists``. ``figsize`` and ``title`` apply to owned canvases.
 ```
 
 </details>
@@ -1024,6 +1035,8 @@ scgeo.pl.geometry_dynamics_atlas(
     style='paper',
     figsize=None,
     title=None,
+    axes=None,
+    show_colorbar=True,
     return_result=True,
     show=True,
 )
@@ -1065,6 +1078,13 @@ never reused on normalized effects. No results are written to AnnData.
 settings, but cannot replace shared basis, axes, condition scope, palette,
 and output controls. Use ``return_result=True`` (default) to export PNG,
 SVG, PDF and each panel's source tables via ``PlotResult.save``.
+
+Compose with ``axes={panel_name: ax, ...}`` for the selected panels, all
+in one Figure or SubFigure. Supplied figures retain their size, layout,
+and title. For a numeric states panel, supply ``axes['colorbar']`` or use
+``show_colorbar=False``. The optional colorbar artist is available through
+``result.artists['states_colorbar']``. ``figsize``/``title`` apply only to
+a canvas created by this function.
 ```
 
 </details>

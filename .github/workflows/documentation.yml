@@ -81,6 +81,15 @@ jobs:
         run: python examples/geometry_dynamics_atlas_gallery.py --output-dir "$RUNNER_TEMP/scgeo-atlas-gallery" --formats png svg pdf
       - name: Execute flexible embedding and velocity faceting gallery
         run: python examples/embedding_facets_gallery.py --dataset synthetic --output-dir "$RUNNER_TEMP/scgeo-facets-gallery" --formats png svg pdf
+      - name: Execute composed plotting gallery
+        run: python examples/plotting_composition_gallery.py --output-dir "$RUNNER_TEMP/scgeo-composition-gallery" --formats png svg pdf
+      - name: Upload composed plots and both panel sources
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+        with:
+          name: scgeo-plotting-composition-gallery
+          path: ${{ runner.temp }}/scgeo-composition-gallery/
+          if-no-files-found: error
+          retention-days: 14
       - name: Upload exact faceted plots and auditable source tables
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
         with:

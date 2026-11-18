@@ -17,6 +17,7 @@ from matplotlib.lines import Line2D
 
 from ._result import PlotResult
 from ._style import category_palette, style_context
+from ._table_plot_utils import panel_axes
 from ._utils import display_indices, resolve_embedding
 from ._velocity_grid import (
     _field_style,
@@ -165,6 +166,7 @@ def embedding_facets(
     style="paper",
     figsize=None,
     title=None,
+    axes=None,
     return_data=False,
     return_result=False,
     show=True,
@@ -197,6 +199,16 @@ def embedding_facets(
 
     With ``return_result=True`` returns a :class:`PlotResult`. By default
     returns ``(fig, axes_dict)``; ``return_data=True`` adds source tables.
+
+    ``axes`` accepts a mapping named ``panel_00``, ``panel_01``, ... in facet
+    order, all in one Figure or SubFigure. A supplied canvas is neither resized
+    nor laid out and its title is preserved. Optional ``legend``, ``colorbar``
+    (horizontal observation scale), and ``velocity_colorbar`` (vertical) axes
+    place those artists explicitly. Enabled numeric scales require their
+    colorbar axes when composing; alternatively set ``show_colorbar=False``.
+    Without a supplied legend axis, the first facet contains the legend.
+    ``result.axes`` retains only the facet panels; auxiliary artists are in
+    ``result.artists``. ``figsize`` and ``title`` apply to owned canvases.
     """
     if facet is not None:
         if facet_col is not None or col_order is not None:
@@ -282,6 +294,16 @@ def embedding_facets(
         mask = (row_values.to_numpy() == row) & (col_values.to_numpy() == col)
         panel_masks.append(mask)
         frame_keys.append(f"panel_{i:02d}")
+    supplied_axes = axes
+    owns_figure = supplied_axes is None
+    if not owns_figure:
+        if not isinstance(supplied_axes, Mapping):
+            raise TypeError("axes must be a mapping from panel labels to Matplotlib Axes.")
+        auxiliary = [name for name in ("legend", "colorbar", "velocity_colorbar")
+                     if name in supplied_axes]
+        fig, supplied_axes, _ = panel_axes(frame_keys + auxiliary, supplied_axes, None)
+        if show_colorbar and color_norm is not None and "colorbar" not in supplied_axes:
+            raise ValueError("Supply axes['colorbar'] for numeric color or set show_colorbar=False.")
     include = np.zeros(adata.n_obs, dtype=bool)
     panel_id = np.empty(adata.n_obs, dtype=object)
     panel_id[:] = None
@@ -303,12 +325,27 @@ def embedding_facets(
         if unknown:
             raise ValueError(f"Unknown highlight labels in {highlight_key!r}: {sorted(unknown)}")
         marked = highlight_labels.isin(highlight).to_numpy()
+    # Resolve display budgets before creating or drawing into any axes.
+    displayed_by_panel = {}
+    for key, mask in zip(frame_keys, panel_masks):
+        available = np.flatnonzero(mask & finite_xy)
+        if color_type == "categorical":
+            strata = color_values.iloc[available].to_numpy()
+        elif highlight is not None:
+            strata = marked[available]
+        else:
+            strata = np.full(len(available), "all", dtype=object)
+        displayed_by_panel[key] = available[display_indices(
+            strata, max_points=max_points, random_state=int(random_state))]
     fields = {}
     radius_source = None
     common_radius = None
     global_grid_extent = None
     vv = None
     field_config = _field_options(velocity_options) if velocity else None
+    if (not owns_figure and velocity is not None and show_colorbar
+            and field_config["color_by"] is not None and "velocity_colorbar" not in supplied_axes):
+        raise ValueError("Supply axes['velocity_colorbar'] or set show_colorbar=False.")
     if velocity is not None:
         expected = f"velocity_{embedding_key.removeprefix('X_')}"
         actual = expected if velocity_basis is None else str(velocity_basis)
@@ -438,7 +475,10 @@ def embedding_facets(
         # bottom-row facet labels or relying on bbox_inches='tight'.
         use_legend_row = bool(color_type == "categorical" and legend and colors
                               and len(categories) <= 30)
-        if use_legend_row:
+        if not owns_figure:
+            axs = np.asarray([supplied_axes[name] for name in frame_keys], dtype=object)
+            legend_ax = supplied_axes.get("legend")
+        elif use_legend_row:
             legend_columns = min(6, len(categories))
             legend_rows = (len(categories) + legend_columns - 1) // legend_columns
             fig = plt.figure(figsize=dims, constrained_layout=True)
@@ -458,16 +498,7 @@ def embedding_facets(
             ax = axs.ravel()[index]
             axes[key] = ax
             available = np.flatnonzero(mask & finite_xy)
-            if len(available):
-                if color_type == "categorical":
-                    strata = color_values.iloc[available].to_numpy()
-                elif highlight is not None:
-                    strata = marked[available]
-                else:
-                    strata = np.full(len(available), "all", dtype=object)
-                shown = available[display_indices(strata, max_points=max_points, random_state=int(random_state))]
-            else:
-                shown = np.empty(0, dtype=int)
+            shown = displayed_by_panel[key]
             data_cells.loc[shown, "displayed"] = True
             if len(available):
                 limits = global_limits if shared_limits else _bounds(xy[available])
@@ -579,23 +610,30 @@ def embedding_facets(
             handles = [Line2D([], [], color=colors[c], linestyle="none", marker="o",
                               markersize=6, label=c) for c in categories]
             if len(handles) <= 30:
-                artists["legend"] = legend_ax.legend(
-                    handles=handles, loc="center", frameon=False,
-                    ncol=min(6, len(handles)), fontsize=8,
+                target = legend_ax if legend_ax is not None else axes[frame_keys[0]]
+                if legend_ax is not None:
+                    legend_ax.axis("off")
+                artists["legend"] = target.legend(
+                    handles=handles, loc="center" if legend_ax is not None else "best", frameon=False,
+                    ncol=min(6, len(handles)) if legend_ax is not None else 1, fontsize=8,
                     columnspacing=1.0, handletextpad=0.35,
                 )
             else:
                 warning.append("More than 30 categories; the figure legend was omitted. All palette entries remain in metadata.")
         if color_type == "numeric" and show_colorbar and color_norm is not None:
             scalar = plt.cm.ScalarMappable(norm=color_norm, cmap=cmap)
-            fig.colorbar(scalar, ax=list(axes.values()), orientation="horizontal",
-                         fraction=0.028, pad=0.065, label=color)
+            artists["colorbar"] = fig.colorbar(
+                scalar, ax=list(axes.values()), orientation="horizontal",
+                cax=None if owns_figure else supplied_axes["colorbar"],
+                fraction=0.028, pad=0.065, label=color)
         if velocity is not None and field_config["color_by"] is not None and show_colorbar:
             scalar = plt.cm.ScalarMappable(norm=color_norm_field, cmap=field_config["cmap"])
-            fig.colorbar(scalar, ax=list(axes.values()), orientation="vertical",
-                         fraction=0.02, pad=0.03,
-                         label=f"Velocity {field_config['color_by']} (projected)")
-        if title is not None:
+            artists["velocity_colorbar"] = fig.colorbar(
+                scalar, ax=list(axes.values()), orientation="vertical",
+                cax=None if owns_figure else supplied_axes["velocity_colorbar"],
+                fraction=0.02, pad=0.03,
+                label=f"Velocity {field_config['color_by']} (projected)")
+        if title is not None and owns_figure:
             fig.suptitle(title, fontsize=13)
     result = PlotResult(
         fig=fig, axes=axes,
@@ -608,6 +646,8 @@ def embedding_facets(
         },
         metadata={
             "plot": "embedding_facets", "display_basis": embedding_key,
+            "owns_figure": owns_figure,
+            "export_scope": "created_figure" if owns_figure else "parent_figure",
             "facets": {"row": facet_row, "col": facet_col, "row_order": rows,
                        "col_order": cols, "missing_labels": {"row": row_missing, "col": col_missing}},
             "color_key": color, "color_type": color_type, "palette": colors,

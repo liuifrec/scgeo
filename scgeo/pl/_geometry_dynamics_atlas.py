@@ -16,6 +16,7 @@ from matplotlib.colors import is_color_like
 
 from ._result import PlotResult
 from ._style import category_palette, style_context
+from ._table_plot_utils import panel_axes
 from ._utils import display_indices, resolve_embedding
 
 _PANEL_ORDER = ("states", "velocity", "paga", "evidence")
@@ -153,6 +154,8 @@ def geometry_dynamics_atlas(
     style="paper",
     figsize=None,
     title=None,
+    axes=None,
+    show_colorbar=True,
     return_result=True,
     show=True,
 ):
@@ -185,6 +188,13 @@ def geometry_dynamics_atlas(
     settings, but cannot replace shared basis, axes, condition scope, palette,
     and output controls. Use ``return_result=True`` (default) to export PNG,
     SVG, PDF and each panel's source tables via ``PlotResult.save``.
+
+    Compose with ``axes={panel_name: ax, ...}`` for the selected panels, all
+    in one Figure or SubFigure. Supplied figures retain their size, layout,
+    and title. For a numeric states panel, supply ``axes['colorbar']`` or use
+    ``show_colorbar=False``. The optional colorbar artist is available through
+    ``result.artists['states_colorbar']``. ``figsize``/``title`` apply only to
+    a canvas created by this function.
     """
     # Validate all availability and semantic rules before creating the canvas.
     key, raw = resolve_embedding(adata, basis)
@@ -204,6 +214,8 @@ def geometry_dynamics_atlas(
         raise ValueError("style must be paper or presentation.")
     if not isinstance(label_states, bool):
         raise TypeError("label_states must be boolean.")
+    if not isinstance(show_colorbar, bool):
+        raise TypeError("show_colorbar must be boolean.")
     if isinstance(random_state, bool) or not isinstance(random_state, (int, np.integer)):
         raise ValueError("random_state must be an integer.")
     if color is None and node_key is not None:
@@ -276,6 +288,15 @@ def geometry_dynamics_atlas(
             raise ValueError("Requested panel unavailable: " + "; ".join(
                 f"{p}: {missing_reasons[p]}" for p in missing))
         chosen, omitted = requested, {}
+    supplied_axes = axes
+    owns_figure = supplied_axes is None
+    if not owns_figure:
+        if not isinstance(supplied_axes, Mapping):
+            raise TypeError("axes must be a mapping from panel labels to Matplotlib Axes.")
+        auxiliary = ["colorbar"] if "colorbar" in supplied_axes else []
+        fig, supplied_axes, _ = panel_axes(chosen + auxiliary, supplied_axes, None)
+        if "states" in chosen and is_numeric and show_colorbar and "colorbar" not in supplied_axes:
+            raise ValueError("Supply axes['colorbar'] for numeric states or set show_colorbar=False.")
     if color is not None and not is_numeric:
         obs_colors, categories, missing_label = _get_categories(adata.obs[color])
         stored_palette = None
@@ -373,10 +394,13 @@ def geometry_dynamics_atlas(
     axes, artists, output = {}, {}, {"cells": cells}
     panel_provenance = {}
     with style_context(style):
-        fig, axs = plt.subplots(nrows, ncols, figsize=size, squeeze=False,
-                                constrained_layout=True)
-        for empty in axs.flat[n:]:
-            empty.set_visible(False)
+        if owns_figure:
+            fig, axs = plt.subplots(nrows, ncols, figsize=size, squeeze=False,
+                                    constrained_layout=True)
+            for empty in axs.flat[n:]:
+                empty.set_visible(False)
+        else:
+            axs = np.asarray([supplied_axes[name] for name in chosen], dtype=object)
         for index, panel in enumerate(chosen):
             ax = axs.flat[index]
             axes[panel] = ax
@@ -397,7 +421,11 @@ def geometry_dynamics_atlas(
                                              xy[chosen_indices[~bad], 1], s=7, c=use[~bad],
                                              vmin=vmin, vmax=vmax, cmap="viridis", alpha=0.85,
                                              linewidths=0, rasterized=len(chosen_indices) > 2000)
-                        fig.colorbar(scatter, ax=ax, shrink=0.66, pad=0.02).set_label(color, fontsize=8)
+                        if show_colorbar:
+                            cb = fig.colorbar(scatter, ax=ax, shrink=0.66, pad=0.02,
+                                              cax=None if owns_figure else supplied_axes["colorbar"])
+                            cb.set_label(color, fontsize=8)
+                            artists["states_colorbar"] = cb
                     else:
                         scatter = ax.scatter([], [], s=7)
                     if bad.any():
@@ -530,7 +558,7 @@ def geometry_dynamics_atlas(
                 ax.set_yticks([])
                 for spine in ax.spines.values():
                     spine.set_visible(False)
-        if title:
+        if title and owns_figure:
             fig.suptitle(title, fontsize=14 if style == "paper" else 19)
     sample_counts = {}
     if sample_key is not None:
@@ -542,6 +570,8 @@ def geometry_dynamics_atlas(
                              .nunique(dropna=True).items()}
     metadata = {
         "plot": "geometry_dynamics_atlas",
+        "owns_figure": owns_figure,
+        "export_scope": "created_figure" if owns_figure else "parent_figure",
         "requested_panels": requested,
         "panels": chosen,
         "omitted_panels": omitted,
