@@ -51,6 +51,8 @@ the development checkout, without prescribing an experimental organism or
 design:
 
 ```python
+import scgeo as sg
+
 result = sg.pl.embedding_facets(
     adata, facet="condition", color="cell_type", velocity="stream",
     return_result=True, show=False,

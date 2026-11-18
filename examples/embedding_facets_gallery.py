@@ -16,7 +16,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 import matplotlib
 matplotlib.use("Agg")
@@ -95,7 +95,14 @@ def _download_public(dataset, dest_dir):
         raise ValueError(f"Existing public input does not match the pinned source: {path}")
     partial = path.with_suffix(path.suffix + ".partial")
     try:
-        with urlopen(spec["url"], timeout=80) as response, partial.open("wb") as dest:
+        request = Request(
+            spec["url"],
+            headers={
+                "User-Agent": "Mozilla/5.0 (compatible; ScGeo-public-gallery/0.1; +https://github.com/liuifrec/scgeo)",
+                "Accept": "application/octet-stream, */*",
+            },
+        )
+        with urlopen(request, timeout=80) as response, partial.open("wb") as dest:
             while block := response.read(1024 * 1024):
                 dest.write(block)
                 if dest.tell() > spec["size_bytes"]:
