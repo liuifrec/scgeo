@@ -6,7 +6,7 @@ contrasts, and export the exact plotted tables with your figure.
 [Gallery](PLOTTING_GALLERY.md) · [PAGA shift maps](PAGA_SHIFT_MAP.md) · [Velocity fields](VELOCITY_FIELDS.md) · [Plotting API](api/pl.md) ·
 [Interpretation](RESULT_INTERPRETATION.md) · [Citation guide](CITING.md)
 
-[State associations and density](STATE_FLOW_AND_DENSITY.md) · [Real-data examples](REAL_DATA_PLOTTING.md)
+[State associations and density](STATE_FLOW_AND_DENSITY.md) · [Real-data examples](REAL_DATA_PLOTTING.md) · [Geometry–velocity interpretation](GEOMETRY_VELOCITY_INTERPRETATION.md)
 
 ## Availability and installation
 

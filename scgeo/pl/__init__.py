@@ -10,6 +10,7 @@ from ._density import embedding_density
 from ._density_overlap import density_overlap
 from ._distribution_test import distribution_test
 from ._evidence_comparison import evidence_comparison
+from ._geometry_velocity_concordance import geometry_velocity_concordance
 from ._gallery import gallery_overview
 from ._highlight import _fallback_palette, _get_scanpy_palette, highlight_topk_cells
 from ._legend import legend_from_data
@@ -42,6 +43,7 @@ from ._state_flow_alluvial import state_flow_alluvial
 from ._state_flow_chord import state_flow_chord
 from ._state_flow_sankey import state_flow_sankey
 from ._style import category_palette, style_context
+from ._velocity_condition_compare import velocity_condition_compare
 from ._velocity_field import velocity_field
 from ._velocity_shift_alignment import velocity_shift_alignment
 from ._volcano import distribution_test_volcano
@@ -52,6 +54,7 @@ __all__ = [
     "category_palette",
     "style_context",
     "evidence_comparison",
+    "geometry_velocity_concordance",
     "replicate_effect",
     "delta_rank",
     "score_umap",
@@ -80,6 +83,7 @@ __all__ = [
     "ood_landscape",
     "velocity_shift_alignment",
     "velocity_field",
+    "velocity_condition_compare",
     "composition_drift",
     "robustness_matrix",
     "gallery_overview",

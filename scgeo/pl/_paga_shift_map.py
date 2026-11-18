@@ -567,6 +567,8 @@ def paga_shift_map(
     delta_key: str = "delta_frac",
     constant_node_color: str = "gold",
     highlight_nodes: Optional[list[str]] = None,
+    focus_states: Optional[list[str]] = None,
+    edge_focus: str = "all",
     highlight_edgecolor: str = "black",
     highlight_lw: float = 2.0,
     ax=None,
@@ -697,6 +699,8 @@ def paga_shift_map(
             "velocity_options requires show_velocity=True and velocity_mode='grid' or 'stream'."
         )
     field_prepare_options, field_render_options = _local_velocity_options(velocity_options)
+    if edge_focus not in {"all", "incident", "within"}:
+        raise ValueError("edge_focus must be all, incident, or within.")
     if background not in {"all", "contrast"}:
         raise ValueError("background must be 'all' or 'contrast'.")
     if aspect not in {"equal", "auto"}:
@@ -776,7 +780,12 @@ def paga_shift_map(
     )
     centers = _centers(cells, names, node_key, g0, g1, min_cells, agg)
     center_index = centers.set_index(node_key, drop=False)
-    highlights = {str(value) for value in (highlight_nodes or [])}
+    focus = set(_ordered_labels(focus_states, "focus_states")) if focus_states is not None else set()
+    if not focus <= set(names):
+        raise ValueError("focus_states contains unknown graph states.")
+    if edge_focus != "all" and not focus:
+        raise ValueError("edge_focus requires nonempty focus_states.")
+    highlights = {str(value) for value in (highlight_nodes or [])} | focus
     if not highlights <= set(names):
         raise ValueError("highlight_nodes contains unknown graph states.")
     offsets = {}
@@ -916,6 +925,10 @@ def paga_shift_map(
             failures.append("self_loop")
         if edge.weight < connectivity_threshold:
             failures.append("below_threshold")
+        if edge_focus == "incident" and not ({edge.source, edge.target} & focus):
+            failures.append("outside_focus")
+        if edge_focus == "within" and not {edge.source, edge.target} <= focus:
+            failures.append("outside_focus")
         for endpoint in (edge.source, edge.target):
             entry = center_index.loc[endpoint]
             if entry.n0 == 0:
@@ -1575,6 +1588,11 @@ def paga_shift_map(
         "label_fontsize": label_fontsize,
         "label_offsets": {key: list(value) for key, value in offsets.items()},
         "highlight_nodes": sorted(highlights),
+        "focus_states": sorted(focus),
+        "edge_focus": edge_focus,
+        "n_edges_total": len(edge_table),
+        "n_edges_displayed": int(edge_table.displayed.sum()),
+        "n_edges_focus_filtered": int(edge_table.reason.str.contains("outside_focus").sum()),
         "highlight_edgecolor": highlight_edgecolor,
         "legend": legend,
         "legend_loc": legend_loc,

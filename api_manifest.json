@@ -33,7 +33,7 @@
       "name": "scgeo.tl.density_overlap",
       "signature": "(adata, rep: 'str' = 'X_umap', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, *, by: 'Optional[str]' = None, k: 'int' = 30, eval_on: 'str' = 'union', store_key: 'str' = 'scgeo') -> 'None'",
       "doc": "Compute density overlap between two conditions on an embedding using kNN density estimates. Outputs Bhattacharyya coefficient (BC) and Hellinger distance (H).",
-      "docstring": "Compute density overlap between two conditions on an embedding using kNN density estimates.\nOutputs Bhattacharyya coefficient (BC) and Hellinger distance (H).\n\nBC = \u222b sqrt(p q) dx   (in [0,1], higher = more overlap)\nH  = sqrt(1 - BC)     (in [0,1], higher = more separated)",
+      "docstring": "Compute density overlap between two conditions on an embedding using kNN density estimates.\nOutputs Bhattacharyya coefficient (BC) and Hellinger distance (H).\n\nBC = ∫ sqrt(p q) dx   (in [0,1], higher = more overlap)\nH  = sqrt(1 - BC)     (in [0,1], higher = more separated)",
       "source": "scgeo/tl/_density_overlap.py"
     },
     {
@@ -116,15 +116,15 @@
     {
       "name": "scgeo.tl.shift",
       "signature": "(adata, rep: 'str' = 'X_pca', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, by: 'Optional[str]' = None, sample_key: 'Optional[str]' = None, store_key: 'str' = 'scgeo') -> 'None'",
-      "doc": "Compute mean shift vector \u0394 = \u03bc1 - \u03bc0 in representation space.",
-      "docstring": "Compute mean shift vector \u0394 = \u03bc1 - \u03bc0 in representation space.\n\nStores results in:\n  adata.uns[store_key][\"shift\"][\"global\"]\n  adata.uns[store_key][\"shift\"][\"by\"][<level>] (if by is provided)\n  adata.uns[store_key][\"shift\"][\"samples\"] (if sample_key is provided)",
+      "doc": "Compute mean shift vector Δ = μ1 - μ0 in representation space.",
+      "docstring": "Compute mean shift vector Δ = μ1 - μ0 in representation space.\n\nStores results in:\n  adata.uns[store_key][\"shift\"][\"global\"]\n  adata.uns[store_key][\"shift\"][\"by\"][<level>] (if by is provided)\n  adata.uns[store_key][\"shift\"][\"samples\"] (if sample_key is provided)",
       "source": "scgeo/tl/_shift.py"
     },
     {
       "name": "scgeo.tl.velocity_delta_alignment",
       "signature": "(adata, *, velocity_key: 'Optional[str]' = None, rep_for_shift: 'str' = 'X_umap', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, by: 'Optional[str]' = None, sample_key: 'Optional[str]' = None, shift_level: 'str' = 'global', shift_index_key: 'Optional[str]' = None, obs_key: 'str' = 'scgeo_vel_delta_align', store_key: 'str' = 'scgeo') -> 'None'",
-      "doc": "Convenience wrapper for scVelo/CellRank workflows:   1) compute \u0394 via sg.tl.shift on rep_for_shift   2) align velocity vectors to \u0394 using sg.tl.align_vectors",
-      "docstring": "Convenience wrapper for scVelo/CellRank workflows:\n  1) compute \u0394 via sg.tl.shift on rep_for_shift\n  2) align velocity vectors to \u0394 using sg.tl.align_vectors\n\nvelocity_key auto-detection order:\n  - \"velocity_umap\"\n  - \"velocity_pca\"",
+      "doc": "Convenience wrapper for scVelo/CellRank workflows:   1) compute Δ via sg.tl.shift on rep_for_shift   2) align velocity vectors to Δ using sg.tl.align_vectors",
+      "docstring": "Convenience wrapper for scVelo/CellRank workflows:\n  1) compute Δ via sg.tl.shift on rep_for_shift\n  2) align velocity vectors to Δ using sg.tl.align_vectors\n\nvelocity_key auto-detection order:\n  - \"velocity_umap\"\n  - \"velocity_pca\"",
       "source": "scgeo/tl/_velocity_delta_alignment.py"
     },
     {
@@ -144,24 +144,17 @@
   ],
   "pl": [
     {
-      "name": "scgeo.pl.PlotResult",
-      "signature": "(fig: 'Any', axes: 'dict', data: 'Any' = None, metadata: 'dict' = <factory>, warnings: 'list' = <factory>, artists: 'dict' = <factory>) -> None",
-      "doc": "A figure, named axes, plotted data, and interpretation metadata.",
-      "docstring": "A figure, named axes, plotted data, and interpretation metadata.\n\nObtain this opt-in result with ``return_result=True`` on supported plots.\nExisting default return values remain available. ``data`` holds the values\nused by the plot; metadata records its metric, ordering, and display choices.\nUse :meth:`save` to export figures, source tables, and a JSON manifest.\nThe result is editable: changing an artist does not update its source data.",
-      "source": "scgeo/pl/_result.py"
-    },
-    {
       "name": "scgeo.pl.alignment_panel",
       "signature": "(adata, score_key: 'str', *, basis: 'str' = 'umap', topk: 'Optional[int]' = 200, cmap: 'str' = 'viridis', figsize=(11, 5), title: 'Optional[str]' = None, show: 'bool' = True)",
-      "doc": "1\u00d72 panel:   (A) embedding colored by alignment score   (B) histogram of alignment scores Optional: highlight top-k aligned cells.",
-      "docstring": "1\u00d72 panel:\n  (A) embedding colored by alignment score\n  (B) histogram of alignment scores\nOptional: highlight top-k aligned cells.",
+      "doc": "1×2 panel:   (A) embedding colored by alignment score   (B) histogram of alignment scores Optional: highlight top-k aligned cells.",
+      "docstring": "1×2 panel:\n  (A) embedding colored by alignment score\n  (B) histogram of alignment scores\nOptional: highlight top-k aligned cells.",
       "source": "scgeo/pl/_alignment_panel.py"
     },
     {
       "name": "scgeo.pl.ambiguity_panel",
       "signature": "(adata, score_key: 'str', *, basis: 'str' = 'umap', topk: 'Optional[int]' = 200, cmap: 'str' = 'inferno', figsize=(11, 5), title: 'Optional[str]' = None, show: 'bool' = True)",
-      "doc": "1\u00d72 panel:   (A) embedding colored by ambiguity/disagreement score   (B) histogram of ambiguity scores Optional: highlight top-k ambiguous cells.",
-      "docstring": "1\u00d72 panel:\n  (A) embedding colored by ambiguity/disagreement score\n  (B) histogram of ambiguity scores\nOptional: highlight top-k ambiguous cells.",
+      "doc": "1×2 panel:   (A) embedding colored by ambiguity/disagreement score   (B) histogram of ambiguity scores Optional: highlight top-k ambiguous cells.",
+      "docstring": "1×2 panel:\n  (A) embedding colored by ambiguity/disagreement score\n  (B) histogram of ambiguity scores\nOptional: highlight top-k ambiguous cells.",
       "source": "scgeo/pl/_ambiguity_panel.py"
     },
     {
@@ -202,8 +195,8 @@
     {
       "name": "scgeo.pl.delta_rank",
       "signature": "(adata, store_key: 'str' = 'scgeo', kind: 'str' = 'shift', level: 'str' = 'by', *, top_n: 'int | None' = None, rotate_xticks: 'int' = 60)",
-      "doc": "Rank groups by delta magnitude (||\u0394||) and plot with readable x tick labels.",
-      "docstring": "Rank groups by delta magnitude (||\u0394||) and plot with readable x tick labels.\n\nNotes\n-----\nUses sg.get.table(...). Expected to contain:\n  - delta_norm column\n  - some label column identifying the group (often 'label', or sometimes `level`)",
+      "doc": "Rank groups by delta magnitude (||Δ||) and plot with readable x tick labels.",
+      "docstring": "Rank groups by delta magnitude (||Δ||) and plot with readable x tick labels.\n\nNotes\n-----\nUses sg.get.table(...). Expected to contain:\n  - delta_norm column\n  - some label column identifying the group (often 'label', or sometimes `level`)",
       "source": "scgeo/pl/_delta_rank.py"
     },
     {
@@ -223,8 +216,8 @@
     {
       "name": "scgeo.pl.distribution_report",
       "signature": "(adata, *, basis: 'str' = 'umap', condition_key: 'str' = 'condition', group0: 'Optional[str]' = None, group1: 'Optional[str]' = None, density_key: 'str' = 'density_overlap', test_key: 'str' = 'distribution_test', score_key: 'Optional[str]' = None, top_k: 'int' = 8, figsize=(11, 8), show: 'bool' = True)",
-      "doc": "2\u00d72 report panel for cross-condition embedding comparison.",
-      "docstring": "2\u00d72 report panel for cross-condition embedding comparison.\n\nPanels:\n  (A) embedding colored by condition\n  (B) density overlap summary (global + worst groups)\n  (C) distribution test summary (global + strongest groups)\n  (D) optional score histogram (or empty text if score_key None)\n\nRequires tl outputs stored in adata.uns['scgeo'] under density_key/test_key.",
+      "doc": "2×2 report panel for cross-condition embedding comparison.",
+      "docstring": "2×2 report panel for cross-condition embedding comparison.\n\nPanels:\n  (A) embedding colored by condition\n  (B) density overlap summary (global + worst groups)\n  (C) distribution test summary (global + strongest groups)\n  (D) optional score histogram (or empty text if score_key None)\n\nRequires tl outputs stored in adata.uns['scgeo'] under density_key/test_key.",
       "source": "scgeo/pl/_report.py"
     },
     {
@@ -268,6 +261,13 @@
       "doc": "Render four coordinated panels, including actual composition-change bars.",
       "docstring": "Render four coordinated panels, including actual composition-change bars.\n\n``axes`` may supply the named panels ``shift``, ``ood``, ``alignment``, and\n``composition``. The alignment panel is explicitly a display-space overlay;\nuse ``velocity_shift_alignment(mode='stored')`` for stored quantitative\nalignment. The legacy return is ``(fig, (ax1, ax2, ax3, ax4))``.",
       "source": "scgeo/pl/_gallery.py"
+    },
+    {
+      "name": "scgeo.pl.geometry_velocity_concordance",
+      "signature": "(shift_df, alignment_df, *, state_key='state', alignment_state_key=None, effect_metric='normalized_delta_norm', alignment_metric='alignment_cosine', status_key='coverage_status', eligible_statuses=('eligible_exploratory', 'eligible'), usable_key='usable', label_key=None, analysis_rep=None, positive_threshold=0.5, opposed_threshold=-0.25, sample_count_keys=('n_mice_control', 'n_mice_irradiated'), show_ci=True, highlight_states=None, max_labels=16, axes=None, figsize=(12.0, 5.6), title=None, return_data=False, return_result=False, show=True)",
+      "doc": "Show descriptive concordance between stored displacement and alignment.",
+      "docstring": "Show descriptive concordance between stored displacement and alignment.\n\nProvide one row per state in ``shift_df`` and ``alignment_df``; the latter\nmay use a different state column. Only rows with usable alignment, finite\nvalues and an eligible coverage status are plotted as estimated results.\nIneligible states are counted and exported rather than silently dropped.\n``positive_threshold`` and ``opposed_threshold`` are visual descriptions,\nnever significance thresholds or evidence of trajectories. A shared\n``analysis_rep`` is declared by the caller, not inferred from UMAP.\n\nRaw ``delta_norm`` may use stored ``magnitude_ci95_low/high`` intervals.\nNormalized magnitudes require their own explicitly named intervals; raw\nintervals are never applied to normalized estimates. No confidence\nintervals, mouse-level replication or missing velocities are fabricated.\n\nDefault return is ``(fig, axes)``; ``return_result=True`` provides a\n:class:`scgeo.pl.PlotResult` with included and excluded state tables.",
+      "source": "scgeo/pl/_geometry_velocity_concordance.py"
     },
     {
       "name": "scgeo.pl.highlight_topk_cells",
@@ -328,8 +328,8 @@
     {
       "name": "scgeo.pl.paga_composition_panel",
       "signature": "(adata, *, store_key: 'str' = 'scgeo', kind: 'str' = 'paga_composition_stats', effect: 'Optional[str]' = None, p_col: 'Optional[str]' = None, top_k: 'int' = 10, figsize=(12, 4.2), show: 'bool' = True)",
-      "doc": "1\u00d72 panel: volcano + top-k bars.",
-      "docstring": "1\u00d72 panel: volcano + top-k bars.",
+      "doc": "1×2 panel: volcano + top-k bars.",
+      "docstring": "1×2 panel: volcano + top-k bars.",
       "source": "scgeo/pl/_paga_composition.py"
     },
     {
@@ -348,7 +348,7 @@
     },
     {
       "name": "scgeo.pl.paga_shift_map",
-      "signature": "(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', paga_key: 'str' = 'paga', min_cells: 'int' = 15, connectivity_threshold: 'float' = 0.05, agg: 'str' = 'mean', background_size: 'float' = 6.0, background_alpha: 'float' = 0.12, node_size: 'float' = 220.0, node_scale_by_n: 'bool' = True, edge_lw: 'float' = 2.0, edge_alpha: 'float' = 0.32, arrow_width: 'Optional[float]' = None, arrow_alpha: 'float' = 0.95, arrow_scale: 'float' = 1.0, label: 'bool' = True, label_top_n: 'Optional[int]' = None, label_fontsize: 'int' = 8, palette: 'Optional[dict[str, Any]]' = None, pie_key: 'Optional[str]' = None, pie_categories: 'Optional[list[str]]' = None, pie_palette: 'Optional[dict[str, Any]]' = None, pie_size_scale: 'float' = 1.0, velocity_basis: 'Optional[str]' = None, show_velocity: 'bool' = False, velocity_color: 'str' = '#008C95', velocity_scale: 'float' = 50.0, velocity_alpha: 'float' = 0.95, node_color_mode: 'str' = 'palette', alignment_df: 'Optional[pd.DataFrame]' = None, alignment_key: 'str' = 'alignment_cosine', delta_key: 'str' = 'delta_frac', constant_node_color: 'str' = 'gold', highlight_nodes: 'Optional[list[str]]' = None, highlight_edgecolor: 'str' = 'black', highlight_lw: 'float' = 2.0, ax=None, figsize: 'tuple[float, float]' = (9.0, 6.4), title: 'Optional[str]' = None, return_data: 'bool' = False, show: 'bool' = True, aspect='equal', xlim=None, ylim=None, show_endpoints: 'bool' = True, endpoint_size: 'float' = 46.0, arrow_linewidth: 'float' = 1.6, arrow_head_size: 'float' = 9.0, label_mode: 'str' = 'auto', label_offsets=None, legend: 'bool' = True, legend_loc: 'str' = 'outside', graph_node_order=None, background: 'str' = 'all', max_points=None, random_state: 'int' = 0, required_indices=None, alignment_source: 'str' = 'provided', store_key: 'str' = 'representation_stability', analysis_rep: 'Optional[str]' = None, cmap=None, norm=None, vmin=None, vmax=None, show_colorbar: 'bool' = True, cax=None, return_result: 'bool' = False, velocity_mode: 'str' = 'state', velocity_options=None)",
+      "signature": "(adata, *, node_key: 'str', condition_key: 'str', group0: 'Any', group1: 'Any', basis: 'str' = 'umap', paga_key: 'str' = 'paga', min_cells: 'int' = 15, connectivity_threshold: 'float' = 0.05, agg: 'str' = 'mean', background_size: 'float' = 6.0, background_alpha: 'float' = 0.12, node_size: 'float' = 220.0, node_scale_by_n: 'bool' = True, edge_lw: 'float' = 2.0, edge_alpha: 'float' = 0.32, arrow_width: 'Optional[float]' = None, arrow_alpha: 'float' = 0.95, arrow_scale: 'float' = 1.0, label: 'bool' = True, label_top_n: 'Optional[int]' = None, label_fontsize: 'int' = 8, palette: 'Optional[dict[str, Any]]' = None, pie_key: 'Optional[str]' = None, pie_categories: 'Optional[list[str]]' = None, pie_palette: 'Optional[dict[str, Any]]' = None, pie_size_scale: 'float' = 1.0, velocity_basis: 'Optional[str]' = None, show_velocity: 'bool' = False, velocity_color: 'str' = '#008C95', velocity_scale: 'float' = 50.0, velocity_alpha: 'float' = 0.95, node_color_mode: 'str' = 'palette', alignment_df: 'Optional[pd.DataFrame]' = None, alignment_key: 'str' = 'alignment_cosine', delta_key: 'str' = 'delta_frac', constant_node_color: 'str' = 'gold', highlight_nodes: 'Optional[list[str]]' = None, focus_states: 'Optional[list[str]]' = None, edge_focus: 'str' = 'all', highlight_edgecolor: 'str' = 'black', highlight_lw: 'float' = 2.0, ax=None, figsize: 'tuple[float, float]' = (9.0, 6.4), title: 'Optional[str]' = None, return_data: 'bool' = False, show: 'bool' = True, aspect='equal', xlim=None, ylim=None, show_endpoints: 'bool' = True, endpoint_size: 'float' = 46.0, arrow_linewidth: 'float' = 1.6, arrow_head_size: 'float' = 9.0, label_mode: 'str' = 'auto', label_offsets=None, legend: 'bool' = True, legend_loc: 'str' = 'outside', graph_node_order=None, background: 'str' = 'all', max_points=None, random_state: 'int' = 0, required_indices=None, alignment_source: 'str' = 'provided', store_key: 'str' = 'representation_stability', analysis_rep: 'Optional[str]' = None, cmap=None, norm=None, vmin=None, vmax=None, show_colorbar: 'bool' = True, cax=None, return_result: 'bool' = False, velocity_mode: 'str' = 'state', velocity_options=None)",
       "doc": "Draw undirected PAGA topology and condition contrasts on an embedding.",
       "docstring": "Draw undirected PAGA topology and condition contrasts on an embedding.\n\nPositions, mean/median cell centers, and arrows describe the first two\ndisplay coordinates. They are not inferred cell trajectories. Reference\nanchors are open markers; comparison endpoints are filled and remain at\ntheir actual centers even when ``arrow_scale`` changes the displayed vector.\nStates present in only one condition or below ``min_cells`` remain visible.\nGraph edges require usable reference anchors at both ends.\n\nVelocity and pie summaries use only ``group0`` and ``group1``. Projected\nvelocity must use the matching ``velocity_<basis>`` key and match the\nembedding shape. Selected, labeled cells with nonfinite display coordinates\nare rejected before drawing; nonfinite background rows are omitted. Missing\nvelocity rows are excluded jointly and their support counts are exported.\n\n``velocity_mode='state'`` preserves the reference-anchored state arrows.\n``'grid'`` and ``'stream'`` interpolate the selected cells' supplied projected\nvelocities locally, using finite-radius support and directional-coherence\nmasks. These are descriptive display fields, not inferred trajectories or\nstatistical confidence. ``velocity_options`` controls grid_size, grid_extent,\nn_neighbors, radius, min_neighbors, min_coherence, scale, arrow_linewidth,\narrow_head_size, stream_density, and stream_linewidth. Local means are\nGaussian weighted regardless of the state-center ``agg`` option.\n``velocity_scale`` applies to state arrows; local grid arrows use the\noptions' scale (default ``'auto'``), and streamlines carry no time scale.\nLocal field color follows ``velocity_color`` so stored node colors retain\ntheir independent meaning. Use :func:`velocity_field` for numeric field\ncolors or separate condition panels.\n\nExplicit ``pie_categories`` must include every observed selected category;\nmissing values use a separate ``(missing)`` category (escaped if that literal\nlabel already exists). Retained slices are never silently renormalized.\n\n``graph_node_order`` labels matrix rows/columns explicitly, including graph\nstates absent from a subset. Without it, a labeled matrix, stored node_order,\nor current categorical order is used. The plot cannot recover historical\ncategory order that was not stored. Connectivity must be finite, nonnegative,\nsymmetric, and the exact declared size. No edges or centers are synthesized.\n\nAlignment coloring accepts an ``alignment_df`` or reads stored analysis with\n``alignment_source='stored'`` and ``analysis_rep``. Quantitative values are\nnever recalculated from the display embedding. Known source metadata must\nmatch the requested contrast; unknown provenance is labeled explicitly.\n``alignment_source`` is inactive for other color modes. Scalar colorbars\ndescribe numeric reference rims and comparison fills, including with pies.\n\nDefault arrows and pies use point-sized graphics. An explicit ``arrow_width``\nretains legacy data-unit arrow widths. Labels use deterministic point-space\nplacement, with ``label_offsets={state: (dx, dy)}`` overrides or\n``label_mode='on_data'``. Label placement never changes centers or values.\n``aspect='equal'`` preserves display-coordinate angles. Supplied axes own\ntheir layout and figure size; ``xlim``/``ylim`` support matched canvases.\n\nBackground sampling affects drawing only, preserving state-by-condition\nstrata and ``required_indices``. Source tables retain all input cells with\ndisplay flags, all positive graph edges with omission reasons, scaled vector\nendpoints, pie counts, source alignment, and label offsets. Cell fractions\nand support counts are descriptive; they do not substitute for sample-level\ninference. ``return_result=True`` returns a :class:`PlotResult`; historical\ntuple/axis returns and ``return_data`` keys remain available.",
       "source": "scgeo/pl/_paga_shift_map.py"
@@ -359,6 +359,13 @@
       "doc": "Create figures, source tables, and provenance for a perturbation report.",
       "docstring": "Create figures, source tables, and provenance for a perturbation report.\n\nPartial bundles remain the default when optional evidence is absent.\n``strict=True`` requires all three standard panels unless a narrower\n``required_panels`` list is supplied. An explicitly required panel always\nraises if unavailable, before any files are written. Panel names are\n``consensus_state_map``, ``state_evidence_panel``, ``representation_heatmap``;\n``panel_kwargs`` maps these names to their plotting options.\n\n``formats`` accepts PNG/SVG/PDF; ``dpi`` also controls rasterized artists.\n``width_mm``/``height_mm`` specify export canvas dimensions. The default\n``bbox_inches=None`` preserves those dimensions. The bundle retains legacy\nFigure entries and adds ``plot_results`` with source data and metadata.",
       "source": "scgeo/pl/_perturbation_report.py"
+    },
+    {
+      "name": "scgeo.pl.PlotResult",
+      "signature": "(fig: 'Any', axes: 'dict', data: 'Any' = None, metadata: 'dict' = <factory>, warnings: 'list' = <factory>, artists: 'dict' = <factory>) -> None",
+      "doc": "A figure, named axes, plotted data, and interpretation metadata.",
+      "docstring": "A figure, named axes, plotted data, and interpretation metadata.\n\nObtain this opt-in result with ``return_result=True`` on supported plots.\nExisting default return values remain available. ``data`` holds the values\nused by the plot; metadata records its metric, ordering, and display choices.\nUse :meth:`save` to export figures, source tables, and a JSON manifest.\nThe result is editable: changing an artist does not update its source data.",
+      "source": "scgeo/pl/_result.py"
     },
     {
       "name": "scgeo.pl.recovery_compass",
@@ -436,6 +443,13 @@
       "doc": "Temporarily apply a paper or presentation style without global changes.",
       "docstring": "Temporarily apply a paper or presentation style without global changes.\n\n``width_mm`` and ``height_mm`` set the default canvas for plots that do not\nsupply their own figsize. Use ``export_figure`` to size an existing figure.\n``overrides`` accepts any Matplotlib rcParams mapping. SVG text remains text\nand PDF uses TrueType fonts; viewers need the selected font for SVG editing.",
       "source": "scgeo/pl/_style.py"
+    },
+    {
+      "name": "scgeo.pl.velocity_condition_compare",
+      "signature": "(adata, *, condition_key, group0, group1, basis='umap', mode='grid', grid_size=25, n_neighbors=30, radius=None, min_neighbors=5, min_coherence=0.2, scale='auto', color_by='coherence', cmap='viridis', max_points=3500, random_state=0, stream_density=1.0, axes=None, figsize=(15.5, 5.6), title=None, return_data=False, return_result=False, show=True)",
+      "doc": "Compare two observed condition velocity fields at identical grid points.",
+      "docstring": "Compare two observed condition velocity fields at identical grid points.\n\nEach field uses only the cells in its selected condition. Grid coordinates,\nGaussian radius, neighbor cap, support thresholds, color norm, view limits,\nand (in grid mode) the arrow multiplier are shared. The third panel shows\ncosine agreement of projected local means *only where both are supported*;\nsingly supported positions are indicated but never assigned a direction.\nIt is descriptive, not a causal or longitudinal cell-trajectory estimate.\n\n``adata.obsm['X_<basis>']`` and matching ``velocity_<basis>`` are required.\nReusing an upstream projected velocity does not refit its kinetics.\n``return_result=True`` enables source-grid, support-mask and parameter\nexports via :class:`scgeo.pl.PlotResult`.",
+      "source": "scgeo/pl/_velocity_condition_compare.py"
     },
     {
       "name": "scgeo.pl.velocity_field",

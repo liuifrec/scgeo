@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased geometry–velocity interpretation upgrade
+
+- Add `pl.geometry_velocity_concordance` to relate stored state displacement magnitude to signed stored alignment while retaining all ineligible states and missing-data reasons.
+- Add `pl.velocity_condition_compare` with shared projected-velocity grid coordinates, support thresholds, radius, color scale, and arrow multiplier; directional agreement is displayed only where both conditions are supported.
+- Add display-only `paga_shift_map(..., focus_states=..., edge_focus='incident'|'within')` to reduce graph clutter without altering the PAGA matrix or quantitative analysis.
+- Document private, explicit-input review workflows and preservation of per-mouse source data. The mouse smoke archive provides frozen state tables but not full velocity projections; no new mouse kinetics or significance tests are claimed.
+
+See [Geometry–velocity interpretation](docs/GEOMETRY_VELOCITY_INTERPRETATION.md). Development checkout only; not in the published `scgeo==0.1.0` artifacts.
+
 ## Unreleased state-association and density upgrades
 
 Add a two-column `pl.state_flow_chord` and improve the alluvial, Sankey, and

@@ -7,7 +7,7 @@ same field can be placed beneath state centers and condition shifts with
 `scgeo.pl.paga_shift_map`.
 
 [Plotting guide](PLOTTING.md) · [State-graph guide](PAGA_SHIFT_MAP.md) ·
-[Plotting API](api/pl.md) · [Interpretation](RESULT_INTERPRETATION.md)
+[Plotting API](api/pl.md) · [Matched-condition comparison](GEOMETRY_VELOCITY_INTERPRETATION.md) · [Interpretation](RESULT_INTERPRETATION.md)
 
 For an actual public dataset with supplied UMAP and fitted projected velocities,
 see the [pancreas real-data example](REAL_DATA_PLOTTING.md#pancreas-render-the-upstream-projected-velocity).
