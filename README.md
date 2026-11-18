@@ -38,6 +38,7 @@ for displacement, representation stability, local geometry, and dynamics.
 | Build evidence figures and compare contrasts | [Development plotting guide](https://github.com/liuifrec/scgeo/blob/main/docs/PLOTTING.md) and [visual gallery](https://github.com/liuifrec/scgeo/blob/main/docs/PLOTTING_GALLERY.md) |
 | Display state connectivity, condition shifts, and velocity | [PAGA shift-map guide](https://github.com/liuifrec/scgeo/blob/main/docs/PAGA_SHIFT_MAP.md) |
 | Inspect local projected velocity and compare conditions | [Local velocity fields](https://github.com/liuifrec/scgeo/blob/main/docs/VELOCITY_FIELDS.md) |
+| Interpret stored geometry–velocity agreement and compare condition fields | [Geometry–velocity interpretation](https://github.com/liuifrec/scgeo/blob/main/docs/GEOMETRY_VELOCITY_INTERPRETATION.md) |
 | Compare annotations with ribbons, chords, and density panels | [State associations and density](https://github.com/liuifrec/scgeo/blob/main/docs/STATE_FLOW_AND_DENSITY.md) |
 | Run plotting checks on public single-cell datasets | [Real-data plotting gallery](https://github.com/liuifrec/scgeo/blob/main/docs/REAL_DATA_PLOTTING.md) |
 | Understand the framework and outputs | [Overview](https://github.com/liuifrec/scgeo/blob/main/docs/OVERVIEW.md) and [analysis layers](https://github.com/liuifrec/scgeo/blob/main/docs/ANALYSIS_LAYERS.md) |

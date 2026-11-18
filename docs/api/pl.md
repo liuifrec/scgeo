@@ -25,6 +25,7 @@ Signatures and docstrings match the public exports. I/O tables record a small sy
 - [`evidence_comparison`](#scgeoplevidence_comparison)
 - [`export_figure`](#scgeoplexport_figure)
 - [`gallery_overview`](#scgeoplgallery_overview)
+- [`geometry_velocity_concordance`](#scgeoplgeometry_velocity_concordance)
 - [`highlight_topk_cells`](#scgeoplhighlight_topk_cells)
 - [`legend_from_data`](#scgeopllegend_from_data)
 - [`local_distortion_map`](#scgeopllocal_distortion_map)
@@ -49,6 +50,7 @@ Signatures and docstrings match the public exports. I/O tables record a small sy
 - [`state_flow_chord`](#scgeoplstate_flow_chord)
 - [`state_flow_sankey`](#scgeoplstate_flow_sankey)
 - [`style_context`](#scgeoplstyle_context)
+- [`velocity_condition_compare`](#scgeoplvelocity_condition_compare)
 - [`velocity_field`](#scgeoplvelocity_field)
 - [`velocity_shift_alignment`](#scgeoplvelocity_shift_alignment)
 
@@ -903,6 +905,67 @@ alignment. The legacy return is ``(fig, (ax1, ax2, ax3, ax4))``.
 
 </details>
 
+### `scgeo.pl.geometry_velocity_concordance`
+
+Show descriptive concordance between stored displacement and alignment.
+
+```text
+scgeo.pl.geometry_velocity_concordance(
+    shift_df,
+    alignment_df,
+    *,
+    state_key='state',
+    alignment_state_key=None,
+    effect_metric='normalized_delta_norm',
+    alignment_metric='alignment_cosine',
+    status_key='coverage_status',
+    eligible_statuses=('eligible_exploratory', 'eligible'),
+    usable_key='usable',
+    label_key=None,
+    analysis_rep=None,
+    positive_threshold=0.5,
+    opposed_threshold=-0.25,
+    sample_count_keys=('n_mice_control', 'n_mice_irradiated'),
+    show_ci=True,
+    highlight_states=None,
+    max_labels=16,
+    axes=None,
+    figsize=(12.0, 5.6),
+    title=None,
+    return_data=False,
+    return_result=False,
+    show=True,
+)
+```
+
+[View implementation](../../scgeo/pl/_geometry_velocity_concordance.py)
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Show descriptive concordance between stored displacement and alignment.
+
+Provide one row per state in ``shift_df`` and ``alignment_df``; the latter
+may use a different state column. Only rows with usable alignment, finite
+values and an eligible coverage status are plotted as estimated results.
+Ineligible states are counted and exported rather than silently dropped.
+``positive_threshold`` and ``opposed_threshold`` are visual descriptions,
+never significance thresholds or evidence of trajectories. A shared
+``analysis_rep`` is declared by the caller, not inferred from UMAP.
+
+Raw ``delta_norm`` may use stored ``magnitude_ci95_low/high`` intervals.
+Normalized magnitudes require their own explicitly named intervals; raw
+intervals are never applied to normalized estimates. No confidence
+intervals, mouse-level replication or missing velocities are fabricated.
+
+Default return is ``(fig, axes)``; ``return_result=True`` provides a
+:class:`scgeo.pl.PlotResult` with included and excluded state tables.
+```
+
+</details>
+
 ### `scgeo.pl.highlight_topk_cells`
 
 Highlight top-k cells by a score on an embedding.
@@ -1362,6 +1425,8 @@ scgeo.pl.paga_shift_map(
     delta_key: 'str' = 'delta_frac',
     constant_node_color: 'str' = 'gold',
     highlight_nodes: 'Optional[list[str]]' = None,
+    focus_states: 'Optional[list[str]]' = None,
+    edge_focus: 'str' = 'all',
     highlight_edgecolor: 'str' = 'black',
     highlight_lw: 'float' = 2.0,
     ax=None,
@@ -2182,6 +2247,63 @@ Temporarily apply a paper or presentation style without global changes.
 supply their own figsize. Use ``export_figure`` to size an existing figure.
 ``overrides`` accepts any Matplotlib rcParams mapping. SVG text remains text
 and PDF uses TrueType fonts; viewers need the selected font for SVG editing.
+```
+
+</details>
+
+### `scgeo.pl.velocity_condition_compare`
+
+Compare two observed condition velocity fields at identical grid points.
+
+```text
+scgeo.pl.velocity_condition_compare(
+    adata,
+    *,
+    condition_key,
+    group0,
+    group1,
+    basis='umap',
+    mode='grid',
+    grid_size=25,
+    n_neighbors=30,
+    radius=None,
+    min_neighbors=5,
+    min_coherence=0.2,
+    scale='auto',
+    color_by='coherence',
+    cmap='viridis',
+    max_points=3500,
+    random_state=0,
+    stream_density=1.0,
+    axes=None,
+    figsize=(15.5, 5.6),
+    title=None,
+    return_data=False,
+    return_result=False,
+    show=True,
+)
+```
+
+[View implementation](../../scgeo/pl/_velocity_condition_compare.py)
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Compare two observed condition velocity fields at identical grid points.
+
+Each field uses only the cells in its selected condition. Grid coordinates,
+Gaussian radius, neighbor cap, support thresholds, color norm, view limits,
+and (in grid mode) the arrow multiplier are shared. The third panel shows
+cosine agreement of projected local means *only where both are supported*;
+singly supported positions are indicated but never assigned a direction.
+It is descriptive, not a causal or longitudinal cell-trajectory estimate.
+
+``adata.obsm['X_<basis>']`` and matching ``velocity_<basis>`` are required.
+Reusing an upstream projected velocity does not refit its kinetics.
+``return_result=True`` enables source-grid, support-mask and parameter
+exports via :class:`scgeo.pl.PlotResult`.
 ```
 
 </details>

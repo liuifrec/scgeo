@@ -6,7 +6,7 @@ same canvas to inspect condition endpoints, stored geometric alignment,
 observed cell composition, and a compatible projected velocity overlay.
 
 [Plotting guide](PLOTTING.md) · [Plotting API](api/pl.md) ·
-[Local velocity fields](VELOCITY_FIELDS.md) · [Interpretation](RESULT_INTERPRETATION.md) · [Citation guide](CITING.md)
+[Local velocity fields](VELOCITY_FIELDS.md) · [Geometry–velocity focus](GEOMETRY_VELOCITY_INTERPRETATION.md) · [Interpretation](RESULT_INTERPRETATION.md) · [Citation guide](CITING.md)
 
 ## See the result
 
