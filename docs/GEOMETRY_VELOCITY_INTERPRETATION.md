@@ -28,7 +28,7 @@ result = sg.pl.geometry_velocity_concordance(
     alignment_state_key='leiden',
     effect_metric='normalized_delta_norm',
     alignment_metric='alignment_cosine',
-    analysis_rep='X_pca'  # document that the stored analysis used 30 PCs,
+    analysis_rep='X_pca',  # declare the 30-PC analysis representation
     return_result=True,
     show=False,
 )
