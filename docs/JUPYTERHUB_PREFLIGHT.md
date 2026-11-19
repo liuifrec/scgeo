@@ -190,6 +190,15 @@ authorized server. The committed example report contains synthetic labels only.
 
 ## Synthetic acceptance check
 
+The [recorded synthetic validation](validation/deployment_readiness_20261119.json)
+was generated from implementation commit
+`0fa43edcb582141e8f4c454dbfeb398c54063aee` in a fresh Python 3.12 environment.
+The core wheel, AnnData probe, declared inputs, stored evidence and source export
+checks passed. The two PNG previews were visually inspected; the example below
+is byte-identical to its recorded export.
+
+![Synthetic sample centers with explicit two, one and zero sample coverage](assets/deployment_sample_effects.png)
+
 ```bash
 "$SCGEO_ENV/bin/python" "$SCGEO_SRC/examples/deployment_smoke.py" \
   --source-root "$SCGEO_SRC" --expected-commit "$SCGEO_COMMIT" \

@@ -1,0 +1,197 @@
+{
+  "schema_version": 1,
+  "dataset": "fully_synthetic",
+  "acceptance": {
+    "environment_verified": true,
+    "contract_passed": true,
+    "coverage_exclusions_preserved": [
+      "sparse",
+      "control_only",
+      "tiny"
+    ],
+    "source_hashes_verified": true,
+    "biological_validation": false
+  },
+  "source_commit": "0fa43edcb582141e8f4c454dbfeb398c54063aee",
+  "package_sha256": "2a01cd8e55a5e5221490a1167425c7e6ac2b7e763eb950dc3f98017089fdb110",
+  "python": "3.12.14",
+  "packages": {
+    "anndata": "0.13.4",
+    "matplotlib": "3.11.2",
+    "numpy": "2.5.5",
+    "pandas": "3.1.1",
+    "plotly": "7.1.0",
+    "scgeo": "0.1.0",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1"
+  },
+  "input_sha256": "2c351fd91f561094d8111f82db1b9972efef36807bf95fd71e5bb83df34a330b",
+  "shared_delta": [
+    1.0,
+    -3.3954467709707004e-11
+  ],
+  "state_coverage": [
+    {
+      "state": "shared",
+      "n_cells": [
+        20,
+        16
+      ],
+      "n_samples": [
+        2,
+        2
+      ],
+      "status": "eligible"
+    },
+    {
+      "state": "sparse",
+      "n_cells": [
+        15,
+        6
+      ],
+      "n_samples": [
+        2,
+        1
+      ],
+      "status": "insufficient_samples"
+    },
+    {
+      "state": "control_only",
+      "n_cells": [
+        11,
+        0
+      ],
+      "n_samples": [
+        2,
+        0
+      ],
+      "status": "missing_condition"
+    },
+    {
+      "state": "tiny",
+      "n_cells": [
+        2,
+        2
+      ],
+      "n_samples": [
+        2,
+        2
+      ],
+      "status": "insufficient_cells"
+    }
+  ],
+  "permutations": {
+    "n_assignments": 6,
+    "assignments": [
+      {
+        "treated_samples": [
+          "sample_0",
+          "sample_1"
+        ],
+        "delta_norm": 1.0
+      },
+      {
+        "treated_samples": [
+          "sample_0",
+          "sample_2"
+        ],
+        "delta_norm": 0.29999999999999993
+      },
+      {
+        "treated_samples": [
+          "sample_0",
+          "sample_3"
+        ],
+        "delta_norm": 5.551116299560307e-17
+      },
+      {
+        "treated_samples": [
+          "sample_1",
+          "sample_2"
+        ],
+        "delta_norm": 5.551116299560307e-17
+      },
+      {
+        "treated_samples": [
+          "sample_1",
+          "sample_3"
+        ],
+        "delta_norm": 0.29999999999999993
+      },
+      {
+        "treated_samples": [
+          "sample_2",
+          "sample_3"
+        ],
+        "delta_norm": 1.0
+      }
+    ],
+    "interpretation": "Synthetic enumeration only. Six assignments do not support a fine-grained tail probability; complementary allocations have the same unsigned statistic. No significance claim."
+  },
+  "exports": [
+    {
+      "plot": "state_evidence",
+      "figures": {
+        "png": {
+          "file": "state_evidence.png",
+          "sha256": "889eb5649f6ac0aa22e14ef71d5792f3a636414def4a95d11764006806491677"
+        },
+        "svg": {
+          "file": "state_evidence.svg",
+          "sha256": "92b3817b6b789cce2473342fa82f76dac708cecbd78e1c80180bc556306b6fbb"
+        },
+        "pdf": {
+          "file": "state_evidence.pdf",
+          "sha256": "a5f83168acc01e41fd095af8a6bf4120816b85bdab1d6c29724221647a0985a1"
+        }
+      },
+      "tables": {
+        "report": {
+          "file": "state_evidence_report.csv",
+          "sha256": "f623382d1d460f0ebb92e5b04ec73aef6c6f036ae19f6b6537633168a34cc5e4",
+          "rows": 4
+        },
+        "availability": {
+          "file": "state_evidence_availability.csv",
+          "sha256": "425c3bd496e12d3a5147d33b8a36a08593a174bea2031ca25924fd0293a3ba44",
+          "rows": 4
+        }
+      }
+    },
+    {
+      "plot": "sample_effects",
+      "figures": {
+        "png": {
+          "file": "sample_effects.png",
+          "sha256": "a7f9f78c3a1df3a57a4d96c8148e71189cd533fc5ed92546afb34a1afb7a5946"
+        },
+        "svg": {
+          "file": "sample_effects.svg",
+          "sha256": "10840efc8a4d989d091ff8ec725e410ec14016013479be0fb4edd8b0872d9423"
+        },
+        "pdf": {
+          "file": "sample_effects.pdf",
+          "sha256": "ae9a4cc6e99a1ff15e25244db90f8f5fb9ac8f331cf2a062e1f235f619e219f5"
+        }
+      },
+      "tables": {
+        "sample_centers": {
+          "file": "sample_effects_sample_centers.csv",
+          "sha256": "0b9f7e2be0c17808b06834c1ad882a07c07a0c0742cf966e141207a2c997327c",
+          "rows": 13
+        },
+        "sample_summary": {
+          "file": "sample_effects_sample_summary.csv",
+          "sha256": "1dd94c9695b65cc4c0cab5da603f2a2e5a9b03d2b2843ed58d5bb86c31bfac4f",
+          "rows": 8
+        },
+        "pairs": {
+          "file": "sample_effects_pairs.csv",
+          "sha256": "0c236a141b141f502b576df4824f410937c8a702911eb3c80043184fa26191b0",
+          "rows": 0
+        }
+      }
+    }
+  ],
+  "reproduce": "python examples/deployment_smoke.py --source-root CHECKOUT --expected-commit 0fa43edcb582141e8f4c454dbfeb398c54063aee --output-dir NEW_OUTPUT_DIRECTORY"
+}
