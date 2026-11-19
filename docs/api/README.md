@@ -8,7 +8,7 @@ The current checkout includes [unreleased plotting additions](../../CHANGELOG.md
 |---|---|---|
 | [scgeo.tl](tl.md) | Analysis | 20 |
 | [scgeo.pl](pl.md) | Figures | 48 |
-| [scgeo.get](get.md) | Reports and tables | 9 |
+| [scgeo.get](get.md) | Reports and tables | 10 |
 | [scgeo.pp](pp.md) | Reference preparation | 6 |
 | [scgeo.data](data.md) | Census access | 12 |
 | [scgeo.bench](bench.md) | Synthetic benchmarks | 5 |

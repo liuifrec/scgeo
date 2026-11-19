@@ -524,6 +524,13 @@
       "source": "scgeo/get/_figure_tables.py"
     },
     {
+      "name": "scgeo.get.input_contract",
+      "signature": "(adata, *, config)",
+      "doc": "Inspect explicitly configured AnnData inputs without modifying or fitting them.",
+      "docstring": "Inspect explicitly configured AnnData inputs without modifying or fitting them.\n\nParameters\n----------\nadata : AnnData\n    Only obs, obsm and uns are inspected; X, layers and raw are not read.\nconfig : dict\n    JSON-compatible configuration with purpose (descriptive/sample_inference),\n    state_key, condition_key, group0, group1, sample_key (or None), reps (exact\n    obsm keys), methods, min_cells and min_samples_per_condition. Optional\n    design='independent', bootstrap_unit, k_values, embedding_key,\n    representation_provenance, projected_velocity, paga and evidence are\n    described in docs/JUPYTERHUB_PREFLIGHT.md. No keys or groups are inferred.\n\nReturns\n-------\ndict\n    JSON-safe checks, inventory and per-state coverage. ok means the requested\n    input contract passed; excluded_states remain ineligible for sample-level\n    interpretation. Eligibility is a coverage screen, not significance or a\n    guarantee of biological independence. Provenance assertions are checked\n    for consistency, not authenticated. No results are stored in adata.",
+      "source": "scgeo/get/_input_contract.py"
+    },
+    {
       "name": "scgeo.get.sample_centers",
       "signature": "(adata_or_result, *, store_key='robust_shift', scope='auto')",
       "doc": "Return a tidy copy of the stored biological sample centers.",

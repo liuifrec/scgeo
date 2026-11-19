@@ -1,6 +1,6 @@
 # API reference
 
-Public API for **ScGeo 0.1.0** · **100 exported callables**.
+Public API for **ScGeo 0.1.0** · **101 exported callables**.
 
 This reference describes the current checkout. Plotting additions marked [unreleased in the changelog](../CHANGELOG.md) require that development checkout; they are not included in the published 0.1.0 distribution.
 
@@ -12,7 +12,7 @@ Start with `tl.robust_shift`, `get.state_report` and `pl.state_evidence_panel`. 
 |---|---|---|
 | [`scgeo.tl`](#scgeotl) | Analysis | [20 callables](api/tl.md) |
 | [`scgeo.pl`](#scgeopl) | Figures | [48 callables](api/pl.md) |
-| [`scgeo.get`](#scgeoget) | Reports and tables | [9 callables](api/get.md) |
+| [`scgeo.get`](#scgeoget) | Reports and tables | [10 callables](api/get.md) |
 | [`scgeo.pp`](#scgeopp) | Reference preparation | [6 callables](api/pp.md) |
 | [`scgeo.data`](#scgeodata) | Census access | [12 callables](api/data.md) |
 | [`scgeo.bench`](#scgeobench) | Synthetic benchmarks | [5 callables](api/bench.md) |
@@ -4072,6 +4072,7 @@ If return_data is True:
 - [`get_robustness_table`](#scgeogetget_robustness_table)
 - [`get_shift_summary`](#scgeogetget_shift_summary)
 - [`get_velocity_alignment_summary`](#scgeogetget_velocity_alignment_summary)
+- [`input_contract`](#scgeogetinput_contract)
 - [`sample_centers`](#scgeogetsample_centers)
 - [`state_report`](#scgeogetstate_report)
 - [`table`](#scgeogettable)
@@ -4135,6 +4136,47 @@ scgeo.get.get_velocity_alignment_summary(adata, *, store_key: 'str' = 'shift') -
 ```
 
 [View implementation](../scgeo/get/_figure_tables.py)
+
+### `scgeo.get.input_contract`
+
+Inspect explicitly configured AnnData inputs without modifying or fitting them.
+
+```text
+scgeo.get.input_contract(adata, *, config)
+```
+
+[View implementation](../scgeo/get/_input_contract.py)
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Inspect explicitly configured AnnData inputs without modifying or fitting them.
+
+Parameters
+----------
+adata : AnnData
+    Only obs, obsm and uns are inspected; X, layers and raw are not read.
+config : dict
+    JSON-compatible configuration with purpose (descriptive/sample_inference),
+    state_key, condition_key, group0, group1, sample_key (or None), reps (exact
+    obsm keys), methods, min_cells and min_samples_per_condition. Optional
+    design='independent', bootstrap_unit, k_values, embedding_key,
+    representation_provenance, projected_velocity, paga and evidence are
+    described in docs/JUPYTERHUB_PREFLIGHT.md. No keys or groups are inferred.
+
+Returns
+-------
+dict
+    JSON-safe checks, inventory and per-state coverage. ok means the requested
+    input contract passed; excluded_states remain ineligible for sample-level
+    interpretation. Eligibility is a coverage screen, not significance or a
+    guarantee of biological independence. Provenance assertions are checked
+    for consistency, not authenticated. No results are stored in adata.
+```
+
+</details>
 
 ### `scgeo.get.sample_centers`
 

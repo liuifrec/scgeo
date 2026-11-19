@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased deployment readiness
+
+- Add read-only `get.input_contract` for explicit AnnData metadata, coverage,
+  representations, projected velocity, PAGA provenance and stored evidence.
+- Add exact-source environment preflight and an isolated JupyterHub installation
+  guide that preserves existing kernels and records dependency versions.
+- Validate a four-sample synthetic workflow, six 2-vs-2 label assignments, stored
+  state reports and figure/source exports. Existing statistical estimands and
+  plotting signatures are unchanged; no biological validation is claimed.
+
 ## Unreleased plotting composition and source exports
 
 - Reconcile PR #21's successful CI and public-data checks; correct unsupported
