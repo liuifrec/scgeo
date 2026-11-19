@@ -81,6 +81,8 @@ import runpy
 import sys
 commit = "REPLACE_WITH_APPROVED_40_CHARACTER_COMMIT"
 source = Path.home() / "scgeo-deploy" / f"source-{commit}"
+expected_environment = Path.home() / "scgeo-deploy" / f"env-{commit}"
+assert Path(sys.prefix).resolve() == expected_environment.resolve(), "Select the separate ScGeo kernel first"
 verify = runpy.run_path(str(source / "scripts/deployment_preflight.py"))["environment_report"]
 environment = verify(expected_commit=commit, source_root=source,
                      require_optional=["ipykernel"])
