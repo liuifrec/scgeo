@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 
 def resolve_embedding(adata, basis="umap"):
@@ -84,3 +85,28 @@ def _topk_mask(values: np.ndarray, k: int):
     mask = np.zeros(values.shape[0], dtype=bool)
     mask[top_idx] = True
     return mask
+
+
+def observation_labels(series, name):
+    """Keep true missing entries apart from literal labels such as 'NA'."""
+    raw = pd.Series(series).reset_index(drop=True)
+    present = pd.unique(raw.dropna().astype(object))
+    names = [str(x) for x in present]
+    if len(names) != len(set(names)):
+        raise ValueError(f"{name} has distinct values with colliding text labels.")
+    declared = [str(x) for x in series.cat.categories] if isinstance(series.dtype, pd.CategoricalDtype) else names
+    if len(declared) != len(set(declared)):
+        raise ValueError(f"{name} has colliding categorical levels.")
+    missing = "(missing)"
+    while missing in declared:
+        missing = f"({missing})"
+    mapped = raw.map(lambda x: missing if pd.isna(x) else str(x))
+    if isinstance(series.dtype, pd.CategoricalDtype):
+        ordered = [str(x) for x in series.cat.categories if str(x) in names]
+        if len(ordered) != len(set(ordered)):
+            raise ValueError(f"{name} has colliding categorical levels.")
+    else:
+        ordered = names
+    if raw.isna().any():
+        ordered.append(missing)
+    return mapped, ordered, missing if raw.isna().any() else None

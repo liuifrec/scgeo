@@ -1,0 +1,151 @@
+{
+  "schema_version": "scgeo.plotting_continuation_validation.v1",
+  "checked_at_utc": "2026-11-18T06:28:30.775064+00:00",
+  "branch": "feat/embedding-velocity-facets-20261118",
+  "source_code_commit": "4cc128be0b7bf4fa5a66ea5be19d1c807fa2ed75",
+  "source_scope": "All scgeo package source files match this commit. Generated API docstrings, validation records and gallery previews are finalized by the following documentation commit.",
+  "baseline": {
+    "merged_pr": 20,
+    "open_pr": 21,
+    "pr_url": "https://github.com/liuifrec/scgeo/pull/21",
+    "remote_head": "57349cbb1fc46b2bb04aad5ef04f9377ed06b3dd",
+    "record": "embedding_facets_pr21_20261118.json",
+    "remote_head_unchanged_on_final_read": true
+  },
+  "local_tests": {
+    "command": "MPLBACKEND=Agg OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q",
+    "python": "3.10.12",
+    "passed": 524,
+    "skipped": 1,
+    "warnings": 15,
+    "duration_seconds": 75.62,
+    "skipped_reason": "Public PBMC integration test requires explicit SCGEO_INTEGRATION=1; public faceting baseline CI is recorded separately.",
+    "log_sha256": "25c4d549e6a735ba9a46bbdd981b9d2b4e9053f049ea9e4287502c0066ea8a67",
+    "earlier_failure_resolved": "Six manifest checks rejected stale score_embedding docstrings. Regenerated the pl manifest/API pages; the subsequent complete suite passed."
+  },
+  "environment": {
+    "numpy": "2.2.6",
+    "pandas": "2.3.3",
+    "anndata": "0.11.4",
+    "matplotlib": "3.10.9",
+    "scipy": "1.15.3",
+    "scanpy": "1.11.5",
+    "pytest": "9.1.1",
+    "setuptools": "83.0.0"
+  },
+  "contract_audit": {
+    "exported_names": 50,
+    "matplotlib_renderers_including_aliases": 42,
+    "result_and_axes_contracts": 42,
+    "native_contracts": [
+      "state_flow_sankey: Plotly layout.meta and native export",
+      "perturbation_report: multi-figure bundle"
+    ],
+    "utilities": 6,
+    "api_exports_all_namespaces": 100,
+    "new_regression_cases_since_remote_head": 56,
+    "legacy_return_policy": "Preserved; geometry_dynamics_atlas already defaulted to PlotResult at PR #20."
+  },
+  "galleries": {
+    "scope": "Synthetic inputs; no biological findings, no private data, no additional public-data downloads.",
+    "by_gallery": {
+      "atlas": {
+        "exports": 2,
+        "figures": 6,
+        "source_tables": 13
+      },
+      "composition": {
+        "exports": 3,
+        "figures": 9,
+        "source_tables": 17
+      },
+      "facets": {
+        "exports": 5,
+        "figures": 15,
+        "source_tables": 25
+      },
+      "legacy": {
+        "exports": 8,
+        "figures": 24,
+        "source_tables": 30
+      },
+      "main": {
+        "exports": 9,
+        "figures": 27,
+        "source_tables": 20
+      },
+      "paga": {
+        "exports": 4,
+        "figures": 12,
+        "source_tables": 25
+      },
+      "velocity": {
+        "exports": 3,
+        "figures": 9,
+        "source_tables": 25
+      }
+    },
+    "exports": 34,
+    "figures": 102,
+    "source_tables": 155,
+    "formats": [
+      "png",
+      "svg",
+      "pdf"
+    ],
+    "verification": "Every figure/table SHA-256 and CSV row count checked against its export manifest.",
+    "quickstart": "passed; stored sample-aware report and figure generated",
+    "visual_review": [
+      "composed atlas/facets",
+      "three composed score panels",
+      "composition missing evidence",
+      "mapping QC and legend",
+      "OOD contours and group summary",
+      "consensus structure and legend",
+      "recovery compass",
+      "matched synthetic stream facets"
+    ],
+    "previews": {
+      "plotting_legacy_mapping_qc.png": "90522a1d6ef540510e13738963163f62e6c5c075fc0fa7cfbd4fa4e65139b432",
+      "plotting_legacy_ood_landscape.png": "76f2fdd9f737efd0e173449ba56f856c1c0a70d333a01e6b3b3765057f495327",
+      "plotting_legacy_consensus_structure.png": "2d158088c4df5aa663d51c6107d768d3ee92a331847d664313f7676fb7ea5851",
+      "plotting_legacy_recovery_compass.png": "6a638349e196535013af7690b48c1344820df25563ed082cdefaea4035cebaa0",
+      "plotting_composed_atlas_facets.png": "d130138b207ac457cdde12012992004af8e28333beece81ef9c87eeaa0fb6fd7",
+      "plotting_composed_score_panels.png": "907decd606e3806391721e6c3bd605bd57e599547023b713dbc470e5ecfca3db",
+      "plotting_composition_missing_evidence.png": "84a8bfe29a4453c17b08f98588d8223ab21a2ecd9fcbbf22debfc7fb455fe472"
+    }
+  },
+  "documentation": {
+    "runtime_manifest": "passed",
+    "generated_api_pages": 8,
+    "generated_api_check": "passed",
+    "local_link_check": "passed",
+    "real_data_and_mouse_review_help": "passed"
+  },
+  "packaging": {
+    "method": "Installed setuptools backend built sdist, then wheel from extracted sdist, without network.",
+    "audit": "scripts/check_release.py passed on Python 3.12.14; source, dependencies, license and version match.",
+    "install": "Wheel installed into a temporary venv; dependencies reused from local validation environment.",
+    "smoke": "scripts/smoke_installation.py --source-root passed outside checkout, including optional Scanpy and resource-module isolation.",
+    "files": {
+      "scgeo-0.1.0-py3-none-any.whl": "a05abbdb0413f0a89468b5e2fa1c1c52ebfe16d903e89d8cc58a77656b0389c1",
+      "scgeo-0.1.0.tar.gz": "f2ed957cff39cb60d88d39d16edb806d48b5f1f306a48d56d35ea6393a97b939"
+    },
+    "version": "0.1.0",
+    "published": false
+  },
+  "statistical_code_changes": {
+    "scgeo/tl": false,
+    "scgeo/get": false,
+    "scgeo/pp": false
+  },
+  "pending_external_validation": [
+    "New local commits have not been pushed; GitHub Python 3.9/3.12, OS/conda and public-data checks still cover only the remote baseline."
+  ],
+  "remote_actions": {
+    "pushed": false,
+    "merged": false,
+    "tagged": false,
+    "published": false
+  }
+}

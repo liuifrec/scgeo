@@ -94,7 +94,7 @@ The result is editable: changing an artist does not update its source data.
 
 ### `scgeo.pl.alignment_panel`
 
-1×2 panel:   (A) embedding colored by alignment score   (B) histogram of alignment scores Optional: highlight top-k aligned cells.
+Plot stored alignment scores and their full-data histogram.
 
 ```text
 scgeo.pl.alignment_panel(
@@ -107,6 +107,17 @@ scgeo.pl.alignment_panel(
     figsize=(11, 5),
     title: 'Optional[str]' = None,
     show: 'bool' = True,
+    axes=None,
+    bins=40,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    colorbar: 'bool' = True,
+    max_points=None,
+    random_state=0,
+    rasterized='auto',
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -117,17 +128,25 @@ scgeo.pl.alignment_panel(
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-1×2 panel:
-  (A) embedding colored by alignment score
-  (B) histogram of alignment scores
-Optional: highlight top-k aligned cells.
+Plot stored alignment scores and their full-data histogram.
+
+Highlights share the embedding color normalization. ``axes`` accepts named
+``embedding`` and ``histogram`` axes, plus ``colorbar`` unless
+``colorbar=False``. Supplied figures retain their size and layout.
+``max_points`` affects background drawing only and must accommodate every
+drawable top-k cell. The histogram always uses all finite input scores.
+No analysis or biological interpretation is recomputed.
+
+The legacy return is ``(fig, axes_array)``. ``return_data=True`` adds cell
+and histogram tables. ``return_result=True`` supplies a PlotResult with
+exact bin edges/counts, cell identities, selections, and displayed flags.
 ```
 
 </details>
 
 ### `scgeo.pl.ambiguity_panel`
 
-1×2 panel:   (A) embedding colored by ambiguity/disagreement score   (B) histogram of ambiguity scores Optional: highlight top-k ambiguous cells.
+Plot stored ambiguity scores and their full-data histogram.
 
 ```text
 scgeo.pl.ambiguity_panel(
@@ -140,6 +159,17 @@ scgeo.pl.ambiguity_panel(
     figsize=(11, 5),
     title: 'Optional[str]' = None,
     show: 'bool' = True,
+    axes=None,
+    bins=40,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    colorbar: 'bool' = True,
+    max_points=None,
+    random_state=0,
+    rasterized='auto',
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -150,10 +180,18 @@ scgeo.pl.ambiguity_panel(
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-1×2 panel:
-  (A) embedding colored by ambiguity/disagreement score
-  (B) histogram of ambiguity scores
-Optional: highlight top-k ambiguous cells.
+Plot stored ambiguity scores and their full-data histogram.
+
+Highlights share the embedding color normalization. ``axes`` accepts named
+``embedding`` and ``histogram`` axes, plus ``colorbar`` unless
+``colorbar=False``. Supplied figures retain their size and layout.
+``max_points`` affects background drawing only and must accommodate every
+drawable top-k cell. The histogram always uses all finite input scores.
+No analysis or biological interpretation is recomputed.
+
+The legacy return is ``(fig, axes_array)``. ``return_data=True`` adds cell
+and histogram tables. ``return_result=True`` supplies a PlotResult with
+exact bin edges/counts, cell identities, selections, and displayed flags.
 ```
 
 </details>
@@ -290,7 +328,7 @@ use the full data. The returned source table records which cells are shown.
 
 ### `scgeo.pl.consensus_structure`
 
-Consensus structure (UMAP only) + legend returned separately.
+Consensus score structure on a stored embedding, with a separate legend.
 
 ```text
 scgeo.pl.consensus_structure(
@@ -314,7 +352,13 @@ scgeo.pl.consensus_structure(
     ax=None,
     show: 'bool' = True,
     print_legend: 'bool' = True,
-) -> 'tuple[Any, Any, ConsensusStructureStats, List[Dict[str, Any]]]'
+    colorbar: 'bool' = True,
+    cax=None,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    return_result: 'bool' = False,
+)
 ```
 
 [View implementation](../../scgeo/pl/_consensus_structure.py)
@@ -324,7 +368,7 @@ scgeo.pl.consensus_structure(
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Consensus structure (UMAP only) + legend returned separately.
+Consensus score structure on a stored embedding, with a separate legend.
 
 Figure:
   - Background: all cells colored by `groupby`
@@ -339,13 +383,17 @@ Outputs:
 Note:
   - This function NEVER draws a legend inside the plot.
   - If you want a legend figure, build it from legend_data.
+  - ``return_result=True`` exports all cells, selection/display flags and
+    full group summaries (including groups excluded from the legend).
+  - ``colorbar=False`` or ``cax`` supports composition. Supplied axes are
+    never laid out or resized. The default four-item return is unchanged.
 ```
 
 </details>
 
 ### `scgeo.pl.consensus_subspace_panel`
 
-Panel for consensus subspace:   (A) embedding colored by cs_score   (B) histogram of cs_score + optional text for singular values
+Plot stored consensus scores, their histogram, and existing singular values.
 
 ```text
 scgeo.pl.consensus_subspace_panel(
@@ -357,6 +405,17 @@ scgeo.pl.consensus_subspace_panel(
     topk: 'Optional[int]' = 200,
     figsize=(11, 5),
     show: 'bool' = True,
+    axes=None,
+    bins=40,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    colorbar: 'bool' = True,
+    max_points=None,
+    random_state=0,
+    rasterized='auto',
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -367,9 +426,16 @@ scgeo.pl.consensus_subspace_panel(
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Panel for consensus subspace:
-  (A) embedding colored by cs_score
-  (B) histogram of cs_score + optional text for singular values
+Plot stored consensus scores, their histogram, and existing singular values.
+
+Uses the same composition and source-export contract as ``alignment_panel``:
+named ``embedding``/``histogram`` axes, optional ``colorbar`` axis,
+a shared color scale for highlights, and draw-only sampling. The histogram
+uses all finite scores; singular values are read from the selected stored
+consensus result and never recomputed.
+
+The default return remains ``(fig, axes_array)``; ``return_data=True`` adds
+source tables, and ``return_result=True`` returns an exportable PlotResult.
 ```
 
 </details>
@@ -387,6 +453,11 @@ scgeo.pl.delta_rank(
     *,
     top_n: 'int | None' = None,
     rotate_xticks: 'int' = 60,
+    ax=None,
+    figsize=None,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
+    show: 'bool' = False,
 )
 ```
 
@@ -404,6 +475,10 @@ Notes
 Uses sg.get.table(...). Expected to contain:
   - delta_norm column
   - some label column identifying the group (often 'label', or sometimes `level`)
+
+Supplied axes retain their layout. ``return_result=True`` exports original
+and ranked rows; ``return_data=True`` returns ``(ax, ranked_table)``.
+The default return remains an Axes and does not call ``plt.show``.
 ```
 
 </details>
@@ -427,6 +502,9 @@ scgeo.pl.density_overlap(
     grid: 'bool' = True,
     figsize=None,
     show: 'bool' = True,
+    axes=None,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -449,6 +527,10 @@ By-group:
 Notes:
   - For Bhattacharyya coefficient (bc): **lower = more different**.
   - For Hellinger distance: **higher = more different**.
+
+``axes`` maps ``summary`` (global) or metric names (by-group) to existing
+axes. ``return_result=True`` exports all stored and selected rows with
+shared ordering; ``return_data=True`` adds them to the legacy tuple.
 ```
 
 </details>
@@ -471,6 +553,13 @@ scgeo.pl.density_overlap_grid(
     show_points: 'bool' = True,
     title: 'Optional[str]' = None,
     show: 'bool' = True,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    colorbar: 'bool' = True,
+    cax=None,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -486,6 +575,12 @@ Visualize density overlap results from `tl.density_overlap`.
 Supports:
 - grid-based fields stored in `adata.uns["scgeo"][key]`
 - or per-cell scores in `adata.obs[key]` (fallback)
+
+The per-cell fallback forwards the supplied axis and color controls to
+``score_embedding``. Grid exports include every pixel's value/center and
+all observation coordinates; metadata records whether extent was supplied
+or inferred. Missing pixels remain missing. ``return_result=True`` opts
+into PlotResult, and ``return_data=True`` adds tables to the legacy tuple.
 ```
 
 </details>
@@ -508,6 +603,9 @@ scgeo.pl.distribution_report(
     top_k: 'int' = 8,
     figsize=(11, 8),
     show: 'bool' = True,
+    axes=None,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -527,6 +625,10 @@ Panels:
   (D) optional score histogram (or empty text if score_key None)
 
 Requires tl outputs stored in adata.uns['scgeo'] under density_key/test_key.
+Named axes are ``embedding``, ``density``, ``test`` and ``score``.
+``return_result=True`` exports source cells, stored summaries, exact text
+and histogram bins without recalculating tests. Default returns remain
+``(fig, axes_2d_array)``; ``return_data=True`` adds these source tables.
 ```
 
 </details>
@@ -547,6 +649,10 @@ scgeo.pl.distribution_test(
     highlight: 'str' = 'strongest',
     figsize=None,
     show: 'bool' = True,
+    axes=None,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
+    separate_metrics: 'bool' = False,
 )
 ```
 
@@ -565,6 +671,13 @@ By: bar chart by group; highlight top-k strongest (smallest p) groups by default
 Assumes dict schema:
   global: {"stat":..., "p_perm":..., "n0":..., "n1":..., "n_perm":...}
   by: {group: {"stat":..., "p_perm":..., ...}, ...}
+
+Compose with ``axes={'summary': ax}``. ``return_result=True`` exports
+original and displayed rows without rerunning inference. The global legacy
+panel displays two different quantities; its common axis does not imply
+comparable units. ``return_data=True`` adds source tables to the tuple.
+Use ``separate_metrics=True`` for separate ``statistic`` and ``probability``
+axes in global mode; the default preserves the historical single-axis view.
 ```
 
 </details>
@@ -586,6 +699,8 @@ scgeo.pl.distribution_test_volcano(
     figsize=(6.0, 5.0),
     title: 'str | None' = None,
     show: 'bool' = True,
+    return_result: 'bool' = False,
+    p_threshold: 'float | None' = 0.05,
 )
 ```
 
@@ -603,6 +718,12 @@ y = -log10(p_adj)
 
 Requires a table with at least: effect_col, p_col.
 Optionally label the top hits by p-value.
+
+Missing values remain unavailable. Finite probabilities must lie in [0, 1];
+only values below 1e-300 are clipped for the log display. ``p_threshold``
+controls the descriptive reference line (None disables it), not a new test.
+The legacy return is ``(fig, ax, source_table)``. ``return_result=True``
+provides original rows, exact plotted coordinates, labels and omissions.
 ```
 
 </details>
@@ -771,6 +892,7 @@ scgeo.pl.embedding_facets(
     style='paper',
     figsize=None,
     title=None,
+    axes=None,
     return_data=False,
     return_result=False,
     show=True,
@@ -817,6 +939,16 @@ geometry. A supplied optional Scanpy categorical palette is honored.
 
 With ``return_result=True`` returns a :class:`PlotResult`. By default
 returns ``(fig, axes_dict)``; ``return_data=True`` adds source tables.
+
+``axes`` accepts a mapping named ``panel_00``, ``panel_01``, ... in facet
+order, all in one Figure or SubFigure. A supplied canvas is neither resized
+nor laid out and its title is preserved. Optional ``legend``, ``colorbar``
+(horizontal observation scale), and ``velocity_colorbar`` (vertical) axes
+place those artists explicitly. Enabled numeric scales require their
+colorbar axes when composing; alternatively set ``show_colorbar=False``.
+Without a supplied legend axis, the first facet contains the legend.
+``result.axes`` retains only the facet panels; auxiliary artists are in
+``result.artists``. ``figsize`` and ``title`` apply to owned canvases.
 ```
 
 </details>
@@ -1024,6 +1156,8 @@ scgeo.pl.geometry_dynamics_atlas(
     style='paper',
     figsize=None,
     title=None,
+    axes=None,
+    show_colorbar=True,
     return_result=True,
     show=True,
 )
@@ -1065,6 +1199,13 @@ never reused on normalized effects. No results are written to AnnData.
 settings, but cannot replace shared basis, axes, condition scope, palette,
 and output controls. Use ``return_result=True`` (default) to export PNG,
 SVG, PDF and each panel's source tables via ``PlotResult.save``.
+
+Compose with ``axes={panel_name: ax, ...}`` for the selected panels, all
+in one Figure or SubFigure. Supplied figures retain their size, layout,
+and title. For a numeric states panel, supply ``axes['colorbar']`` or use
+``show_colorbar=False``. The optional colorbar artist is available through
+``result.artists['states_colorbar']``. ``figsize``/``title`` apply only to
+a canvas created by this function.
 ```
 
 </details>
@@ -1156,6 +1297,13 @@ scgeo.pl.highlight_topk_cells(
     outline_lw: 'float' = 1.6,
     outline_alpha: 'float' = 0.95,
     add_colorbar: 'bool' = True,
+    cax=None,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    background: 'bool' = True,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -1175,6 +1323,15 @@ Default look:
 If groupby is provided and outline_topk=True:
   - top-k points get edgecolors from group palette (Scanpy palette if available)
   - gives Scanpy-like cluster structure without hull polygons
+
+``norm`` or ``vmin``/``vmax`` can match an existing score layer. Without
+these, the scale uses the selected finite scores. ``background=False``
+adds only the highlighted layer. ``cax`` places an optional colorbar.
+``topk=0`` selects no cells. Ranking uses finite scores from all input
+observations; selected cells with nonfinite coordinates remain in the
+source table but cannot be drawn. Ties follow input order deterministically.
+The default return is ``(fig, ax)``; ``return_data=True`` adds the full cell
+table, and ``return_result=True`` enables checksummed PlotResult exports.
 ```
 
 </details>
@@ -1194,6 +1351,9 @@ scgeo.pl.legend_from_data(
     title: 'str | None' = None,
     figsize: 'Tuple[float, float] | None' = None,
     show: 'bool' = True,
+    ax=None,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -1208,6 +1368,10 @@ Render a tiny legend-only figure from legend_data produced by sg.pl.consensus_st
 
 legend_data items:
   {"group": str, "fraction": float, "count": int, "color": <matplotlib color>}
+
+``ax`` accepts a caller-owned legend area. Source exports retain every
+supplied entry, with a displayed flag when ``max_items`` truncates it.
+The default return remains ``(fig, ax)``.
 ```
 
 </details>
@@ -1276,10 +1440,33 @@ scgeo.pl.mapping_confidence_umap(
     highlight_low_k: 'Optional[int]' = 200,
     title: 'Optional[str]' = None,
     show: 'bool' = True,
+    ax=None,
+    colorbar: 'bool' = True,
+    cax=None,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
 [View implementation](../../scgeo/pl/_mapping_qc.py)
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Show stored confidence and the lowest finite scores on any embedding.
+
+Lowest-score selection uses all finite input scores, with input order for
+ties. Selected cells lacking finite coordinates remain in the source table.
+The legacy return remains ``(fig, array([ax]))``; ``return_data`` appends
+the cell table and ``return_result`` enables figure/source exports.
+```
+
+</details>
 
 ### `scgeo.pl.mapping_qc_panel`
 
@@ -1299,10 +1486,35 @@ scgeo.pl.mapping_qc_panel(
     query_value: 'str | None' = None,
     show_ref_as_grey: 'bool' = True,
     return_legend_data: 'bool' = False,
+    axes=None,
+    colorbar: 'bool' = True,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
 [View implementation](../../scgeo/pl/_mapping_qc.py)
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Compose predictions, confidence and OOD scores from stored obs columns.
+
+``axes`` names are ``prediction``, ``confidence``, ``ood``; when colorbars
+are enabled on supplied axes, also provide ``confidence_colorbar`` and
+``ood_colorbar``. Reference colors are reused for matching predictions;
+novel labels receive deterministic colors and are never omitted. True
+missing values remain separate from literal labels such as ``'nan'``.
+Query filtering applies only to predictions; both scalar panels use all
+input observations. No mapping model or threshold is computed here.
+
+Legacy ``(fig, axes)`` and ``return_legend_data`` returns are preserved.
+``return_data`` appends all source tables; ``return_result`` takes priority.
+```
+
+</details>
 
 ### `scgeo.pl.ood_cells`
 
@@ -1318,10 +1530,34 @@ scgeo.pl.ood_cells(
     show_only_flagged: 'bool' = False,
     title: 'Optional[str]' = None,
     show: 'bool' = True,
+    ax=None,
+    colorbar: 'bool' = True,
+    cax=None,
+    cmap: 'str' = 'viridis',
+    norm=None,
+    vmin=None,
+    vmax=None,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
 [View implementation](../../scgeo/pl/_mapping_qc.py)
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Display stored OOD scores or cells above an explicitly supplied threshold.
+
+No threshold is inferred: ``threshold=None`` draws all cells, as before,
+and exports nullable flags. With ``show_only_flagged=True`` and a threshold,
+the legacy monochrome flagged-cell view is retained (no numeric colorbar).
+Default returns ``(fig, array([ax]))``; data/results are opt-in.
+```
+
+</details>
 
 ### `scgeo.pl.ood_landscape`
 
@@ -1358,6 +1594,13 @@ scgeo.pl.ood_landscape(
     ax=None,
     return_data: 'bool' = False,
     show: 'bool' = True,
+    axes=None,
+    colorbar: 'bool' = True,
+    cax=None,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -1389,13 +1632,19 @@ summary_kind
     One of ``{'flagged_frac', 'flagged_n', 'mean_score', 'median_score'}``.
 return_data
     If True, return computed summary artifacts.
+axes
+    Optional mapping containing ``landscape`` and, with groupby, ``summary``.
+    Add ``colorbar`` to place the scale explicitly. Do not combine with ax.
+return_result
+    Export source cells, full group summaries, actual contour bin means,
+    counts and edges. Contours/thresholds are descriptive, not a test.
 ```
 
 </details>
 
 ### `scgeo.pl.paga_composition_bar`
 
-Bar plot of top_k nodes by evidence + effect.
+Display stored composition effects with explicit unavailable entries.
 
 ```text
 scgeo.pl.paga_composition_bar(
@@ -1411,6 +1660,8 @@ scgeo.pl.paga_composition_bar(
     figsize=(6.2, 4.2),
     title: 'str' = 'ScGeo: Top composition shifts',
     show: 'bool' = True,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -1421,14 +1672,22 @@ scgeo.pl.paga_composition_bar(
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Bar plot of top_k nodes by evidence + effect.
+Display stored composition effects with explicit unavailable entries.
+
+Rank by p/q then distance from the null, or ``sort_by='abs_effect'``.
+Missing effects occupy labelled rows without a zero-length bar; missing
+p-values are labelled unavailable. Original-scale OR effects use one as
+their null and bar baseline. No statistics or intervals are recomputed.
+``return_result=True`` exports the untouched source, full node table with
+selection flags, displayed row order and stored analysis parameters.
+Legacy returns remain ``(fig, axes_array)``; ``return_data=True`` adds tables.
 ```
 
 </details>
 
 ### `scgeo.pl.paga_composition_panel`
 
-1×2 panel: volcano + top-k bars.
+Compose the existing composition volcano and effect bars.
 
 ```text
 scgeo.pl.paga_composition_panel(
@@ -1441,6 +1700,9 @@ scgeo.pl.paga_composition_panel(
     top_k: 'int' = 10,
     figsize=(12, 4.2),
     show: 'bool' = True,
+    axes=None,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -1451,14 +1713,20 @@ scgeo.pl.paga_composition_panel(
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-1×2 panel: volcano + top-k bars.
+Compose the existing composition volcano and effect bars.
+
+Supply named ``volcano`` and ``bar`` axes from one Figure or SubFigure.
+Caller-owned size/layout are preserved. The default return remains
+``(fig, axes_array)``; opt into source tables with ``return_data=True`` or
+an exportable PlotResult with ``return_result=True``. Missing evidence is
+retained and labelled by each child renderer, never refitted or filled.
 ```
 
 </details>
 
 ### `scgeo.pl.paga_composition_volcano`
 
-Volcano plot: x = signed effect (logOR/beta/effect), y = -log10(q or p). Highlights top_k by smallest p/q then largest |effect|.
+Plot stored composition effects against their supplied p/q values.
 
 ```text
 scgeo.pl.paga_composition_volcano(
@@ -1474,6 +1742,8 @@ scgeo.pl.paga_composition_volcano(
     figsize=(5.2, 4.2),
     title: 'str' = 'ScGeo: PAGA composition volcano',
     show: 'bool' = True,
+    return_data: 'bool' = False,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -1484,8 +1754,20 @@ scgeo.pl.paga_composition_volcano(
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Volcano plot: x = signed effect (logOR/beta/effect), y = -log10(q or p).
-Highlights top_k by smallest p/q then largest |effect|.
+Plot stored composition effects against their supplied p/q values.
+
+Missing effects or p-values are omitted and counted, never filled with zero
+or one. If no p/q column exists, show an explicitly labelled effect-only
+strip whose constant ordinate has no inferential meaning. Zero p-values
+use a display floor of 1e-300; original values remain in exported sources.
+Probabilities outside [0, 1] and infinite effects raise before drawing.
+
+Auto effect selection accepts logOR, beta, effect, coef, then OR. Stored
+odds ratios remain on their original scale with a null reference at one;
+other effects use zero. No p-values, FDR or confidence intervals are fitted.
+``return_result=True`` provides original source rows, transformed points,
+selection flags and stored analysis parameters. ``return_data=True`` adds
+these tables to the legacy ``(fig, axes_array)`` return.
 ```
 
 </details>
@@ -1810,6 +2092,9 @@ scgeo.pl.recovery_compass(
     ax=None,
     return_data: 'bool' = False,
     show: 'bool' = True,
+    caxes=None,
+    graph_node_order=None,
+    return_result: 'bool' = False,
 )
 ```
 
@@ -1833,6 +2118,19 @@ If return_data is False:
     (fig, ax) or ax
 If return_data is True:
     (fig, ax, node_df, edges)
+If return_result is True:
+    PlotResult with all input cells, node summaries, graph edges and exact
+    node/arrow encodings. This takes priority over return_data.
+
+Notes
+-----
+Centroids, shifts and cosine values here are descriptive computations in
+the first two display coordinates, not stored analysis-space effects or
+evidence of biological recovery. Velocity means pool all input conditions.
+PAGA edges are undirected; graph order/metadata are validated by the shared
+PAGA renderer. ``graph_node_order`` can declare the matrix order explicitly.
+``caxes`` maps ``fill`` and/or ``arrow`` to explicit colorbar axes when ax
+and legend=True are supplied. Legacy tuple/axis returns remain available.
 ```
 
 </details>
@@ -2060,6 +2358,9 @@ scgeo.pl.score_embedding(
     random_state: 'int' = 0,
     required_indices=None,
     rasterized='auto',
+    colorbar: 'bool' = True,
+    cax=None,
+    legend: 'bool' = True,
     return_data: 'bool' = False,
     return_result: 'bool' = False,
     show: 'bool' = True,
@@ -2087,6 +2388,14 @@ The legacy return is ``(fig, ax)``. ``return_data=True`` adds the full source
 table with a ``displayed`` indicator; ``return_result=True`` supplies a
 :class:`PlotResult` with the original displayed indices and random seed.
 The retained ``layer`` argument has no effect: scores come from ``obs``.
+``colorbar=False`` suppresses the numeric scale; ``cax`` places it on an
+explicit axis without changing the embedding panel's allocated space.
+``legend=False`` suppresses categorical legends. Valid Scanpy category
+colors are reused unless ``palette`` is explicitly supplied. Category
+artists are always accessible through ``artists['categories'][label]``;
+this avoids collisions with auxiliary artist names such as ``'legend'``.
+True missing values receive a distinct label and never merge with a literal
+category. Invalid category/norm combinations fail before creating a figure.
 ```
 
 </details>

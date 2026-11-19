@@ -5,6 +5,8 @@ from typing import Optional, Tuple, Literal
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from ._result import PlotResult
+from ._table_plot_utils import panel_axes
 
 
 def _load_density_overlap_uns(adata, store_key: str):
@@ -38,7 +40,8 @@ def _lollipop_h(ax, labels, values, *, annotate: bool = True):
     ax.set_yticklabels(labels)
     if annotate:
         # small right padding
-        xmax = float(np.nanmax(values)) if len(values) else 1.0
+        finite = np.asarray(values)[np.isfinite(values)]
+        xmax = float(np.max(finite)) if len(finite) else 1.0
         pad = 0.02 * (xmax if xmax > 0 else 1.0)
         for yi, v in zip(y, values):
             if np.isfinite(v):
@@ -52,7 +55,8 @@ def _lollipop_v(ax, labels, values, *, annotate: bool = True):
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
     if annotate:
-        ymax = float(np.nanmax(values)) if len(values) else 1.0
+        finite = np.asarray(values)[np.isfinite(values)]
+        ymax = float(np.max(finite)) if len(finite) else 1.0
         pad = 0.02 * (ymax if ymax > 0 else 1.0)
         for xi, v in zip(x, values):
             if np.isfinite(v):
@@ -73,6 +77,9 @@ def density_overlap(
     grid: bool = True,
     figsize=None,
     show: bool = True,
+    axes=None,
+    return_data: bool = False,
+    return_result: bool = False,
 ):
     """Plot density overlap summaries from ``sg.tl.density_overlap``.
 
@@ -86,9 +93,20 @@ def density_overlap(
     Notes:
       - For Bhattacharyya coefficient (bc): **lower = more different**.
       - For Hellinger distance: **higher = more different**.
+
+    ``axes`` maps ``summary`` (global) or metric names (by-group) to existing
+    axes. ``return_result=True`` exports all stored and selected rows with
+    shared ordering; ``return_data=True`` adds them to the legacy tuple.
     """
 
     obj = _load_density_overlap_uns(adata, store_key=store_key)
+    if isinstance(metrics, str):
+        raise TypeError("metrics must be a sequence of names, not a string.")
+    metrics = tuple(metrics)
+    if not metrics or len(set(metrics)) != len(metrics):
+        raise ValueError("metrics must contain distinct metric names.")
+    if style not in {"bar", "lollipop"}:
+        raise ValueError("style must be 'bar' or 'lollipop'.")
 
     if level not in ("global", "by"):
         raise ValueError("level must be 'global' or 'by'")
@@ -103,14 +121,16 @@ def density_overlap(
 
         if figsize is None:
             figsize = (max(4.5, 1.2 * len(metrics) + 2.5), 3.2)
-        fig, ax = plt.subplots(1, 1, figsize=figsize)
+        fig, mapped, owns_figure = panel_axes(["summary"], axes, figsize)
+        ax = mapped["summary"]
 
         if style == "lollipop":
             _lollipop_v(ax, labs, vals, annotate=annotate)
         else:
             ax.bar(labs, vals)
             if annotate:
-                ymax = float(np.nanmax(vals)) if len(vals) else 1.0
+                finite = vals[np.isfinite(vals)]
+                ymax = float(np.max(finite)) if len(finite) else 1.0
                 pad = 0.02 * (ymax if ymax > 0 else 1.0)
                 for i, v in enumerate(vals):
                     if np.isfinite(v):
@@ -136,9 +156,16 @@ def density_overlap(
                 fontsize=9,
             )
 
-        fig.tight_layout()
+        if owns_figure:
+            fig.tight_layout()
         if show:
             plt.show()
+        tables = {"global": pd.DataFrame([g]), "displayed": pd.DataFrame({"metric": labs, "value": vals})}
+        if return_result:
+            return PlotResult(fig, mapped, tables, {"plot": "density_overlap", "level": level,
+                              "store_key": store_key, "metrics": list(metrics), "analysis_recomputed": False})
+        if return_data:
+            return fig, np.array([ax], dtype=object), tables
         return fig, np.array([ax], dtype=object)
 
     # level == "by"
@@ -175,8 +202,8 @@ def density_overlap(
     n_panels = len(metrics)
     if figsize is None:
         figsize = (5.2 * n_panels, max(3.0, 0.28 * df_plot.shape[0] + 2.0))
-    fig, axes = plt.subplots(1, n_panels, figsize=figsize, squeeze=False)
-    axes = axes[0]
+    fig, mapped, owns_figure = panel_axes(list(metrics), axes, figsize)
+    axes = np.array(list(mapped.values()), dtype=object)
 
     # ---- NEW: pick ONE shared order (based on sort_by + highlight) ----
     # For bc: "worse" = low; for others (e.g. hellinger): "worse" = high
@@ -202,7 +229,10 @@ def density_overlap(
     for j, m in enumerate(metrics):
         ax = axes[j]
         if m not in df_plot.columns:
-            ax.set_axis_off()
+            ax.set_title(f"{m}: unavailable")
+            ax.set_yticks(np.arange(len(order)), order)
+            ax.invert_yaxis()
+            ax.set_xticks([])
             continue
 
         # ---- NEW: use the shared order for every panel ----
@@ -225,7 +255,8 @@ def density_overlap(
         if m == "bc":
             ax.set_xlim(0.0, 1.0)
         else:
-            vmax = float(np.nanmax(values)) if len(values) else 1.0
+            finite_values = values[np.isfinite(values)]
+            vmax = float(np.max(finite_values)) if len(finite_values) else 1.0
             ax.set_xlim(0.0, max(1e-9, 1.05 * vmax))
         ax.margins(x=0.02)
         
@@ -237,12 +268,21 @@ def density_overlap(
         if grid:
             ax.grid(True, axis="x", alpha=0.25)
 
-    fig.suptitle(
-        f"ScGeo: Density overlap (by) | highlight={highlight} top_k={top_k} sort_by={sort_by}",
-        y=1.02,
-    )
-    fig.tight_layout()
+    if owns_figure:
+        fig.suptitle(
+            f"ScGeo: Density overlap (by) | highlight={highlight} top_k={top_k} sort_by={sort_by}",
+            y=1.02,
+        )
+        fig.tight_layout()
 
     if show:
         plt.show()
+    tables = {"source": df, "displayed": df_plot.loc[order].copy(), "global": pd.DataFrame([g])}
+    if return_result:
+        return PlotResult(fig, mapped, tables,
+                          {"plot": "density_overlap", "store_key": store_key, "level": level,
+                           "metrics": list(metrics), "order": order, "top_k": top_k,
+                           "highlight": highlight, "sort_by": sort_by, "analysis_recomputed": False})
+    if return_data:
+        return fig, axes, tables
     return fig, axes

@@ -1,5 +1,45 @@
 # Changelog
 
+## Unreleased plotting composition and source exports
+
+- Reconcile PR #21's successful CI and public-data checks; correct unsupported
+  facets' exported grids when using independent panel limits.
+- Accept caller-owned Figure/SubFigure axes in embedding facets and the atlas,
+  with explicit colorbar placement and parent-canvas export scope.
+- Upgrade alignment, ambiguity and consensus score panels to shared rendering,
+  named axes and opt-in `PlotResult`, retaining default tuple returns. Highlights
+  now match the full score normalization and use a single colorbar. Histograms
+  retain all finite scores independently of background drawing limits.
+- Add full selection/display source tables to `highlight_topk_cells`, explicit
+  colorbar/legend controls and Scanpy palette reuse to `score_embedding`, and
+  a synthetic composition gallery with checksummed source exports.
+- Preserve missing effects and p/q values in composition/volcano plots, validate
+  probability ranges and add source exports/named composition axes. Accept
+  stored odds ratios on their original scale with a null reference at one.
+- Audit all 50 plotting exports in [the API status matrix](docs/PLOTTING_API_STATUS.md).
+  All Matplotlib renderers now expose the opt-in result contract; Plotly and
+  bundle exports retain their native contracts. No statistical estimator or
+  published release changes in this continuation.
+- Extend ranking, overlap, distribution and report views with axes/source
+  exports; fix density fallback axis forwarding and report legend colors.
+  Global distribution tests can use separate metric axes while preserving the
+  historical default return shape.
+
+- Add axes/results to mapping and OOD displays, retaining novel predictions
+  outside reference palettes and distinguishing genuine missing labels. Export
+  exact thresholds, display selections and supported contour bins; correct the
+  contour coordinate transpose without changing the binned-mean estimator.
+
+- Complete consensus structure, standalone legend and recovery-compass exports.
+  Retain full source data when legends are truncated; preserve parent figures.
+  Reuse PAGA graph validation and label compass values as descriptive display-
+  coordinate summaries, with missing/insufficient alignment kept unavailable.
+
+- Harden categorical scores against colliding string labels and reserved artist
+  names, retain separate missing-label identity, and reject invalid category
+  scales before figure creation. Add an automated audit of all public plotting
+  exports and their axes/result contracts.
+
 ## Unreleased flexible embedding and velocity faceting
 
 - Add `pl.embedding_facets` for one- or two-way faceting by any `adata.obs`

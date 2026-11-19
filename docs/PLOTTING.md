@@ -111,16 +111,54 @@ Supported upgraded plots accept `return_result=True`:
 | `result.metadata` | Metric, ordering, display choices, and available provenance |
 | `result.warnings` | Interpretation or availability notes |
 
-Existing default return values remain supported. This opt-in result is
-available for `state_evidence_panel`, `representation_stability_heatmap`,
-`consensus_state_map`, `local_distortion_map`, `composition_drift`,
-`gallery_overview`, `robustness_matrix`, `velocity_shift_alignment`,
-`score_embedding`/`score_umap`, `evidence_comparison`, `replicate_effect`,
-`paga_shift_map`/`paga_scgeo`, `velocity_field`, `state_flow_alluvial`,
-`state_flow_chord`, and `embedding_density`.
-Other plotting functions retain their documented interfaces.
+Existing default return values remain supported. All Matplotlib rendering
+functions in `scgeo.pl` now accept `return_result=True`, including compatibility
+aliases `score_umap` and `paga_scgeo`. `state_flow_sankey` retains its native
+Plotly figure and `layout.meta` provenance; `perturbation_report` retains its
+multi-figure bundle exporter. Utilities do not need a result flag. The
+[API audit](PLOTTING_API_STATUS.md) records all 50 exported names and their
+axes/result contracts.
+
+The stored composition renderers `paga_composition_volcano`,
+`paga_composition_bar`, and `paga_composition_panel`, plus
+`distribution_test_volcano`, also accept `return_result=True`. Their exports
+retain the original source table, transformed plot coordinates, missingness,
+selected rows and stored analysis parameters where available.
+
+Missing effects are never drawn as zero; missing p/q values are never filled
+with one. Composition bars reserve labelled rows for unavailable effects,
+while volcano plots omit incomplete effect/probability pairs and report the
+omission count. When no p/q column exists at all, the composition volcano
+uses an explicitly labelled effect-only strip. Its constant height carries
+no probability meaning. Values outside the probability range raise; values
+below `1e-300` use that floor only for display, with unchanged source values.
+
+Stored odds ratios (`OR`) are supported on their original scale, with a null
+reference of one; signed effects retain a reference of zero. No logarithm of
+the effect or interval transformation is inferred. Existing intervals remain
+in the source table; these plots do not manufacture or reinterpret intervals.
+The composition panel accepts named `volcano`/`bar` axes, and retains its
+historical `(fig, axes_array)` return by default.
 
 ## Compose panels in your own figure
+
+The legacy summary family also supports `PlotResult`: `delta_rank`,
+`density_overlap`, `density_overlap_grid`, `distribution_test`, and
+`distribution_report`. Default return shapes are retained. Density summaries
+accept named metric axes (`bc`, `hellinger`) or `summary` for global mode;
+distribution summaries use `summary`. The report accepts `embedding`,
+`density`, `test`, and `score` axes, with a categorical legend matching its
+actual points. Source exports retain original and displayed rows, exact summary
+text, and histogram counts.
+
+For a global distribution-test figure, use `separate_metrics=True` to place
+the statistic and probability on separate `statistic`/`probability` axes.
+They have different units; the historical single-axis view remains the default
+for compatibility. Density-grid exports record pixel centers, missing pixels,
+the actual extent and whether any bounds came from the embedding. Its per-cell
+fallback uses `score_embedding` and honors `ax`, `cax` and `colorbar=False`.
+The [legacy API gallery](../examples/legacy_plotting_gallery.py) runs unchanged
+ScGeo summary methods on the existing synthetic generator and exports their views.
 
 Pass `ax=` for an upgraded single-axis plot or named `axes=` for multi-panel
 functions. Supplied figures are not automatically resized or laid out.
@@ -163,6 +201,41 @@ When axes belong to a SubFigure, the returned result references the root Figure;
 export saves the full parent canvas and records that scope.
 The accompanying source tables cover the named result axes; sibling panels or
 annotations added separately by the caller are not reconstructed automatically.
+
+## Compose stored score panels
+
+`alignment_panel`, `ambiguity_panel`, and `consensus_subspace_panel` reuse the
+existing score and highlight renderers. Their top-k layer uses the same color
+normalization as the full score layer, with one colorbar. Stored values are
+never recalculated. Supply `axes={"embedding": ax0, "histogram": ax1,
+"colorbar": cax}` or disable the scale with `colorbar=False`.
+
+```python
+result = sg.pl.alignment_panel(
+    adata, score_key="stored_alignment", topk=30, bins=40,
+    max_points=2000, return_result=True, show=False,
+)
+result.save("figures/alignment", formats=("png", "svg", "pdf"))
+```
+
+The histogram uses all finite input scores, including observations that cannot
+be drawn because their embedding is nonfinite. Background sampling preserves
+all drawable top-k cells or raises if the budget is too small. Exports include
+every cell's selection/display flags and the exact histogram bin edges and
+counts. Missing scores stay missing. `topk=0` or `None` disables highlighting.
+The consensus panel also exports supplied singular values if available.
+
+For a standalone overlay, `highlight_topk_cells(..., background=False,
+norm=existing_norm, add_colorbar=False, return_result=True)` adds the selected
+cells without repainting the background or changing its scale. A standalone
+highlight plot without explicit limits retains its selected-score scale.
+`score_embedding`/`score_umap` now allow `colorbar=False`, `cax=`, and
+`legend=False`; valid Scanpy categorical palettes are reused automatically.
+
+The [composition gallery](../examples/plotting_composition_gallery.py) exports
+all three score panels from explicitly synthetic scores, as well as a composed
+atlas/facet figure. Those examples exercise rendering; the scores are not
+biological alignment or consensus evidence.
 
 ## Compare representations on meaningful scales
 
@@ -276,12 +349,86 @@ shown separately. A completely unavailable row has an unavailable pass rate.
 Select `missing_policy='fail'` for the historical policy that counts missing
 settings as failures. Both policies are recorded in the returned metadata.
 
+## Mapping and descriptive OOD displays
+
+`mapping_confidence_umap` accepts any stored embedding, including an `X_`
+prefix, despite its historical name. Low-score selection uses finite scores
+from all cells; selected cells without finite coordinates remain in exported
+sources with `highlighted=False`. Ties follow input order.
+
+`mapping_qc_panel` composes on axes named `prediction`, `confidence`, `ood`,
+plus `confidence_colorbar` and `ood_colorbar` when colorbars are enabled. Use
+`colorbar=False` to omit scales. Reference Scanpy colors are reused where
+available; novel labels receive deterministic colors and stay visible. Query
+filtering applies only to predictions; scalar panels use all observations.
+The exported legend counts include cells without drawable coordinates.
+
+```python
+result = sg.pl.mapping_qc_panel(
+    adata, basis="umap", palette_from="reference_labels",
+    condition_key="dataset", query_value="query",
+    return_result=True, show=False,
+)
+result.save("figures/mapping_qc", formats=("png", "svg", "pdf"))
+```
+
+`ood_cells` never infers a threshold: without one, exported flags are unknown.
+With a threshold, missing scores remain unknown; the historical monochrome
+`show_only_flagged=True` view is retained. `ood_landscape` retains its historical
+95th-percentile default (over finite input scores), with that choice recorded.
+Its optional contours represent means within display-coordinate bins supported
+by at least three cells; they are descriptive, not inferential boundaries.
+Source exports contain every bin's location, count, mean, support status and
+edges, plus exact contour levels and reasons for absent contours. Group
+fractions retain all input group cells in their denominator, including cells
+with unavailable scores (which are not flagged). No statistical test is fitted.
+
+For caller-owned OOD summaries, pass `axes={"landscape": ax, "summary": summary_ax,
+"colorbar": cax}`. All four mapping/OOD renderers support `return_result=True`
+and retain their historical default returns. The executable
+[legacy gallery](../examples/legacy_plotting_gallery.py) uses only synthetic
+scores and explicitly labels them as illustrative; it fits no mapping model.
+
+## Consensus legends and the legacy recovery compass
+
+`consensus_structure(..., return_result=True)` exports all input cells, exact
+finite-score top-k selection, visible highlights, complete group summaries and
+the filtered legend. Selection statistics include cells without finite display
+coordinates; the table makes that distinction explicit. Use `cax` or
+`colorbar=False` to compose the view without changing neighbouring axes.
+Without the result flag, the historical `(fig, ax, stats, legend_data)` remains.
+
+`legend_from_data(legend_data, ax=legend_ax, return_result=True)` accepts a
+caller-owned area. Its source table retains all entries when `max_items`
+truncates the visible legend, and the result records that omission. Default
+`(fig, ax)` returns and input dictionaries remain supported.
+
+`recovery_compass` keeps its legacy display-space calculations and return
+values. Its name does **not** imply evidence of biological recovery. Centroids,
+shifts and cosine values are computed in the first two display coordinates;
+velocity means pool all input conditions. OOD fractions use all input node
+cells and the finite-score 95th percentile. These are descriptive summaries,
+not sample-level tests, stored analysis-space effects, or inferred lineage.
+For fixed quantitative evidence use the stored modes described above.
+
+The compass now validates PAGA dimensions, symmetry, grouping and matrix order
+through the existing PAGA renderer. Supply `graph_node_order` when needed;
+otherwise the chosen source of matrix order is recorded. Its opt-in result
+exports cells, node summaries, all nonzero graph edges (including suppressed
+ones), matrix labels, and actual glyph sizes/arrow endpoints. Unknown alignment
+and insufficient condition support stay unavailable. Place numeric scales with
+`caxes={"fill": fill_ax, "arrow": arrow_ax}` alongside `ax`, or use `legend=False`.
+
 ## Style, display size, and export
 
 Use `style_context('paper')` or `style_context('presentation')` for scoped font,
 line, and export defaults. Settings are restored when the context exits.
 `category_palette(labels)` gives stable colors across subsets; pass a curated
-mapping when specific publication colors matter.
+mapping when specific publication colors matter. Categorical score artists are
+available through `result.artists["categories"][label]`, including labels such
+as `"legend"` or `"missing"` that would collide with auxiliary artist names.
+True missing entries receive a distinct display label, retained in source data;
+distinct categories that stringify to the same text raise before rendering.
 
 For supported embedding maps, `max_points`, `random_state`, and
 `rasterized='auto'` control display cost. The sampler preserves each state and

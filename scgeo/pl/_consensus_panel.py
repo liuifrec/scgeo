@@ -2,11 +2,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-import numpy as np
-import matplotlib.pyplot as plt
-
-from ._score import score_embedding
-from ._highlight import highlight_topk_cells
+from ._score import _score_distribution_panel
 
 
 def consensus_subspace_panel(
@@ -18,38 +14,36 @@ def consensus_subspace_panel(
     topk: Optional[int] = 200,
     figsize=(11, 5),
     show: bool = True,
+    axes=None,
+    bins=40,
+    norm=None,
+    vmin=None,
+    vmax=None,
+    colorbar: bool = True,
+    max_points=None,
+    random_state=0,
+    rasterized="auto",
+    return_data: bool = False,
+    return_result: bool = False,
 ):
+    """Plot stored consensus scores, their histogram, and existing singular values.
+
+    Uses the same composition and source-export contract as ``alignment_panel``:
+    named ``embedding``/``histogram`` axes, optional ``colorbar`` axis,
+    a shared color scale for highlights, and draw-only sampling. The histogram
+    uses all finite scores; singular values are read from the selected stored
+    consensus result and never recomputed.
+
+    The default return remains ``(fig, axes_array)``; ``return_data=True`` adds
+    source tables, and ``return_result=True`` returns an exportable PlotResult.
     """
-    Panel for consensus subspace:
-      (A) embedding colored by cs_score
-      (B) histogram of cs_score + optional text for singular values
-    """
-    if score_key not in adata.obs:
-        raise KeyError(f"{score_key} not found in adata.obs")
-
-    fig, axes = plt.subplots(1, 2, figsize=figsize)
-    axA, axB = axes
-
-    score_embedding(adata, score_key, basis=basis, ax=axA, title="Consensus subspace score", show=False)
-    if topk is not None and topk > 0:
-        highlight_topk_cells(adata, score_key, basis=basis, topk=int(topk), add_colorbar=False, ax=axA, show=False)
-
-    s = np.asarray(adata.obs[score_key].to_numpy(), dtype=float)
-    s = s[np.isfinite(s)]
-    axB.hist(s, bins=40)
-    axB.set_title("cs_score distribution")
-    axB.set_xlabel(score_key)
-
-    # add a small text summary if present
-    sv = None
-    if "scgeo" in adata.uns and store_key in adata.uns["scgeo"]:
-        obj = adata.uns["scgeo"][store_key]
-        if isinstance(obj, dict):
-            sv = obj.get("singular_values", None)
-    if sv is not None:
-        axB.text(0.98, 0.98, f"singular_values:\n{np.array(sv)[:5]}", ha="right", va="top", transform=axB.transAxes, fontsize=9)
-
-    fig.tight_layout()
-    if show:
-        plt.show()
-    return fig, axes
+    obj = adata.uns.get("scgeo", {}).get(store_key, {})
+    singular_values = obj.get("singular_values") if isinstance(obj, dict) else None
+    return _score_distribution_panel(
+        adata, score_key, basis=basis, topk=topk, cmap="viridis", figsize=figsize,
+        title="Consensus subspace score", axes=axes, bins=bins, norm=norm,
+        vmin=vmin, vmax=vmax, colorbar=colorbar, max_points=max_points,
+        random_state=random_state, rasterized=rasterized,
+        plot_name="consensus_subspace_panel", return_data=return_data,
+        return_result=return_result, show=show, singular_values=singular_values,
+        store_key=store_key)

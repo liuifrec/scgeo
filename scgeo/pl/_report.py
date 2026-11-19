@@ -4,6 +4,11 @@ from typing import Optional, Sequence
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+from ._result import PlotResult
+from ._table_plot_utils import panel_axes
+from ._score import score_embedding
+from ._density_overlap import _by_dict_to_df
 
 
 def _get_embedding_xy(adata, basis: str = "umap"):
@@ -29,6 +34,9 @@ def distribution_report(
     top_k: int = 8,
     figsize=(11, 8),
     show: bool = True,
+    axes=None,
+    return_data: bool = False,
+    return_result: bool = False,
 ):
     """
     2×2 report panel for cross-condition embedding comparison.
@@ -40,6 +48,10 @@ def distribution_report(
       (D) optional score histogram (or empty text if score_key None)
 
     Requires tl outputs stored in adata.uns['scgeo'] under density_key/test_key.
+    Named axes are ``embedding``, ``density``, ``test`` and ``score``.
+    ``return_result=True`` exports source cells, stored summaries, exact text
+    and histogram bins without recalculating tests. Default returns remain
+    ``(fig, axes_2d_array)``; ``return_data=True`` adds these source tables.
     """
     if "scgeo" not in adata.uns:
         raise KeyError("adata.uns['scgeo'] not found")
@@ -57,24 +69,31 @@ def distribution_report(
     if group1 is None:
         group1 = uniq[-1] if uniq else "1"
 
-    fig, axes = plt.subplots(2, 2, figsize=figsize)
+    owns_figure = axes is None
+    names = ["embedding", "density", "test", "score"]
+    if owns_figure:
+        fig, axes = plt.subplots(2, 2, figsize=figsize)
+        mapped = dict(zip(names, axes.flat))
+    else:
+        fig, mapped, _ = panel_axes(names, axes, figsize)
+        axes = np.asarray(list(mapped.values()), dtype=object).reshape(2, 2)
     axA, axB = axes[0, 0], axes[0, 1]
     axC, axD = axes[1, 0], axes[1, 1]
 
     # --- (A) embedding colored by condition
     # simple categorical coloring via matplotlib
-    cats = sorted(set(cond))
-    color_map = {c: i for i, c in enumerate(cats)}
-    cvals = np.array([color_map[c] for c in cond], dtype=float)
-    sc = axA.scatter(x, y, c=cvals, s=5, alpha=0.8, linewidths=0)
+    # One renderer supplies both points and their actual categorical legend.
+    # Numeric condition codes are still labels, so use an observation-only view.
+    from types import SimpleNamespace
+    obs = adata.obs[[condition_key]].copy()
+    obs[condition_key] = obs[condition_key].astype("category")
+    view = SimpleNamespace(obs=obs, obsm=adata.obsm, uns=adata.uns,
+                           obs_names=adata.obs_names, n_obs=adata.n_obs)
+    embedding = score_embedding(view, condition_key, basis=basis, ax=axA,
+                                colorbar=False, return_result=True, show=False, size=5)
     axA.set_title(f"{basis.upper()} colored by {condition_key}\n({group0} vs {group1})")
     axA.set_xticks([]); axA.set_yticks([])
     axA.set_aspect("equal", adjustable="datalim")
-    # legend
-    handles = []
-    for c in cats:
-        handles.append(axA.scatter([], [], s=30, label=c))
-    axA.legend(handles=handles, title=condition_key, loc="best", frameon=False)
 
     # --- (B) density overlap summary text
     dobj = adata.uns["scgeo"].get(density_key, {})
@@ -148,6 +167,7 @@ def distribution_report(
     axC.text(0.02, 0.98, "\n".join(tlines), va="top", family="monospace")
 
     # --- (D) optional score distribution
+    histogram = pd.DataFrame(columns=["left", "right", "count"])
     if score_key is None or score_key not in adata.obs:
         axD.axis("off")
         axD.set_title("Score panel")
@@ -158,12 +178,30 @@ def distribution_report(
     else:
         s = np.asarray(adata.obs[score_key].to_numpy(), dtype=float)
         s = s[np.isfinite(s)]
-        axD.hist(s, bins=40)
+        counts, edges, _ = axD.hist(s, bins=40)
+        histogram = pd.DataFrame({"left": edges[:-1], "right": edges[1:], "count": counts.astype(int)})
         axD.set_title(f"Score distribution: {score_key}")
         axD.set_xlabel(score_key)
         axD.set_ylabel("count")
 
-    fig.tight_layout()
+    if owns_figure:
+        fig.tight_layout()
     if show:
         plt.show()
+    cells = embedding.data.copy(deep=True)
+    if score_key is not None and score_key in adata.obs:
+        cells["score"] = adata.obs[score_key].to_numpy()
+    tables = {"cells": cells, "density_global": pd.DataFrame([g]), "test_global": pd.DataFrame([tg]),
+              "density_by": _by_dict_to_df(by) if isinstance(by, dict) else pd.DataFrame(),
+              "test_by": _by_dict_to_df(tby) if isinstance(tby, dict) else pd.DataFrame(),
+              "histogram": histogram,
+              "summary_text": pd.DataFrame({"panel": ["density", "test"], "text": ["\n".join(lines), "\n".join(tlines)]})}
+    if return_result:
+        return PlotResult(fig, mapped, tables, {"plot": "distribution_report", "basis": basis,
+                          "condition_key": condition_key, "group0": group0, "group1": group1,
+                          "density_key": density_key, "test_key": test_key, "score_key": score_key,
+                          "palette": embedding.metadata.get("palette"), "analysis_recomputed": False},
+                          artists={"embedding": embedding.artists})
+    if return_data:
+        return fig, axes, tables
     return fig, axes

@@ -104,6 +104,50 @@ def test_minimal_ordinary_anndata_works_without_velocity_or_scgeo():
     assert result.axes["states"].get_aspect() == 1
 
 
+def test_composed_atlas_reuses_axes_without_parent_layout_changes(data, evidence, tmp_path):
+    reference = _common(data, report=evidence, velocity_mode="grid",
+                        paga_options={"min_cells": 5, "label": False})
+    fig = plt.figure(figsize=(14, 7))
+    left, right = fig.subfigures(1, 2)
+    sibling = right.subplots()
+    sibling.set_title("Caller sibling")
+    axs = left.subplots(2, 2)
+    names = ("states", "velocity", "paga", "evidence")
+    mapping = dict(zip(names, axs.flat))
+    positions = [ax.get_position(original=True).bounds for ax in axs.flat]
+    fig.suptitle("Caller title")
+    result = _common(data, report=evidence, velocity_mode="grid", axes=mapping,
+                     figsize=(1, 1), title="Ignored on supplied canvas",
+                     paga_options={"min_cells": 5, "label": False})
+    assert result.fig is fig and result.axes == mapping
+    assert len(fig.axes) == 5
+    assert fig._suptitle.get_text() == "Caller title"
+    assert sibling.get_title() == "Caller sibling"
+    np.testing.assert_array_equal(fig.get_size_inches(), [14, 7])
+    np.testing.assert_allclose([ax.get_position(original=True).bounds for ax in axs.flat], positions)
+    for name in reference.data:
+        pd.testing.assert_frame_equal(reference.data[name], result.data[name])
+    output = result.save(tmp_path / "atlas", formats=("svg",), dpi=60)
+    assert json.loads(Path(output["metadata"]).read_text())["plot"]["export_scope"] == "parent_figure"
+
+
+def test_atlas_numeric_colorbar_and_axes_validation(data):
+    fig, axs = plt.subplots(1, 2)
+    with pytest.raises(ValueError, match="colorbar"):
+        _common(data, color="score", panels=["states"], axes={"states": axs[0]})
+    assert not axs[0].collections
+    result = _common(data, color="score", panels=["states"],
+                     axes={"states": axs[0], "colorbar": axs[1]})
+    assert result.artists["states_colorbar"].ax is axs[1]
+    assert len(fig.axes) == 2
+    with pytest.raises(ValueError, match="distinct Axes"):
+        _common(data, panels=["states", "velocity"], axes=dict.fromkeys(["states", "velocity"], axs[0]))
+    with pytest.raises(TypeError, match="mapping"):
+        _common(data, panels=["states"], axes=axs)
+    with pytest.raises(ValueError, match="missing panels"):
+        _common(data, panels=["states", "velocity"], axes={"states": axs[0]})
+
+
 def test_auto_selects_four_panels_and_preserves_source_tables(data, evidence):
     adata_copy = data.copy()
     report_copy = evidence.copy(deep=True)

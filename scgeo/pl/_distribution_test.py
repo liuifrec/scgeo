@@ -4,6 +4,8 @@ from typing import Optional, Tuple
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from ._result import PlotResult
+from ._table_plot_utils import panel_axes
 
 
 def _load_distribution_test_uns(adata, store_key: str):
@@ -37,6 +39,10 @@ def distribution_test(
     highlight: str = "strongest",       # "strongest" | "weakest" | "none"
     figsize=None,
     show: bool = True,
+    axes=None,
+    return_data: bool = False,
+    return_result: bool = False,
+    separate_metrics: bool = False,
 ):
     """
     Plot distribution test summaries from `sg.tl.distribution_test`.
@@ -47,6 +53,13 @@ def distribution_test(
     Assumes dict schema:
       global: {"stat":..., "p_perm":..., "n0":..., "n1":..., "n_perm":...}
       by: {group: {"stat":..., "p_perm":..., ...}, ...}
+
+    Compose with ``axes={'summary': ax}``. ``return_result=True`` exports
+    original and displayed rows without rerunning inference. The global legacy
+    panel displays two different quantities; its common axis does not imply
+    comparable units. ``return_data=True`` adds source tables to the tuple.
+    Use ``separate_metrics=True`` for separate ``statistic`` and ``probability``
+    axes in global mode; the default preserves the historical single-axis view.
     """
     obj = _load_distribution_test_uns(adata, store_key=store_key)
 
@@ -63,9 +76,15 @@ def distribution_test(
 
         if figsize is None:
             figsize = (5.0, 3.2)
-        fig, ax = plt.subplots(1, 1, figsize=figsize)
-
-        ax.bar([stat_key, value], [stat, p])
+        names = ["statistic", "probability"] if separate_metrics else ["summary"]
+        fig, mapped, owns_figure = panel_axes(names, axes, figsize)
+        ax = mapped[names[0]]
+        if separate_metrics:
+            ax.bar([stat_key], [stat])
+            mapped["probability"].bar([value], [p])
+            mapped["probability"].set(title=value, ylabel="Stored value")
+        else:
+            ax.bar([stat_key, value], [stat, p])
         ax.set_title("ScGeo: Distribution test (global)")
         ax.set_ylabel("value")
 
@@ -82,7 +101,17 @@ def distribution_test(
 
         if show:
             plt.show()
-        return fig, np.array([ax], dtype=object)
+        tables = {"global": pd.DataFrame([g]),
+                  "displayed": pd.DataFrame({"metric": [stat_key, value], "value": [stat, p]})}
+        if return_result:
+            return PlotResult(fig, mapped, tables, {"plot": "distribution_test", "level": level,
+                              "store_key": store_key, "value": value, "stat_key": stat_key,
+                              "metrics_share_units": False, "separate_metrics": separate_metrics,
+                              "analysis_recomputed": False},
+                              warnings=[] if separate_metrics else ["The statistic and probability have different units; bar heights are not effect comparisons."])
+        if return_data:
+            return fig, np.array(list(mapped.values()), dtype=object), tables
+        return fig, np.array(list(mapped.values()), dtype=object)
 
     # by
     by = obj.get("by", None)
@@ -111,14 +140,24 @@ def distribution_test(
     if figsize is None:
         figsize = (6.0, max(3.0, 0.25 * df_plot.shape[0] + 2.0))
 
-    fig, ax = plt.subplots(1, 1, figsize=figsize)
+    fig, mapped, owns_figure = panel_axes(["summary"], axes, figsize)
+    ax = mapped["summary"]
 
     s = df_plot[value].astype(float).sort_values(ascending=True)  # p small at top
     ax.barh(s.index.astype(str), s.values)
+    ax.invert_yaxis()
     ax.set_xlabel(value)
     ax.set_title(f"Distribution test by group ({value}) | highlight={highlight} top_k={top_k}")
 
-    fig.tight_layout()
+    if owns_figure:
+        fig.tight_layout()
     if show:
         plt.show()
+    tables = {"source": df, "displayed": df_plot.loc[s.index].copy()}
+    if return_result:
+        return PlotResult(fig, mapped, tables, {"plot": "distribution_test", "level": level,
+                          "store_key": store_key, "value": value, "top_k": top_k,
+                          "highlight": highlight, "analysis_recomputed": False})
+    if return_data:
+        return fig, np.array([ax], dtype=object), tables
     return fig, np.array([ax], dtype=object)

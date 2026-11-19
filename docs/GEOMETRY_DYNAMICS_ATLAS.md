@@ -5,6 +5,16 @@ publication-ready Matplotlib figure and returns the same inspectable `PlotResult
 used throughout ScGeo. It works with ordinary AnnData, requires **no new
 analysis**, and adds panels only when their inputs are available.
 
+To compose into your own figure, pass `axes={"states": ax0, "velocity": ax1}`
+with `panels=["states", "velocity"]`. Each requested panel needs a distinct
+Axes in the same Figure or SubFigure. The caller controls the canvas size,
+layout, and overall title. Numeric states colors also need `axes["colorbar"]`
+or `show_colorbar=False`; the artist is returned as
+`result.artists["states_colorbar"]`. Saving exports the full parent canvas,
+with source tables for the atlas panels. The
+[composition gallery](../examples/plotting_composition_gallery.py) shows how
+to combine an atlas and facets and bundle both sources for export.
+
 [Plotting overview](PLOTTING.md) · [PAGA shift-map guide](PAGA_SHIFT_MAP.md) ·
 [Projected velocity fields](VELOCITY_FIELDS.md) · [State evidence](RESULT_INTERPRETATION.md) ·
 [Full plotting API](api/pl.md) · [Citing ScGeo](CITING.md)
