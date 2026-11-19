@@ -96,6 +96,7 @@ def test_input_defects_are_reported(defect, code):
     elif defect == "missing":
         data.obs.loc[data.obs.index[0], "sample"] = None
     elif defect == "collision":
+        data.obs["state"] = data.obs["state"].astype(object)
         data.obs.loc[data.obs.index[:2], "state"] = [1, "1"]
     elif defect == "sample_mix":
         data.obs.loc[data.obs.condition.eq("treated"), "sample"] = "sample_0"
@@ -202,6 +203,11 @@ def test_preflight_checks_imported_bytes_not_version_string(source_checkout, tmp
     root.joinpath("uncommitted.txt").write_text("preserve me")
     result = verify(root, commit, root / "scgeo/__init__.py")
     assert result["dirty"] and not result["verified"]
+    subprocess.run(["git", "-C", str(root), "add", "uncommitted.txt"], check=True)
+    subprocess.run(["git", "-C", str(root), "-c", "user.name=ScGeo test", "-c",
+                    "user.email=synthetic@example.invalid", "commit", "-m", "later source"], check=True, capture_output=True)
+    result = verify(root, commit, root / "scgeo/__init__.py")
+    assert not result["dirty"] and result["commit"] != commit and not result["verified"]
 
 
 def test_environment_report_records_actual_import_and_missing_optionals(monkeypatch, source_checkout):

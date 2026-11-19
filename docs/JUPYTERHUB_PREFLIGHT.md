@@ -220,6 +220,10 @@ Acceptance requires `environment_verified`, `contract_passed` and
 `source_hashes_verified` in `validation.json`, the expected coverage exclusions,
 and human inspection of the exported figures. The full environment, exact
 commit, input digest, state report and export provenance are in that JSON.
+`validation-summary.json` is a portable subset with relative artifact names,
+core versions, numerical expectations and hashes. It can be regenerated from
+the recorded commit; image hashes additionally depend on the recorded rendering
+stack and fonts.
 The regression suite exercises wrong-source same-version imports, dirty
 checkouts, incompatible inputs and sample-level safeguards. CI uploads this
 synthetic report and figures; private datasets and manuscript artifacts are

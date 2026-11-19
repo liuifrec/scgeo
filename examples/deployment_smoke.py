@@ -139,6 +139,24 @@ def run(output_dir, *, expected_commit, source_root, formats=("png", "svg", "pdf
                              "coverage_exclusions_preserved": contract["excluded_states"],
                              "source_hashes_verified": True, "biological_validation": False}}
     (output_dir / "validation.json").write_text(json.dumps(report, indent=2, allow_nan=False) + "\n", encoding="utf-8")
+    # A portable, concise record suitable for review. Full paths, the complete
+    # package inventory and complete table metadata remain in validation.json.
+    core_packages = {"scgeo", "anndata", "numpy", "pandas", "scipy", "scikit-learn", "matplotlib", "plotly"}
+    summary = {"schema_version": 1, "dataset": report["dataset"], "acceptance": report["acceptance"],
+               "source_commit": expected_commit, "package_sha256": environment["source"]["package_sha256"],
+               "python": environment["python"]["version"],
+               "packages": {p["name"]: p["version"] for p in environment["packages"] if p["name"] in core_packages},
+               "input_sha256": report["input_sha256"], "shared_delta": report["shared_delta"],
+               "state_coverage": [{k: row[k] for k in ("state", "n_cells", "n_samples", "status")}
+                                  for row in contract["state_coverage"]],
+               "permutations": report["permutations"],
+               "exports": [{"plot": name, "figures": manifest["figures"],
+                            "tables": {key: {k: item[k] for k in ("file", "sha256", "rows")}
+                                       for key, item in manifest["tables"].items()}}
+                           for name, manifest in zip(("state_evidence", "sample_effects"), exports)],
+               "reproduce": "python examples/deployment_smoke.py --source-root CHECKOUT "
+                            f"--expected-commit {expected_commit} --output-dir NEW_OUTPUT_DIRECTORY"}
+    (output_dir / "validation-summary.json").write_text(json.dumps(summary, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     return report
 
 
