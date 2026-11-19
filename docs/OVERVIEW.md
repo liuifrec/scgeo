@@ -62,6 +62,9 @@ or unresolved; they do not create causal evidence.
 
 ## Learn, reproduce, and publish
 
+- [JupyterHub deployment readiness](JUPYTERHUB_PREFLIGHT.md): an isolated kernel,
+  exact source verification, read-only input contracts and a synthetic smoke test.
+
 - [Quick start](QUICKSTART.md): a small synthetic run and an AnnData example.
 - [Plotting guide](PLOTTING.md) and [gallery](PLOTTING_GALLERY.md): development evidence figures, contrast comparisons, biological samples, and source-data exports.
 - [PAGA shift maps](PAGA_SHIFT_MAP.md): state connectivity, condition centres, projected velocity, and stored alignment on a shared display.

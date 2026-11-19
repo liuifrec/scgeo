@@ -32,6 +32,12 @@ paths and interpreter requirements.
 
 ## Capture the environment for a new analysis
 
+For deployment of the development API, use the
+[JupyterHub preflight](JUPYTERHUB_PREFLIGHT.md). It records the active interpreter,
+actual imported ScGeo path, exact source commit, package versions, optional
+dependencies and an AnnData compatibility probe. The older minimal commands
+below are useful context but do not detect a same-version, wrong-source import.
+
 ```bash
 python -c "import sys, scgeo; print(sys.version); print(scgeo.__version__); print(scgeo.__file__)"
 python -m pip freeze > requirements-resolved.txt

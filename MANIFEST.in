@@ -2,6 +2,7 @@ include LICENSE README.md CITATION.cff CITATION.bib CITATION.ris CHANGELOG.md py
 include scgeo_io_manifest.json scgeo_io_raw.json
 include environment.yml environment-user.yml conda-recipe/meta.yaml
 include scripts/smoke_installation.py scripts/check_release.py scripts/verify_testpypi.py
+include scripts/deployment_preflight.py
 include scripts/rebuild_manifests.py scripts/gen_api_docs.py scripts/validate_manifests.py scripts/check_documentation.py
 recursive-include scripts/tests *.py
 recursive-include examples *.py

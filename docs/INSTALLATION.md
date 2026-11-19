@@ -6,6 +6,12 @@
 Python 3.12 is the recommended starting point. Use a fresh environment for a new
 project and preserve environments that support frozen analyses.
 
+For the newer plotting and deployment interfaces, follow the
+[exact-commit JupyterHub installation and preflight guide](JUPYTERHUB_PREFLIGHT.md).
+The development checkout also reports `0.1.0`; the version string alone cannot
+distinguish it from the published package. Use the approved Git SHA and verify
+the actual imported sources. `main.zip` is not an approved immutable snapshot.
+
 ## Choose an installation
 
 | Workflow | Command |

@@ -13,6 +13,7 @@ name: Documentation and examples
       - "api_manifest.json"
       - "scgeo_io*.json"
       - "scripts/check_documentation.py"
+      - "scripts/deployment_preflight.py"
       - "scripts/rebuild_manifests.py"
       - "scripts/gen_api_docs.py"
       - "scripts/validate_manifests.py"
@@ -31,6 +32,7 @@ name: Documentation and examples
       - "api_manifest.json"
       - "scgeo_io*.json"
       - "scripts/check_documentation.py"
+      - "scripts/deployment_preflight.py"
       - "scripts/rebuild_manifests.py"
       - "scripts/gen_api_docs.py"
       - "scripts/validate_manifests.py"
@@ -71,6 +73,17 @@ jobs:
           python -m pytest scripts/tests/test_manifest_validation.py -q
       - name: Execute the synthetic quick start
         run: python examples/quickstart.py --output-dir "$RUNNER_TEMP/scgeo-quickstart"
+      - name: Verify the environment and synthetic deployment contract
+        run: >-
+          python examples/deployment_smoke.py --source-root "$GITHUB_WORKSPACE"
+          --expected-commit "$GITHUB_SHA" --output-dir "$RUNNER_TEMP/scgeo-deployment"
+      - name: Upload synthetic deployment validation and source tables
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+        with:
+          name: scgeo-deployment-validation
+          path: ${{ runner.temp }}/scgeo-deployment/
+          if-no-files-found: error
+          retention-days: 14
       - name: Execute the plotting gallery
         run: python examples/plotting_gallery.py --output-dir "$RUNNER_TEMP/scgeo-plotting-gallery" --formats png svg pdf
       - name: Execute the PAGA shift-map gallery

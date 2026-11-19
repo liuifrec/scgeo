@@ -13,6 +13,7 @@ Signatures and docstrings match the public exports. I/O tables record a small sy
 - [`get_robustness_table`](#scgeogetget_robustness_table)
 - [`get_shift_summary`](#scgeogetget_shift_summary)
 - [`get_velocity_alignment_summary`](#scgeogetget_velocity_alignment_summary)
+- [`input_contract`](#scgeogetinput_contract)
 - [`sample_centers`](#scgeogetsample_centers)
 - [`state_report`](#scgeogetstate_report)
 - [`table`](#scgeogettable)
@@ -76,6 +77,47 @@ scgeo.get.get_velocity_alignment_summary(adata, *, store_key: 'str' = 'shift') -
 ```
 
 [View implementation](../../scgeo/get/_figure_tables.py)
+
+### `scgeo.get.input_contract`
+
+Inspect explicitly configured AnnData inputs without modifying or fitting them.
+
+```text
+scgeo.get.input_contract(adata, *, config)
+```
+
+[View implementation](../../scgeo/get/_input_contract.py)
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Inspect explicitly configured AnnData inputs without modifying or fitting them.
+
+Parameters
+----------
+adata : AnnData
+    Only obs, obsm and uns are inspected; X, layers and raw are not read.
+config : dict
+    JSON-compatible configuration with purpose (descriptive/sample_inference),
+    state_key, condition_key, group0, group1, sample_key (or None), reps (exact
+    obsm keys), methods, min_cells and min_samples_per_condition. Optional
+    design='independent', bootstrap_unit, k_values, embedding_key,
+    representation_provenance, projected_velocity, paga and evidence are
+    described in docs/JUPYTERHUB_PREFLIGHT.md. No keys or groups are inferred.
+
+Returns
+-------
+dict
+    JSON-safe checks, inventory and per-state coverage. ok means the requested
+    input contract passed; excluded_states remain ineligible for sample-level
+    interpretation. Eligibility is a coverage screen, not significance or a
+    guarantee of biological independence. Provenance assertions are checked
+    for consistency, not authenticated. No results are stored in adata.
+```
+
+</details>
 
 ### `scgeo.get.sample_centers`
 

@@ -3,7 +3,8 @@
 This audit covers **all 50 names in `scgeo.pl.__all__`**, including compatibility
 aliases, the Plotly adapter, bundle export, and the two exported private palette
 helpers. It starts from PR #21 head `57349cb`, which contains merged PR #20,
-and records the local continuation. Existing implementations are extended in
+and records the continuation merged in [PR #22](https://github.com/liuifrec/scgeo/pull/22)
+at `bd0c2406b41bf29964c630580e54c5c01b8e8299` on 19 November 2026. Existing implementations are extended in
 place. Statistical methods in `scgeo.tl` and stored biological results are not
 changed by this work.
 
@@ -11,7 +12,7 @@ changed by this work.
 [PR #21 baseline verification](validation/embedding_facets_pr21_20261118.json) ·
 [Local continuation validation](validation/plotting_api_continuation_20261118.json)
 
-## Completed local increments
+## Completed increments (merged)
 
 1. Reconciled PR #21: four successful workflows, 17 passing jobs, two intentional
    publishing skips; 468 tests passed and one optional integration test skipped
@@ -111,10 +112,12 @@ consistency audit and installation smoke test outside the checkout. No code in
 `scgeo.tl`, `scgeo.get` or `scgeo.pp` changed. This is an interface/rendering
 validation milestone, not new statistical or biological validation.
 
-The only pending release checks are external: these local commits need an
-approved push before GitHub can test their Python 3.9/3.12, operating-system,
-conda and public-data matrices. The prior remote successes apply only to the
-recorded PR #21 head. No push, merge, tag or publication was performed.
+PR #22's actual GitHub CI passed: four workflows, 17 successful jobs, and two
+intentional publishing skips, including Python 3.9/3.12, operating-system,
+conda and public-data matrices. The historical local validation JSON above
+retains the pre-push status at the time it was recorded. PR #22 is now merged;
+this work did not create a package release. The next milestone is
+[deployment readiness and JupyterHub preflight](JUPYTERHUB_PREFLIGHT.md).
 
 Ongoing edge-case regression coverage includes nullable/missing/colliding
 labels, unknown evidence, supplied norms, explicit colorbars, deterministic
@@ -125,5 +128,5 @@ still need to be supplied by the caller; plots do not infer them.
 For each increment: preserve default return shapes and argument meanings,
 exercise the relevant synthetic gallery, inspect rendered output, add semantic
 regressions, regenerate the API reference, and run the appropriate CI-equivalent
-checks. Remote CI in the linked baseline record covers only its exact commit.
-New local commits require an approved push before their GitHub checks can run.
+checks. Remote CI evidence covers its exact tested commit; subsequent changes
+require their own validation.
