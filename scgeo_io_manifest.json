@@ -77,6 +77,43 @@
         }
       }
     },
+    "scgeo.tl.explain_shift": {
+      "signature": "(adata, *, shift_key='robust_shift', layer=None, loadings_key='PCs', loadings=None, feature_scale=None, states=None, modules=None, local_key=None, representation_key=None, regulons=None, regulator_source=None, min_cells=10, min_samples=2, n_boot=200, paired=False, seed=0, mapping_rtol=1e-05, mapping_atol=1e-06, zero_tol=1e-08, store_key='explain_shift')",
+      "ok": true,
+      "note": "",
+      "writes": {
+        "obs_cols": {
+          "added": [],
+          "removed": [],
+          "touched": [
+            "cell_type",
+            "condition",
+            "sample"
+          ]
+        },
+        "obsm_keys": {
+          "added": [],
+          "removed": [],
+          "touched": [
+            "X_pca"
+          ]
+        },
+        "layers_keys": {
+          "added": [],
+          "removed": [],
+          "touched": [
+            null
+          ]
+        },
+        "uns_keys": {
+          "added": [],
+          "removed": [],
+          "touched": [
+            "scgeo"
+          ]
+        }
+      }
+    },
     "scgeo.tl.local_geometry_stability": {
       "signature": "(adata, *, reps, node_key=None, sample_key=None, k_values=(15, 30, 50), metric='euclidean', pair_mode='all', reference_rep=None, n_boot=500, max_exact_cells=3000, stratify_key=None, store_per_cell=False, seed=0, store_key='local_geometry_stability')",
       "ok": true,

@@ -37,7 +37,7 @@ def main() -> None:
     if find_spec("resource") is not None:
         assert sg.bench.__name__ == "scgeo.bench"
         assert sg.bench is sys.modules["scgeo.bench"]
-    for name in ("robust_shift", "representation_stability", "local_geometry_stability"):
+    for name in ("robust_shift", "explain_shift", "representation_stability", "local_geometry_stability"):
         assert callable(getattr(sg.tl, name)), name
 
     # Regression check: core import must work even in an environment where
@@ -115,6 +115,17 @@ else:
     sample_table = sg.get.sample_centers(result)
     assert sample_table["sample"].nunique() == 6
     assert set(sample_table["coordinate"]) == {0, 1}
+    adata.varm["PCs"] = np.eye(adata.n_vars)
+    sg.tl.robust_shift(
+        adata, rep="X_pca", condition_key="condition", group0="control",
+        group1="treated", sample_key="sample", center="mean", n_boot=12,
+        store_key="explanation_source",
+    )
+    explanation = sg.tl.explain_shift(
+        adata, shift_key="explanation_source", min_cells=4, n_boot=12,
+    )
+    np.testing.assert_allclose(explanation["genes"].contribution, [1.0, 0.0], atol=1e-6)
+    assert explanation["summary"].status.iloc[0] == "ok"
     # Exercise the installed plotting additions and packaged source exporter.
     import json
     from tempfile import TemporaryDirectory
@@ -129,6 +140,19 @@ else:
             assert provenance["software"]["scgeo"] == sg.__version__
             assert "sample_centers" in exported["tables"]
             plt.close(plot.fig)
+            curves = sg.pl.shift_curves(
+                adata, var_names=[adata.var_names[0]], basis="pca", min_cells=2,
+                return_result=True, show=False,
+            )
+            curve_export = curves.save(Path(temporary) / "shift_curves", formats=("svg",))
+            assert {"cells", "curves", "sample_curves", "features"} <= set(curve_export["tables"])
+            assert Path(curve_export["figures"]["svg"]).is_file()
+            plt.close(curves.fig)
+            connector = sg.pl.shift_embedding(
+                adata, basis="pca", return_result=True, show=False,
+            )
+            assert len(connector.data["centers"]) == 1
+            plt.close(connector.fig)
             # A supplied connectivity fixture needs no optional Scanpy import.
             adata.obs["state"] = pd.Categorical(
                 (["A"] * 8 + ["B"] * 4) * 2, categories=["A", "B"]

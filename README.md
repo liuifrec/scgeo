@@ -63,6 +63,27 @@ result.save("faceted_velocity", formats=("png", "svg", "pdf"))
 [Facet plotting guide](https://github.com/liuifrec/scgeo/blob/main/docs/EMBEDDING_FACETS.md) ·
 [Reproducible faceting gallery](https://github.com/liuifrec/scgeo/blob/main/examples/embedding_facets_gallery.py)
 
+**Explain a state shift with genes, programs, and response curves** in the
+development checkout. After a sample-aware `tl.robust_shift` on an expression-linked
+representation, `tl.explain_shift` checks the affine mapping and accounts for the
+displacement using the same numerical center weights. Optional local groups retain
+heterogeneous responses and per-sample composition; supplied signed regulons add
+explicitly sourced target-response evidence.
+
+```python
+explanation = sg.tl.explain_shift(adata, shift_key="robust_shift")
+curves = sg.pl.shift_curves(
+    adata, var_names=["Gata1", "Spi1"], state="HSPC", basis="umap",
+    return_result=True, show=False,
+)
+curves.save("shift_response", formats=("png", "svg", "pdf"))
+```
+
+The example requires those gene/state names, matching PCA loadings, and the
+original expression input. Curves describe a geometric coordinate; ribbons show
+between-sample ranges. Contributions and signed target responses are descriptive
+evidence, not causal-driver estimates. [Complete workflow and synthetic gallery](https://github.com/liuifrec/scgeo/blob/main/docs/EXPLAIN_SHIFT.md).
+
 ## Start here
 
 | Your goal | Best starting point |
@@ -73,6 +94,7 @@ result.save("faceted_velocity", formats=("png", "svg", "pdf"))
 | Display state connectivity, condition shifts, and velocity | [PAGA shift-map guide](https://github.com/liuifrec/scgeo/blob/main/docs/PAGA_SHIFT_MAP.md) |
 | Compare conditions, timepoints, batches or cell types in matched UMAP/velocity facets | [Embedding faceting](https://github.com/liuifrec/scgeo/blob/main/docs/EMBEDDING_FACETS.md) |
 | Inspect local projected velocity and compare conditions | [Local velocity fields](https://github.com/liuifrec/scgeo/blob/main/docs/VELOCITY_FIELDS.md) |
+| Explain displacement with genes/programs and plot response curves | [Shift explanations and curves](https://github.com/liuifrec/scgeo/blob/main/docs/EXPLAIN_SHIFT.md) |
 | Compose UMAP, velocity, PAGA and evidence in one figure | [Unified geometry–dynamics atlas](https://github.com/liuifrec/scgeo/blob/main/docs/GEOMETRY_DYNAMICS_ATLAS.md) |
 | Interpret stored geometry–velocity agreement and compare condition fields | [Geometry–velocity interpretation](https://github.com/liuifrec/scgeo/blob/main/docs/GEOMETRY_VELOCITY_INTERPRETATION.md) |
 | Compare annotations with ribbons, chords, and density panels | [State associations and density](https://github.com/liuifrec/scgeo/blob/main/docs/STATE_FLOW_AND_DENSITY.md) |

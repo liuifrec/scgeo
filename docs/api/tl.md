@@ -13,6 +13,7 @@ Signatures and docstrings match the public exports. I/O tables record a small sy
 - [`consensus_subspace`](#scgeotlconsensus_subspace)
 - [`density_overlap`](#scgeotldensity_overlap)
 - [`distribution_test`](#scgeotldistribution_test)
+- [`explain_shift`](#scgeotlexplain_shift)
 - [`local_geometry_stability`](#scgeotllocal_geometry_stability)
 - [`map_knn`](#scgeotlmap_knn)
 - [`map_query_to_ref`](#scgeotlmap_query_to_ref)
@@ -110,6 +111,11 @@ Probe note: needs domain-specific inputs
 ```text
 Identify genes associated with alignment or discordance between geometric shift
 and velocity direction.
+
+This legacy helper performs cell-level DE of supplied labels; it does not
+account for biological samples or explain a displacement. Labels propagated
+from nodes may identify node markers. Use ``explain_shift`` for descriptive
+molecular attribution to a supported affine state shift.
 
 Parameters
 ----------
@@ -327,6 +333,133 @@ If sample_key provided:
 
 Stores:
   adata.uns[store_key]["distribution_test"]
+```
+
+</details>
+
+### `scgeo.tl.explain_shift`
+
+Account for a stored sample-aware displacement using signed gene and program contributions in a verified affine expression representation.
+
+```text
+scgeo.tl.explain_shift(
+    adata,
+    *,
+    shift_key='robust_shift',
+    layer=None,
+    loadings_key='PCs',
+    loadings=None,
+    feature_scale=None,
+    states=None,
+    modules=None,
+    local_key=None,
+    representation_key=None,
+    regulons=None,
+    regulator_source=None,
+    min_cells=10,
+    min_samples=2,
+    n_boot=200,
+    paired=False,
+    seed=0,
+    mapping_rtol=1e-05,
+    mapping_atol=1e-06,
+    zero_tol=1e-08,
+    store_key='explain_shift',
+)
+```
+
+[View implementation](../../scgeo/tl/_explain_shift.py)
+
+- Unreleased development API. Requires a stored robust_shift result with a mean or geometric-median center, the exact expression matrix, and a matching affine loading/scale map. Ordinary PCA loadings cannot explain integrated or nonlinear coordinates unless that exact mapping is verified.
+- Contributions use the original numerical center weights and sum to the measured displacement norm within the declared numerical tolerance. Positive and negative contributions support or oppose the chosen direction; they do not establish upstream causal drivers.
+- Bootstrap intervals resample biological samples conditional on the frozen representation and shift direction. Insufficient samples, insufficient cells, zero shifts, missing comparisons, and unassessed representation evidence remain explicit.
+- The output includes state-wide and optional local gene attribution, program summaries, sample centers, continuous cell scores, composition tables, supplied-regulon evidence and source-integrity signatures. Local parent-axis contributions and abundance changes have distinct meanings.
+- Writes the complete result only to adata.uns['scgeo'][store_key]. The synthetic I/O probe prepares a valid sample-aware robust_shift before its snapshot, so the existing top-level scgeo key is present before and after; the probe does not enumerate nested writes.
+
+**Observed AnnData keys in the synthetic I/O probe**
+
+| Field | Added | Present before and after | Removed |
+|---|---|---|---|
+| `obs_cols` | — | `cell_type`, `condition`, `sample` | — |
+| `obsm_keys` | — | `X_pca` | — |
+| `layers_keys` | — | `None` | — |
+| `uns_keys` | — | `scgeo` | — |
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Explain a stored robust shift with signed gene and program contributions.
+
+Parameters
+----------
+adata
+    AnnData containing a result from :func:`scgeo.tl.robust_shift`.
+shift_key
+    Source under ``adata.uns['scgeo']``. Its state, contrast, representation,
+    sample key and center estimator are reused and checked against the data.
+    Supported estimators are ``mean`` and ``geometric_median``.
+layer
+    Exact expression input for the affine representation; None uses X.
+    Sparse inputs stay sparse. Ordinary PCA loadings cannot explain a
+    nonlinear or batch-corrected embedding unless its map is verified.
+loadings_key, loadings
+    Gene-by-coordinate coefficients, from varm[loadings_key] by default.
+    An explicit array overrides the key. Extra trailing PCA columns are
+    ignored; all coordinates of the source representation are explained.
+feature_scale
+    Optional positive per-gene divisors applied to loading rows. A common
+    affine intercept is inferred and verified, so centering is supported.
+states
+    Optional state subset. With no source ``by``, the sole state is 'all'.
+modules
+    Mapping of program names to unique member genes. Program expression is
+    their mean; program contribution is their sum. Overlapping programs
+    do not partition the displacement and are not percentages.
+local_key
+    Optional obs column of independently justified local identity groups.
+    Local contrasts use their own direction; projection onto the parent
+    direction is also reported. Per-sample proportions are retained,
+    including zero-count local groups. No cell-to-cell transitions or
+    exact additive composition decomposition are inferred.
+representation_key
+    Optional compatible representation_stability result. Its evidence
+    labels are carried forward, never inferred from one representation.
+regulons, regulator_source
+    Optional regulator -> {target: signed weight} mapping and required
+    evidence provenance. Returns signed target-response summaries, not
+    inferred networks, simulated interventions or causal-driver scores.
+min_cells, min_samples
+    Coverage thresholds per condition. min_samples must be at least two.
+    Missing biological replication retains descriptive attribution with
+    status 'insufficient_samples' and no bootstrap interval.
+n_boot, paired, seed
+    Biological-sample bootstrap draws, optionally matched by sample ID.
+    Shared IDs require paired=True; paired analyses require equal ID sets.
+    Intervals condition on the observed representation and shift direction;
+    they are descriptive stability intervals, not selection-adjusted tests.
+mapping_rtol, mapping_atol, zero_tol
+    Mapping/reconstruction tolerances and absolute zero-shift threshold.
+    Mapping relative tolerance uses centered coordinate variation.
+store_key
+    New result key under adata.uns['scgeo']; cannot overwrite a source key.
+
+Returns
+-------
+dict
+    ``summary``, ``genes``, ``programs``, ``cells``, ``samples``,
+    ``local_summary``, ``local_genes``, ``composition`` and ``regulators``
+    tables, memberships, mapping diagnostics and numerical center weights.
+    ``state_results`` uses safe internal keys and stores each state label.
+
+Notes
+-----
+For matched robust expression contrast d, affine loading L and observed
+unit direction u, C_g = d_g (L u)_g and sum(C_g) = ||delta|| up to the
+exported numerical residual. This is descriptive molecular accounting.
+Genes help define the axis, so this is not independent association evidence.
+Zero shifts have no inferred direction; nonzero local contrasts can still
+be reported. Existing robust-shift estimates and input matrices are unchanged.
 ```
 
 </details>

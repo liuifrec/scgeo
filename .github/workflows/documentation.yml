@@ -73,6 +73,15 @@ jobs:
           python -m pytest scripts/tests/test_manifest_validation.py -q
       - name: Execute the synthetic quick start
         run: python examples/quickstart.py --output-dir "$RUNNER_TEMP/scgeo-quickstart"
+      - name: Execute the synthetic shift-explanation gallery and checks
+        run: python examples/explain_shift_gallery.py --output-dir "$RUNNER_TEMP/scgeo-explain-shift" --formats png svg pdf
+      - name: Upload shift explanations, curves, and synthetic checks
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+        with:
+          name: scgeo-explain-shift
+          path: ${{ runner.temp }}/scgeo-explain-shift/
+          if-no-files-found: error
+          retention-days: 14
       - name: Verify the environment and synthetic deployment contract
         run: >-
           python examples/deployment_smoke.py --source-root "$GITHUB_WORKSPACE"
@@ -156,4 +165,4 @@ jobs:
           tests/test_ambiguity_panel.py tests/test_consensus_panel.py tests/test_highlight_topk_cells.py
           tests/test_paga_visual_upgrades.py tests/test_velocity_field.py
           tests/test_state_flow_upgrades.py tests/test_density_visual_upgrades.py tests/test_geometry_velocity_interpretation.py tests/test_geometry_dynamics_atlas.py tests/test_embedding_facets.py tests/test_state_reporting.py
-          tests/test_robust_shift.py tests/pl -q
+          tests/test_robust_shift.py tests/test_explain_shift.py tests/test_shift_explanation_plots.py tests/pl -q

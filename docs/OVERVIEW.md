@@ -21,6 +21,7 @@ across analysis choices. ScGeo makes the relevant evidence inspectable:
 | Local geometry | Neighborhood preservation and shape distortion |
 | Dynamics agreement | Relationship between displacement and a separately supplied dynamics estimate |
 | Abundance and distribution | Complementary composition and within-state distribution summaries |
+| Molecular explanation (development) | Verified affine gene/program contributions to a stored displacement, local responses and sample-aware curves |
 
 The layers stay separate. A population can change in abundance without a
 coherent displacement, or show a large displacement that is sensitive to the
@@ -67,6 +68,8 @@ or unresolved; they do not create causal evidence.
 
 - [Quick start](QUICKSTART.md): a small synthetic run and an AnnData example.
 - [Plotting guide](PLOTTING.md) and [gallery](PLOTTING_GALLERY.md): development evidence figures, contrast comparisons, biological samples, and source-data exports.
+- [Shift explanations and curves](EXPLAIN_SHIFT.md): descriptive gene/program
+  contributions, local responses, supplied regulatory evidence and response curves.
 - [PAGA shift maps](PAGA_SHIFT_MAP.md): state connectivity, condition centres, projected velocity, and stored alignment on a shared display.
 - [Local velocity fields](VELOCITY_FIELDS.md): projected-vector grids and streamlines, local support diagnostics, and matched condition panels.
 - [State associations and density](STATE_FLOW_AND_DENSITY.md): alluvial and chord cross-tabs, conserved counts, and comparable embedding-density panels.

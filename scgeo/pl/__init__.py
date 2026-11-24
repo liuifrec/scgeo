@@ -41,6 +41,7 @@ from ._report import distribution_report
 from ._result import PlotResult, export_figure
 from ._robustness_matrix import robustness_matrix
 from ._score import score_embedding, score_umap
+from ._shift_explanation import shift_curves, shift_embedding
 from ._state_flow_alluvial import state_flow_alluvial
 from ._state_flow_chord import state_flow_chord
 from ._state_flow_sankey import state_flow_sankey
@@ -61,6 +62,8 @@ __all__ = [
     "delta_rank",
     "score_umap",
     "score_embedding",
+    "shift_curves",
+    "shift_embedding",
     "highlight_topk_cells",
     "distribution_test_volcano",
     "embedding_density",

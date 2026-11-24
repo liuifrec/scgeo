@@ -1,6 +1,6 @@
 # Plotting API upgrade audit
 
-This audit covers **all 50 names in `scgeo.pl.__all__`**, including compatibility
+This audit covers **all 52 names in `scgeo.pl.__all__`**, including compatibility
 aliases, the Plotly adapter, bundle export, and the two exported private palette
 helpers. It starts from PR #21 head `57349cb`, which contains merged PR #20,
 and records the continuation merged in [PR #22](https://github.com/liuifrec/scgeo/pull/22)
@@ -40,6 +40,11 @@ changed by this work.
    exports. Preserved legacy returns and descriptive means; reused PAGA graph
    validation and made display-coordinate semantics explicit.
 
+The development shift-explanation extension adds `shift_curves` and
+`shift_embedding` with caller-owned axes and source exports. Its new analysis
+function is documented separately in [EXPLAIN_SHIFT.md](EXPLAIN_SHIFT.md);
+the earlier plotting milestones below remain historical records.
+
 The table describes interface coverage, **not a claim that every scientific or
 visual edge case is resolved**. `Yes` means `return_result=True` is available.
 All Matplotlib renderers now expose this opt-in contract. The Plotly and bundle contracts are
@@ -57,6 +62,8 @@ intentional and should not be replaced with another implementation.
 | `delta_rank` | ax | Yes | Now exports exact original/displayed sources and accepts caller axes; see summary guide. |
 | `score_umap` | ax | Yes | Delegates through kwargs to score_embedding; no duplicate implementation. |
 | `score_embedding` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+| `shift_curves` | ax / axes | Yes | Sample-balanced response curves, observed sample ranges, expression/contribution maps and full source tables. |
+| `shift_embedding` | ax | Yes | Frozen center weights projected for display; curved connectors explicitly schematic. |
 | `highlight_topk_cells` | ax | Yes | Now exports full cell selection/display flags and accepts shared normalization. |
 | `distribution_test_volcano` | ax | Yes | Now exports source rows, exact coordinates, clipping/label flags; validates probability range. |
 | `embedding_density` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |

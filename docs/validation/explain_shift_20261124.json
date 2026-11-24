@@ -1,0 +1,257 @@
+{
+  "schema_version": 1,
+  "data_kind": "fully synthetic; no private inputs or downloads",
+  "seed": 37,
+  "n_cells": 1350,
+  "n_genes": 18,
+  "samples_per_condition": 6,
+  "n_boot": 80,
+  "input_sha256": "156009d8d143e7dcf44dd4392f7367f1098cabdce372628cea1394f7664486fb",
+  "generator_sha256": "52914d480dbdf57758351abf3cea37524948711829707ffa29447f435f7401dc",
+  "source_params": {
+    "rep": "X_pca",
+    "condition_key": "condition",
+    "group0": "control",
+    "group1": "treated",
+    "by": "state",
+    "sample_key": "sample",
+    "center": "geometric_median",
+    "trim_fraction": 0.1,
+    "n_boot": 0,
+    "bootstrap_unit": "auto",
+    "resolved_bootstrap_unit": "sample",
+    "normalize_by": "pooled_robust_scale",
+    "seed": 37,
+    "store_key": "robust_shift"
+  },
+  "mapping": {
+    "kind": "verified_affine",
+    "intercept": [
+      -12.398105111830965,
+      -3.112075285449144,
+      3.333894625240549,
+      0.818800727497901,
+      -4.569188474046583,
+      2.1560560737484313,
+      -3.6586049390309348,
+      1.735181869480056
+    ],
+    "max_abs_residual": 1.1892537443713991e-07,
+    "tolerance": 4.108314610381559e-05,
+    "centered_representation_scale": 4.008314610381559,
+    "analysis_coordinate_dtype": "float32 converted to float64, matching robust_shift",
+    "loadings_source": "varm['PCs']"
+  },
+  "checks": {
+    "affine_reconstruction": true,
+    "rotation_invariance": true,
+    "sample_duplication_invariance": true,
+    "opposing_local_expression_signs": true,
+    "composition_only_local_expression_unchanged": true
+  },
+  "metrics": {
+    "maximum_reconstruction_error": 2.4772931849719233e-09,
+    "maximum_gene_contribution_rotation_error": 2.5954982052489584e-08,
+    "maximum_gene_contribution_sample_duplication_error": 4.996003610813204e-16,
+    "local_program_expression_contrasts": {
+      "early": -0.5534657905613608,
+      "late": 0.6014965050147989
+    }
+  },
+  "summary": [
+    {
+      "state": "Simulated state",
+      "status": "ok",
+      "delta_norm": 1.3588238299,
+      "n_cells0": 675,
+      "n_cells1": 675,
+      "n_samples0": 6,
+      "n_samples1": 6,
+      "contribution_sum": 1.3588238305,
+      "reconstruction_error": 2.5e-09,
+      "representation_status": "not_assessed",
+      "n_boot": 80,
+      "interval_scope": "conditional_sample_bootstrap"
+    }
+  ],
+  "local_summary": [
+    {
+      "state": "Simulated state",
+      "status": "ok",
+      "delta_norm": 1.6650285718,
+      "n_cells0": 338,
+      "n_cells1": 338,
+      "n_samples0": 6,
+      "n_samples1": 6,
+      "contribution_sum": 1.6650285739,
+      "reconstruction_error": 6.6e-09,
+      "representation_status": "not_assessed",
+      "n_boot": 80,
+      "interval_scope": "conditional_sample_bootstrap",
+      "local_state": "early",
+      "projection_on_parent_axis": 1.3327882246,
+      "parent_representation_status": "not_assessed"
+    },
+    {
+      "state": "Simulated state",
+      "status": "ok",
+      "delta_norm": 1.7277745076,
+      "n_cells0": 337,
+      "n_cells1": 337,
+      "n_samples0": 6,
+      "n_samples1": 6,
+      "contribution_sum": 1.7277745123,
+      "reconstruction_error": 6.5e-09,
+      "representation_status": "not_assessed",
+      "n_boot": 80,
+      "interval_scope": "conditional_sample_bootstrap",
+      "local_state": "late",
+      "projection_on_parent_axis": 1.4074676715,
+      "parent_representation_status": "not_assessed"
+    }
+  ],
+  "composition_only": {
+    "data_kind": "deterministic mixture counterexample",
+    "source_estimator": "mean of sample means",
+    "reference_late_fraction": 0.25,
+    "comparison_late_fraction": 0.75,
+    "global_delta_norm": 2.23606797749979,
+    "maximum_absolute_local_expression_change": 1.3322676295501878e-15,
+    "interpretation": "the broad-state displacement comes entirely from supplied-substate composition",
+    "biological_validation": false
+  },
+  "distributional_counterexample": {
+    "control": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        2.0,
+        2.0
+      ]
+    ],
+    "treated": [
+      [
+        0.0,
+        2.0
+      ],
+      [
+        2.0,
+        0.0
+      ]
+    ],
+    "gene_marginals_identical": true,
+    "mean_displacement": 0.0,
+    "wasserstein_1_euclidean": 2.0,
+    "energy_statistic": 1.17157287525381,
+    "interpretation": "distributional change without a centroid displacement axis"
+  },
+  "explanation_source_tables": {
+    "summary": {
+      "file": "explanation_summary.csv",
+      "rows": 1
+    },
+    "genes": {
+      "file": "explanation_genes.csv",
+      "rows": 18
+    },
+    "programs": {
+      "file": "explanation_programs.csv",
+      "rows": 5
+    },
+    "module_membership": {
+      "file": "explanation_module_membership.csv",
+      "rows": 18
+    },
+    "regulators": {
+      "file": "explanation_regulators.csv",
+      "rows": 0
+    },
+    "regulon_membership": {
+      "file": "explanation_regulon_membership.csv",
+      "rows": 0
+    },
+    "samples": {
+      "file": "explanation_samples.csv",
+      "rows": 12
+    },
+    "cells": {
+      "file": "explanation_cells.csv",
+      "rows": 1350
+    },
+    "local_summary": {
+      "file": "explanation_local_summary.csv",
+      "rows": 2
+    },
+    "local_genes": {
+      "file": "explanation_local_genes.csv",
+      "rows": 36
+    },
+    "composition": {
+      "file": "explanation_composition.csv",
+      "rows": 24
+    }
+  },
+  "composition_source_tables": {
+    "summary": {
+      "file": "composition_only_summary.csv",
+      "rows": 1
+    },
+    "genes": {
+      "file": "composition_only_genes.csv",
+      "rows": 3
+    },
+    "programs": {
+      "file": "composition_only_programs.csv",
+      "rows": 1
+    },
+    "module_membership": {
+      "file": "composition_only_module_membership.csv",
+      "rows": 2
+    },
+    "regulators": {
+      "file": "composition_only_regulators.csv",
+      "rows": 0
+    },
+    "regulon_membership": {
+      "file": "composition_only_regulon_membership.csv",
+      "rows": 0
+    },
+    "samples": {
+      "file": "composition_only_samples.csv",
+      "rows": 8
+    },
+    "cells": {
+      "file": "composition_only_cells.csv",
+      "rows": 384
+    },
+    "local_summary": {
+      "file": "composition_only_local_summary.csv",
+      "rows": 2
+    },
+    "local_genes": {
+      "file": "composition_only_local_genes.csv",
+      "rows": 6
+    },
+    "composition": {
+      "file": "composition_only_composition.csv",
+      "rows": 16
+    }
+  },
+  "plot_manifests": {
+    "gene_shift_curves": "gene_shift_curves.json",
+    "program_shift_curves": "program_shift_curves.json",
+    "state_shift_embedding": "state_shift_embedding.json",
+    "local_expression_contrasts": "local_expression_contrasts.json"
+  },
+  "interpretation": {
+    "descriptive_accounting_validated": true,
+    "biological_driver_validation": false,
+    "causal_recovery_validation": false,
+    "scope": "fixed affine PCA mapping and stated synthetic examples",
+    "curves": "expression along a geometric projection, not inferred time or RNA velocity",
+    "arrows": "schematic condition connectors, not reconstructed cell paths"
+  },
+  "reproduce": "python examples/explain_shift_gallery.py --seed 37 --n-boot 80 --output-dir NEW_OUTPUT_DIRECTORY"
+}

@@ -40,6 +40,15 @@ missing.
 
 ## Warnings and limitations
 
+For the development `tl.explain_shift` output, `status='ok'` denotes a
+computable nonzero attribution with the specified coverage. The separate
+`representation_status` is `not_assessed` unless compatible stored evidence was
+explicitly supplied. `insufficient_samples` retains descriptive contributions
+without sample-bootstrap intervals; `zero_shift` has no inferred direction.
+`pl.shift_curves` shows observed between-sample ranges, not confidence intervals,
+along a geometric coordinate. `pl.shift_embedding` curves are schematic display
+connectors, not estimated trajectories. See [shift interpretation](EXPLAIN_SHIFT.md).
+
 Recommended language includes:
 
 - “descriptive cell-level stability” when cells, rather than biological

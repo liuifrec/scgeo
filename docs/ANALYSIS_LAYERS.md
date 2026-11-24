@@ -1,5 +1,18 @@
 # Analysis layers
 
+## Molecular explanation (development)
+
+`scgeo.tl.explain_shift` accounts for a stored displacement using a verified
+affine expression map and the numerical mean/geometric-median center weights.
+The signed gene contributions reconstruct the measured displacement to the
+reported numerical tolerance. Program sums, local contrasts, sample proportions,
+and optional supplied signed-regulon responses remain distinct evidence tables.
+Sample-bootstrap stability conditions on the observed representation and axis;
+it does not resolve self-inclusion or establish causal regulators. The status
+`ok` means a nonzero contrast meets the requested coverage, not that its biology
+is independently validated. Attached representation labels are copied from the
+explicitly supplied compatible result, not recomputed. See [the workflow](EXPLAIN_SHIFT.md).
+
 ## Robust shift
 
 `scgeo.tl.robust_shift` estimates a state-level displacement in a chosen
