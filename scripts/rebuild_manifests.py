@@ -24,7 +24,7 @@ NAMESPACES = ("tl", "pl", "get", "pp", "data", "bench")
 
 def _write_json(path: Path, obj: Any) -> None:
     with path.open("w", encoding="utf-8") as f:
-        json.dump(obj, f, indent=2)
+        json.dump(obj, f, indent=2, ensure_ascii=False)
         f.write("\n")
 
 
@@ -64,6 +64,38 @@ def _make_toy_adata_raw(n: int = 80, d: int = 12) -> ad.AnnData:
     return adata
 
 
+def _make_explanation_probe() -> ad.AnnData:
+    """Prepare valid affine expression and biological samples before probing I/O.
+
+    The generic probes intentionally use unrelated random coordinates. Those
+    cannot establish an expression-to-representation mapping for explain_shift.
+    This fixture is only an execution/I/O check, not a biological benchmark.
+    """
+    rng = np.random.RandomState(618)
+    samples_per_condition, cells_per_sample = 3, 12
+    n_samples = 2 * samples_per_condition
+    condition = np.repeat(["A", "B"], samples_per_condition * cells_per_sample)
+    sample = np.repeat([f"{arm}{i}" for arm in ("A", "B")
+                        for i in range(samples_per_condition)], cells_per_sample)
+    X = np.array([4.0, 3.0, 2.0]) + rng.normal(
+        scale=0.15, size=(n_samples * cells_per_sample, 3)
+    )
+    X += np.repeat(rng.normal(scale=0.08, size=(n_samples, 3)), cells_per_sample, axis=0)
+    X[condition == "B"] += np.array([1.2, -0.25, 0.0])
+    adata = ad.AnnData(X=X)
+    adata.var_names = ["response", "opposing", "background"]
+    adata.obs["condition"] = condition
+    adata.obs["sample"] = sample
+    adata.obs["cell_type"] = "probe_state"
+    adata.varm["PCs"] = np.array([[1.0, 0.0], [0.4, 0.8], [0.0, 0.5]])
+    adata.obsm["X_pca"] = X @ adata.varm["PCs"] + np.array([3.0, -2.0])
+    sg.tl.robust_shift(
+        adata, rep="X_pca", condition_key="condition", group0="A", group1="B",
+        by="cell_type", sample_key="sample", center="mean", n_boot=0,
+    )
+    return adata
+
+
 def _snapshot_raw(adata: ad.AnnData) -> Dict[str, List[str]]:
     return {
         "obs_cols": sorted(list(adata.obs.columns)),
@@ -87,6 +119,8 @@ def _call_policy_raw(fn, adata: ad.AnnData) -> Tuple[bool, str]:
     try:
         if name == "robust_shift":
             fn(adata, n_boot=25, seed=0)
+        elif name == "explain_shift":
+            fn(adata, n_boot=5, seed=0, modules={"response_program": ["response", "opposing"]})
         elif name == "representation_stability":
             fn(
                 adata,
@@ -178,6 +212,12 @@ def _call_policy_clean(fn, adata: ad.AnnData) -> Tuple[bool, str]:
                 seed=0,
                 store_key="robust_shift_test",
             )
+        elif name == "explain_shift":
+            fn(
+                adata, n_boot=5, seed=0,
+                modules={"response_program": ["response", "opposing"]},
+                store_key="explain_shift_test",
+            )
         elif name == "representation_stability":
             fn(
                 adata,
@@ -228,7 +268,7 @@ def rebuild() -> None:
     raw_skipped: Dict[str, Any] = {}
     for name in sorted(tl_names):
         fn = getattr(sg.tl, name)
-        adata = _make_toy_adata_raw()
+        adata = _make_explanation_probe() if name == "explain_shift" else _make_toy_adata_raw()
         before = _snapshot_raw(adata)
         ok, note = _call_policy_raw(fn, adata)
         after = _snapshot_raw(adata)
@@ -257,7 +297,7 @@ def rebuild() -> None:
     clean_skipped: Dict[str, Any] = {}
     for name in sorted(tl_names):
         fn = getattr(sg.tl, name)
-        adata = _make_toy_adata_clean()
+        adata = _make_explanation_probe() if name == "explain_shift" else _make_toy_adata_clean()
         before = _snapshot_clean(adata)
         ok, note = _call_policy_clean(fn, adata)
         after = _snapshot_clean(adata)

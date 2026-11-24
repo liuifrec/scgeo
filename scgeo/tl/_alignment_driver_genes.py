@@ -47,6 +47,11 @@ def alignment_driver_genes(
     Identify genes associated with alignment or discordance between geometric shift
     and velocity direction.
 
+    This legacy helper performs cell-level DE of supplied labels; it does not
+    account for biological samples or explain a displacement. Labels propagated
+    from nodes may identify node markers. Use ``explain_shift`` for descriptive
+    molecular attribution to a supported affine state shift.
+
     Parameters
     ----------
     adata

@@ -1,4 +1,31 @@
 {
+  "scgeo.tl.explain_shift": {
+    "summary": "Account for a stored sample-aware displacement using signed gene and program contributions in a verified affine expression representation.",
+    "notes": [
+      "Unreleased development API. Requires a stored robust_shift result with a mean or geometric-median center, the exact expression matrix, and a matching affine loading/scale map. Ordinary PCA loadings cannot explain integrated or nonlinear coordinates unless that exact mapping is verified.",
+      "Contributions use the original numerical center weights and sum to the measured displacement norm within the declared numerical tolerance. Positive and negative contributions support or oppose the chosen direction; they do not establish upstream causal drivers.",
+      "Bootstrap intervals resample biological samples conditional on the frozen representation and shift direction. Insufficient samples, insufficient cells, zero shifts, missing comparisons, and unassessed representation evidence remain explicit.",
+      "The output includes state-wide and optional local gene attribution, program summaries, sample centers, continuous cell scores, composition tables, supplied-regulon evidence and source-integrity signatures. Local parent-axis contributions and abundance changes have distinct meanings.",
+      "Writes the complete result only to adata.uns['scgeo'][store_key]. The synthetic I/O probe prepares a valid sample-aware robust_shift before its snapshot, so the existing top-level scgeo key is present before and after; the probe does not enumerate nested writes."
+    ]
+  },
+  "scgeo.pl.shift_curves": {
+    "summary": "Plot sample-balanced gene or program curves along a stored geometric shift coordinate with coordinated expression and signed-contribution maps.",
+    "notes": [
+      "Unreleased development API. Curves use a frozen, expression-derived coordinate; it is not pseudotime, observed time, a trajectory, or an independent causal endpoint.",
+      "Compact-kernel smoothing occurs within each sample and condition, with equal weighting of supported samples. Unsupported regions remain gaps and curves do not extrapolate beyond sample support. The optional ribbon is the observed between-sample range, not a confidence interval; fewer than two supporting samples produce no range.",
+      "Program curves show mean member expression while contribution maps sum member-gene contributions. A difference between condition curves at the same expression-derived coordinate is not a matched causal treatment effect.",
+      "Reads stored explanations without changing AnnData; source signatures and labels reject stale inputs before drawing. Scatter subsampling changes display only. Supplied axes support composition, and return_result=True exposes complete source tables and figure exports."
+    ]
+  },
+  "scgeo.pl.shift_embedding": {
+    "summary": "Display schematic curved condition contrasts using the original effective cell weights projected into the selected display embedding.",
+    "notes": [
+      "Unreleased development API. Curvature is a graphic choice; arrows connect condition centers and do not estimate paths, fate probabilities, or an RNA-velocity field.",
+      "Endpoints apply frozen analysis weights to display coordinates. A nonlinear display does not invert the analysis displacement. Zero-shift and insufficient-cell states are not assigned unsupported arrows.",
+      "Reads stored explanations without changing AnnData, validates source identity, and keeps display subsampling separate from center calculations. return_result=True exposes center weights, endpoints, full cell sources and interpretation metadata."
+    ]
+  },
   "scgeo.get.state_report": {
     "notes": [
       "Read-only: consumes existing adata.uns[\"scgeo\"] results and returns a pandas DataFrame.",

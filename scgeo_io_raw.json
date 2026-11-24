@@ -56,6 +56,21 @@
         "uns_keys_removed": []
       }
     },
+    "scgeo.tl.explain_shift": {
+      "ok": true,
+      "note": "",
+      "signature": "(adata, *, shift_key='robust_shift', layer=None, loadings_key='PCs', loadings=None, feature_scale=None, states=None, modules=None, local_key=None, representation_key=None, regulons=None, regulator_source=None, min_cells=10, min_samples=2, n_boot=200, paired=False, seed=0, mapping_rtol=1e-05, mapping_atol=1e-06, zero_tol=1e-08, store_key='explain_shift')",
+      "writes": {
+        "obs_cols_added": [],
+        "obs_cols_removed": [],
+        "obsm_keys_added": [],
+        "obsm_keys_removed": [],
+        "layers_keys_added": [],
+        "layers_keys_removed": [],
+        "uns_keys_added": [],
+        "uns_keys_removed": []
+      }
+    },
     "scgeo.tl.local_geometry_stability": {
       "ok": true,
       "note": "",

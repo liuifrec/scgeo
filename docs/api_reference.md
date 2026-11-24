@@ -1,6 +1,6 @@
 # API reference
 
-Public API for **ScGeo 0.1.0** · **101 exported callables**.
+Public API for **ScGeo 0.1.0** · **104 exported callables**.
 
 This reference describes the current checkout. Plotting additions marked [unreleased in the changelog](../CHANGELOG.md) require that development checkout; they are not included in the published 0.1.0 distribution.
 
@@ -10,8 +10,8 @@ Start with `tl.robust_shift`, `get.state_report` and `pl.state_evidence_panel`. 
 
 | Namespace | Purpose | Browse separately |
 |---|---|---|
-| [`scgeo.tl`](#scgeotl) | Analysis | [20 callables](api/tl.md) |
-| [`scgeo.pl`](#scgeopl) | Figures | [48 callables](api/pl.md) |
+| [`scgeo.tl`](#scgeotl) | Analysis | [21 callables](api/tl.md) |
+| [`scgeo.pl`](#scgeopl) | Figures | [50 callables](api/pl.md) |
 | [`scgeo.get`](#scgeoget) | Reports and tables | [10 callables](api/get.md) |
 | [`scgeo.pp`](#scgeopp) | Reference preparation | [6 callables](api/pp.md) |
 | [`scgeo.data`](#scgeodata) | Census access | [12 callables](api/data.md) |
@@ -35,6 +35,7 @@ For regeneration and validation, see [API and I/O provenance](contracts/README.m
 - [`consensus_subspace`](#scgeotlconsensus_subspace)
 - [`density_overlap`](#scgeotldensity_overlap)
 - [`distribution_test`](#scgeotldistribution_test)
+- [`explain_shift`](#scgeotlexplain_shift)
 - [`local_geometry_stability`](#scgeotllocal_geometry_stability)
 - [`map_knn`](#scgeotlmap_knn)
 - [`map_query_to_ref`](#scgeotlmap_query_to_ref)
@@ -132,6 +133,11 @@ Probe note: needs domain-specific inputs
 ```text
 Identify genes associated with alignment or discordance between geometric shift
 and velocity direction.
+
+This legacy helper performs cell-level DE of supplied labels; it does not
+account for biological samples or explain a displacement. Labels propagated
+from nodes may identify node markers. Use ``explain_shift`` for descriptive
+molecular attribution to a supported affine state shift.
 
 Parameters
 ----------
@@ -349,6 +355,133 @@ If sample_key provided:
 
 Stores:
   adata.uns[store_key]["distribution_test"]
+```
+
+</details>
+
+### `scgeo.tl.explain_shift`
+
+Account for a stored sample-aware displacement using signed gene and program contributions in a verified affine expression representation.
+
+```text
+scgeo.tl.explain_shift(
+    adata,
+    *,
+    shift_key='robust_shift',
+    layer=None,
+    loadings_key='PCs',
+    loadings=None,
+    feature_scale=None,
+    states=None,
+    modules=None,
+    local_key=None,
+    representation_key=None,
+    regulons=None,
+    regulator_source=None,
+    min_cells=10,
+    min_samples=2,
+    n_boot=200,
+    paired=False,
+    seed=0,
+    mapping_rtol=1e-05,
+    mapping_atol=1e-06,
+    zero_tol=1e-08,
+    store_key='explain_shift',
+)
+```
+
+[View implementation](../scgeo/tl/_explain_shift.py)
+
+- Unreleased development API. Requires a stored robust_shift result with a mean or geometric-median center, the exact expression matrix, and a matching affine loading/scale map. Ordinary PCA loadings cannot explain integrated or nonlinear coordinates unless that exact mapping is verified.
+- Contributions use the original numerical center weights and sum to the measured displacement norm within the declared numerical tolerance. Positive and negative contributions support or oppose the chosen direction; they do not establish upstream causal drivers.
+- Bootstrap intervals resample biological samples conditional on the frozen representation and shift direction. Insufficient samples, insufficient cells, zero shifts, missing comparisons, and unassessed representation evidence remain explicit.
+- The output includes state-wide and optional local gene attribution, program summaries, sample centers, continuous cell scores, composition tables, supplied-regulon evidence and source-integrity signatures. Local parent-axis contributions and abundance changes have distinct meanings.
+- Writes the complete result only to adata.uns['scgeo'][store_key]. The synthetic I/O probe prepares a valid sample-aware robust_shift before its snapshot, so the existing top-level scgeo key is present before and after; the probe does not enumerate nested writes.
+
+**Observed AnnData keys in the synthetic I/O probe**
+
+| Field | Added | Present before and after | Removed |
+|---|---|---|---|
+| `obs_cols` | — | `cell_type`, `condition`, `sample` | — |
+| `obsm_keys` | — | `X_pca` | — |
+| `layers_keys` | — | `None` | — |
+| `uns_keys` | — | `scgeo` | — |
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Explain a stored robust shift with signed gene and program contributions.
+
+Parameters
+----------
+adata
+    AnnData containing a result from :func:`scgeo.tl.robust_shift`.
+shift_key
+    Source under ``adata.uns['scgeo']``. Its state, contrast, representation,
+    sample key and center estimator are reused and checked against the data.
+    Supported estimators are ``mean`` and ``geometric_median``.
+layer
+    Exact expression input for the affine representation; None uses X.
+    Sparse inputs stay sparse. Ordinary PCA loadings cannot explain a
+    nonlinear or batch-corrected embedding unless its map is verified.
+loadings_key, loadings
+    Gene-by-coordinate coefficients, from varm[loadings_key] by default.
+    An explicit array overrides the key. Extra trailing PCA columns are
+    ignored; all coordinates of the source representation are explained.
+feature_scale
+    Optional positive per-gene divisors applied to loading rows. A common
+    affine intercept is inferred and verified, so centering is supported.
+states
+    Optional state subset. With no source ``by``, the sole state is 'all'.
+modules
+    Mapping of program names to unique member genes. Program expression is
+    their mean; program contribution is their sum. Overlapping programs
+    do not partition the displacement and are not percentages.
+local_key
+    Optional obs column of independently justified local identity groups.
+    Local contrasts use their own direction; projection onto the parent
+    direction is also reported. Per-sample proportions are retained,
+    including zero-count local groups. No cell-to-cell transitions or
+    exact additive composition decomposition are inferred.
+representation_key
+    Optional compatible representation_stability result. Its evidence
+    labels are carried forward, never inferred from one representation.
+regulons, regulator_source
+    Optional regulator -> {target: signed weight} mapping and required
+    evidence provenance. Returns signed target-response summaries, not
+    inferred networks, simulated interventions or causal-driver scores.
+min_cells, min_samples
+    Coverage thresholds per condition. min_samples must be at least two.
+    Missing biological replication retains descriptive attribution with
+    status 'insufficient_samples' and no bootstrap interval.
+n_boot, paired, seed
+    Biological-sample bootstrap draws, optionally matched by sample ID.
+    Shared IDs require paired=True; paired analyses require equal ID sets.
+    Intervals condition on the observed representation and shift direction;
+    they are descriptive stability intervals, not selection-adjusted tests.
+mapping_rtol, mapping_atol, zero_tol
+    Mapping/reconstruction tolerances and absolute zero-shift threshold.
+    Mapping relative tolerance uses centered coordinate variation.
+store_key
+    New result key under adata.uns['scgeo']; cannot overwrite a source key.
+
+Returns
+-------
+dict
+    ``summary``, ``genes``, ``programs``, ``cells``, ``samples``,
+    ``local_summary``, ``local_genes``, ``composition`` and ``regulators``
+    tables, memberships, mapping diagnostics and numerical center weights.
+    ``state_results`` uses safe internal keys and stores each state label.
+
+Notes
+-----
+For matched robust expression contrast d, affine loading L and observed
+unit direction u, C_g = d_g (L u)_g and sum(C_g) = ||delta|| up to the
+exported numerical residual. This is descriptive molecular accounting.
+Genes help define the axis, so this is not independent association evidence.
+Zero shifts have no inferred direction; nonzero local contrasts can still
+be reported. Existing robust-shift estimates and input matrices are unchanged.
 ```
 
 </details>
@@ -1110,6 +1243,8 @@ Notes:
 - [`robustness_matrix`](#scgeoplrobustness_matrix)
 - [`score_embedding`](#scgeoplscore_embedding)
 - [`score_umap`](#scgeoplscore_umap)
+- [`shift_curves`](#scgeoplshift_curves)
+- [`shift_embedding`](#scgeoplshift_embedding)
 - [`state_evidence_panel`](#scgeoplstate_evidence_panel)
 - [`state_flow_alluvial`](#scgeoplstate_flow_alluvial)
 - [`state_flow_chord`](#scgeoplstate_flow_chord)
@@ -3472,6 +3607,149 @@ scgeo.pl.score_umap(adata, score_key: 'str', **kwargs)
 ```
 
 [View implementation](../scgeo/pl/_score.py)
+
+### `scgeo.pl.shift_curves`
+
+Plot sample-balanced gene or program curves along a stored geometric shift coordinate with coordinated expression and signed-contribution maps.
+
+```text
+scgeo.pl.shift_curves(
+    adata,
+    var_names=None,
+    *,
+    program_names=None,
+    state=None,
+    key='explain_shift',
+    basis='umap',
+    panels=('curve', 'expression', 'contribution'),
+    color=None,
+    palette=None,
+    cmap='viridis',
+    contribution_cmap='coolwarm',
+    bandwidth=0.18,
+    grid_size=80,
+    min_cells=5,
+    uncertainty='sample_range',
+    show_samples=True,
+    max_points=3000,
+    random_state=0,
+    size=6,
+    alpha=0.3,
+    style='paper',
+    figsize=None,
+    title=None,
+    axes=None,
+    ax=None,
+    show_colorbar=True,
+    return_result=False,
+    show=True,
+    save=None,
+)
+```
+
+[View implementation](../scgeo/pl/_shift_explanation.py)
+
+- Unreleased development API. Curves use a frozen, expression-derived coordinate; it is not pseudotime, observed time, a trajectory, or an independent causal endpoint.
+- Compact-kernel smoothing occurs within each sample and condition, with equal weighting of supported samples. Unsupported regions remain gaps and curves do not extrapolate beyond sample support. The optional ribbon is the observed between-sample range, not a confidence interval; fewer than two supporting samples produce no range.
+- Program curves show mean member expression while contribution maps sum member-gene contributions. A difference between condition curves at the same expression-derived coordinate is not a matched causal treatment effect.
+- Reads stored explanations without changing AnnData; source signatures and labels reject stale inputs before drawing. Scatter subsampling changes display only. Supplied axes support composition, and return_result=True exposes complete source tables and figure exports.
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Plot expression along a stored shift axis and coordinated embedding maps.
+
+Each requested gene or program gets a row with ``curve``, ``expression``
+and ``contribution`` panels. Use ``panels=('curve',)`` without an embedding.
+``var_names=None`` selects up to three genes by absolute stored contribution.
+Select one ``state`` when the explanation contains several states.
+
+Curves are tricube-kernel means estimated separately in each biological
+sample and condition, then averaged with equal sample weights at every
+supported grid point. ``bandwidth`` is a fraction of the state's observed
+score range; ``min_cells`` is the required local support in each sample.
+Curves stop outside each sample's observed score range. Missing support
+stays missing. Thin lines show individual samples. The default ribbon is
+the observed between-sample range where at least two samples support a
+point. It is *not* a confidence interval. ``uncertainty='none'`` hides it.
+With no biological sample key, only a pooled descriptive curve is drawn.
+
+The x axis is an expression-derived geometric coordinate, not time or an
+inferred trajectory. Curves and ribbons are conditional on the frozen
+coordinate and smoothing choice, and cannot establish causal drivers.
+Program expression uses stored membership weights (a mean); program
+contribution sums the member genes' signed axis contributions.
+
+``max_points`` affects scatter drawing only. ``color`` optionally selects
+an observation annotation for curve points; condition curves retain their
+own colors. ``axes`` maps names such as ``'gene:Gata1:curve'`` to distinct
+axes in one Figure. For supplied axes and ``show_colorbar=True``, also
+provide ``'gene:Gata1:expression_colorbar'`` and the analogous contribution
+colorbar axis. ``ax`` is a convenience for one feature and one panel.
+Supplied figures retain their size, layout and title. ``return_result=True``
+exposes full cell, curve, sample-curve and feature tables via ``PlotResult``.
+No AnnData data are modified. Files are written only when ``save`` is set.
+```
+
+</details>
+
+### `scgeo.pl.shift_embedding`
+
+Display schematic curved condition contrasts using the original effective cell weights projected into the selected display embedding.
+
+```text
+scgeo.pl.shift_embedding(
+    adata,
+    *,
+    states=None,
+    key='explain_shift',
+    basis='umap',
+    color=None,
+    palette=None,
+    curvature=0.2,
+    max_points=5000,
+    random_state=0,
+    size=8,
+    alpha=0.35,
+    style='paper',
+    figsize=(6.0, 5.0),
+    title=None,
+    ax=None,
+    return_result=False,
+    show=True,
+    save=None,
+)
+```
+
+[View implementation](../scgeo/pl/_shift_explanation.py)
+
+- Unreleased development API. Curvature is a graphic choice; arrows connect condition centers and do not estimate paths, fate probabilities, or an RNA-velocity field.
+- Endpoints apply frozen analysis weights to display coordinates. A nonlinear display does not invert the analysis displacement. Zero-shift and insufficient-cell states are not assigned unsupported arrows.
+- Reads stored explanations without changing AnnData, validates source identity, and keeps display subsampling separate from center calculations. return_result=True exposes center weights, endpoints, full cell sources and interpretation metadata.
+
+
+<details>
+<summary>Parameters, returns and usage notes</summary>
+
+```text
+Display condition-center contrasts as explicitly schematic curved arrows.
+
+Endpoints use the exact cell weights stored by ``explain_shift`` applied
+to the requested display coordinates. A nonlinear display embedding is
+not an inverse mapping of the analysis displacement. Arcs are graphic
+connectors between condition centers, not estimated cell trajectories or
+a velocity field. Use ``scgeo.pl.velocity_field`` for independently supplied
+RNA-velocity vectors. ``curvature=0`` draws straight arrows.
+
+``color`` is a categorical observation key (default: stored condition).
+``return_result=True`` exposes endpoint weights, all displayed-source cell
+coordinates and the exact center table. ``max_points`` only subsamples
+displayed cells; all cells retain their original center weights.
+```
+
+</details>
 
 ### `scgeo.pl.state_evidence_panel`
 

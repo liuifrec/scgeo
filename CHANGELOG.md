@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased shift explanations and response curves
+
+- Add `tl.explain_shift` for checked affine gene attribution to stored mean or
+  geometric-median shifts, preserving sample hierarchy and the source estimator's
+  numerical precision. Export mapping/reconstruction residuals and input signatures.
+- Add signed program contributions, optional local contrasts and per-sample
+  composition, paired/unpaired sample bootstrap stability, and sourced signed
+  regulon target responses. No causal or independent gene-association test is inferred.
+- Add `pl.shift_curves` with condition curves fitted within samples, equal sample
+  weighting, support gaps, observed sample ranges, and coordinated expression/
+  contribution maps; add `pl.shift_embedding` for schematic curved center connectors.
+- Retain legacy APIs and estimators. Add scientific edge-case and plot contracts,
+  a reproducible synthetic gallery, export tables, and generated API documentation.
+
 ## Unreleased deployment readiness
 
 - Add read-only `get.input_contract` for explicit AnnData metadata, coverage,
