@@ -15,6 +15,7 @@ from matplotlib.patches import FancyArrowPatch, Patch
 from scipy import sparse
 
 from ._paga_layout import pie_glyph, place_labels
+from ._paga_pies import cell_fraction_pie_values, sample_abundance_pies
 from ._result import PlotResult
 from ._style import category_palette
 from ._utils import display_indices, resolve_embedding
@@ -194,6 +195,42 @@ def _centers(cells, names, node_key, group0, group1, min_cells, agg):
     return pd.DataFrame(records)
 
 
+def _node_anchors(cells, centers, min_cells, agg, node_position):
+    """Keep topology anchors separate from actual condition-center contrasts."""
+    aggregate = np.mean if agg == "mean" else np.median
+    rows = []
+    for center in centers.itertuples(index=False):
+        if node_position == "reference":
+            x, y, count = center.x0, center.y0, int(center.n0)
+            usable = bool(center.present0)
+        else:
+            points = cells.loc[
+                cells.in_contrast & cells.state.eq(center.state), ["x", "y"]
+            ].to_numpy(dtype=float)
+            count = len(points)
+            x, y = aggregate(points, axis=0) if count else (np.nan, np.nan)
+            usable = count > 0
+        rows.append(
+            {
+                "state": center.state,
+                "x": float(x),
+                "y": float(y),
+                "n_cells": count,
+                "position_source": node_position,
+                "observed": count > 0,
+                "usable": usable,
+                "low_coverage": 0 < count < min_cells,
+                "status": "absent_from_contrast"
+                if count == 0
+                else "low_coverage"
+                if count < min_cells
+                else "observed",
+                "condition_coverage_status": center.coverage_status,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
 def _velocity(
     adata,
     cells,
@@ -249,23 +286,58 @@ def _velocity(
     )
 
 
-def _composition(adata, cells, names, pie_key, categories, palette):
+def _composition(
+    adata,
+    cells,
+    names,
+    pie_key,
+    categories,
+    palette,
+    *,
+    stable_order=False,
+    required_categories=(),
+):
     if pie_key not in adata.obs:
         raise KeyError(f"'{pie_key}' not found in adata.obs.")
     # All source tables use observation positions, independently of obs_names.
     values = _string_labels(adata.obs[pie_key], pie_key).reset_index(drop=True)
     selected = cells.in_contrast & cells.state.notna()
     observed = list(pd.unique(values[selected & values.notna()]))
+    categorical_levels = None
+    if isinstance(adata.obs[pie_key].dtype, pd.CategoricalDtype):
+        categorical_levels = [str(value) for value in adata.obs[pie_key].cat.categories]
+        if len(set(categorical_levels)) != len(categorical_levels):
+            raise ValueError(
+                f"{pie_key} categorical levels contain distinct values with identical string labels."
+            )
     missing_key = None
     if values[selected].isna().any():
         missing_key = "(missing)"
-        while missing_key in observed:
+        declared = categorical_levels or []
+        while missing_key in observed or missing_key in declared:
             missing_key = f"({missing_key})"
         observed.append(missing_key)
+    available = list(dict.fromkeys([*observed, *required_categories]))
     if categories is None:
-        categories = observed
+        if stable_order:
+            if categorical_levels is not None:
+                categories = [
+                    value for value in categorical_levels if value in available
+                ]
+            else:
+                categories = sorted(
+                    category for category in available if category != missing_key
+                )
+            if missing_key is not None:
+                categories.append(missing_key)
+        else:
+            categories = observed
     else:
         categories = _ordered_labels(categories, "pie_categories")
+        if not set(required_categories) <= set(categories):
+            raise ValueError(
+                "pie_categories must include both selected conditions for pie_mode='sample_abundance'."
+            )
         if not set(observed) <= set(categories):
             raise ValueError(
                 "pie_categories must include all observed categories in the selected conditions; omitted mass cannot be renormalized."
@@ -513,7 +585,9 @@ def _local_velocity_options(options):
     }
     if options is not None:
         if not isinstance(options, Mapping):
-            raise TypeError("velocity_options must be a mapping of local-field controls.")
+            raise TypeError(
+                "velocity_options must be a mapping of local-field controls."
+            )
         unknown = set(options) - set(prepare) - set(render)
         if unknown:
             raise ValueError(
@@ -543,11 +617,13 @@ def paga_shift_map(
     background_alpha: float = 0.12,
     node_size: float = 220.0,
     node_scale_by_n: bool = True,
+    node_position: str = "reference",
     edge_lw: float = 2.0,
     edge_alpha: float = 0.32,
     arrow_width: Optional[float] = None,
     arrow_alpha: float = 0.95,
     arrow_scale: float = 1.0,
+    show_shift: bool = True,
     label: bool = True,
     label_top_n: Optional[int] = None,
     label_fontsize: int = 8,
@@ -556,6 +632,8 @@ def paga_shift_map(
     pie_categories: Optional[list[str]] = None,
     pie_palette: Optional[dict[str, Any]] = None,
     pie_size_scale: float = 1.0,
+    pie_mode: str = "cell_fraction",
+    pie_sample_key: Optional[str] = None,
     velocity_basis: Optional[str] = None,
     show_velocity: bool = False,
     velocity_color: str = "#008C95",
@@ -612,7 +690,13 @@ def paga_shift_map(
     anchors are open markers; comparison endpoints are filled and remain at
     their actual centers even when ``arrow_scale`` changes the displayed vector.
     States present in only one condition or below ``min_cells`` remain visible.
-    Graph edges require usable reference anchors at both ends.
+    By default graph edges require usable reference anchors at both ends.
+    ``node_position='pooled'`` instead places topology nodes and pies at the
+    pooled selected-condition cell centers. Every observed pooled node remains
+    drawable, including a state absent from one condition; low pooled coverage
+    is flagged in ``node_anchors``. Actual x0/x1 centers and condition vectors
+    are never re-anchored. ``show_shift=False`` omits condition-shift arrows;
+    combine with ``show_endpoints=False`` for a composition-only topology view.
 
     Velocity and pie summaries use only ``group0`` and ``group1``. Projected
     velocity must use the matching ``velocity_<basis>`` key and match the
@@ -637,6 +721,17 @@ def paga_shift_map(
     Explicit ``pie_categories`` must include every observed selected category;
     missing values use a separate ``(missing)`` category (escaped if that literal
     label already exists). Retained slices are never silently renormalized.
+    ``pie_mode='cell_fraction'`` retains the captured-cell composition.
+    ``pie_mode='sample_abundance'`` requires ``pie_key=condition_key`` and
+    ``pie_sample_key``. It first computes state fractions within each
+    sample×condition over annotated cells, averages those fractions equally
+    within each condition, then normalizes the condition means into pie slices.
+    This is a relative sample-abundance profile, not within-node cell fractions.
+    Zero-state samples contribute zeros; sample units with no annotated cells
+    retain unavailable denominators. All selected sample units are retained
+    before focus or display filtering. ``pie_values`` and ``pie_sample_counts``
+    expose the actual slice values and their denominators; ``composition_counts``
+    always retains the raw cell counts/fractions. These summaries are descriptive.
 
     ``graph_node_order`` labels matrix rows/columns explicitly, including graph
     states absent from a subset. Without it, a labeled matrix, stored node_order,
@@ -692,13 +787,32 @@ def paga_shift_map(
         raise ValueError(
             "node_color_mode must be one of {'palette', 'alignment', 'delta', 'constant'}."
         )
+    if node_position not in {"reference", "pooled"}:
+        raise ValueError("node_position must be 'reference' or 'pooled'.")
+    if not isinstance(show_shift, (bool, np.bool_)):
+        raise TypeError("show_shift must be a boolean.")
+    if pie_mode not in {"cell_fraction", "sample_abundance"}:
+        raise ValueError("pie_mode must be 'cell_fraction' or 'sample_abundance'.")
+    if pie_mode == "sample_abundance":
+        if pie_key != condition_key:
+            raise ValueError(
+                "pie_mode='sample_abundance' requires pie_key=condition_key."
+            )
+        if pie_sample_key is None or pie_sample_key not in adata.obs:
+            raise KeyError(
+                "pie_mode='sample_abundance' requires an existing pie_sample_key."
+            )
+    elif pie_sample_key is not None:
+        raise ValueError("pie_sample_key requires pie_mode='sample_abundance'.")
     if velocity_mode not in {"state", "grid", "stream"}:
         raise ValueError("velocity_mode must be 'state', 'grid', or 'stream'.")
     if velocity_options is not None and (not show_velocity or velocity_mode == "state"):
         raise ValueError(
             "velocity_options requires show_velocity=True and velocity_mode='grid' or 'stream'."
         )
-    field_prepare_options, field_render_options = _local_velocity_options(velocity_options)
+    field_prepare_options, field_render_options = _local_velocity_options(
+        velocity_options
+    )
     if edge_focus not in {"all", "incident", "within"}:
         raise ValueError("edge_focus must be all, incident, or within.")
     if background not in {"all", "contrast"}:
@@ -779,8 +893,13 @@ def paga_shift_map(
         adata, node_key, paga_key, graph_node_order, observed
     )
     centers = _centers(cells, names, node_key, g0, g1, min_cells, agg)
-    center_index = centers.set_index(node_key, drop=False)
-    focus = set(_ordered_labels(focus_states, "focus_states")) if focus_states is not None else set()
+    anchors = _node_anchors(cells, centers, min_cells, agg, node_position)
+    anchor_index = anchors.set_index("state", drop=False)
+    focus = (
+        set(_ordered_labels(focus_states, "focus_states"))
+        if focus_states is not None
+        else set()
+    )
     if not focus <= set(names):
         raise ValueError("focus_states contains unknown graph states.")
     if edge_focus != "all" and not focus:
@@ -805,6 +924,10 @@ def paga_shift_map(
                 )
             offsets[str(state)] = tuple(float(value) for value in offset)
     notes = []
+    if node_position == "pooled" and anchors.low_coverage.any():
+        notes.append(
+            "Pooled topology retains observed low-count nodes; min_cells still gates condition-center vectors."
+        )
     if order_source in {"current_categorical_order", "sorted_observed_labels"}:
         notes.append(
             "Graph rows use the current state order; supply graph_node_order if categories were reordered or removed after graph construction."
@@ -862,6 +985,7 @@ def paga_shift_map(
             )
             notes.extend(local_field["warnings"])
     composition, composition_counts, pie_colors, missing_pie = None, None, {}, None
+    pie_values, pie_sample_counts = None, None
     if pie_key is not None:
         composition, composition_counts, pie_categories, pie_colors, missing_pie = (
             _composition(
@@ -871,7 +995,42 @@ def paga_shift_map(
                 pie_key,
                 pie_categories,
                 pie_palette,
+                stable_order=node_position == "pooled"
+                or pie_mode == "sample_abundance",
+                required_categories=(g0, g1) if pie_mode == "sample_abundance" else (),
             )
+        )
+        pie_values = cell_fraction_pie_values(composition_counts)
+        if pie_mode == "sample_abundance":
+            sample_labels = _string_labels(
+                adata.obs[pie_sample_key], pie_sample_key
+            ).reset_index(drop=True)
+            composition, pie_values, pie_sample_counts = sample_abundance_pies(
+                cells,
+                sample_labels,
+                names,
+                pie_categories,
+                (g0, g1),
+                composition_counts,
+            )
+            missing_units = pie_sample_counts.loc[
+                ~pie_sample_counts.included, ["condition", "sample"]
+            ].drop_duplicates()
+            if len(missing_units):
+                notes.append(
+                    f"{len(missing_units)} sample-condition units have no annotated cells; "
+                    "their state abundances remain unavailable, not zero."
+                )
+    if composition is None:
+        anchors["pie_available"] = False
+    else:
+        pie_matrix = (
+            composition.set_index("node")
+            .loc[names, pie_categories]
+            .to_numpy(dtype=float)
+        )
+        anchors["pie_available"] = np.isfinite(pie_matrix).all(axis=1) & (
+            np.sum(pie_matrix, axis=1) > 0
         )
     node_colors = _get_palette(adata, node_key, names, palette)
     alignment, alignment_rep, alignment_params = None, None, {}
@@ -917,7 +1076,7 @@ def paga_shift_map(
             "Numeric color limits apply only to delta or alignment coloring."
         )
 
-    # All graph edges are retained, including those without usable reference anchors.
+    # All supplied graph edges are retained, including unavailable display anchors.
     reasons, drawn = [], []
     for edge in edge_table.itertuples(index=False):
         failures = []
@@ -930,22 +1089,18 @@ def paga_shift_map(
         if edge_focus == "within" and not {edge.source, edge.target} <= focus:
             failures.append("outside_focus")
         for endpoint in (edge.source, edge.target):
-            entry = center_index.loc[endpoint]
-            if entry.n0 == 0:
-                failures.append("missing_reference_anchor")
-            elif not entry.present0:
+            entry = anchor_index.loc[endpoint]
+            if not entry.observed:
+                failures.append(f"missing_{node_position}_anchor")
+            elif not entry.usable:
                 failures.append("insufficient_reference_cells")
         reasons.append(";".join(dict.fromkeys(failures)) if failures else "displayed")
         drawn.append(not failures)
     edge_table["displayed"] = pd.Series(drawn, index=edge_table.index, dtype=bool)
     edge_table["reason"] = pd.Series(reasons, index=edge_table.index, dtype=object)
-    for endpoint, suffix in (("source", "0"), ("target", "0")):
-        edge_table[f"{endpoint}_x"] = edge_table[endpoint].map(
-            center_index[f"x{suffix}"]
-        )
-        edge_table[f"{endpoint}_y"] = edge_table[endpoint].map(
-            center_index[f"y{suffix}"]
-        )
+    for endpoint in ("source", "target"):
+        edge_table[f"{endpoint}_x"] = edge_table[endpoint].map(anchor_index["x"])
+        edge_table[f"{endpoint}_y"] = edge_table[endpoint].map(anchor_index["y"])
     edge_max = max(float(edge_table.weight.max()) if len(edge_table) else 0.0, 1e-12)
     edge_table["linewidth_points"] = [
         _edge_width(weight, edge_max, edge_lw) for weight in edge_table.weight
@@ -997,7 +1152,15 @@ def paga_shift_map(
     centers["pie_radius_points"] = (
         np.sqrt(centers.reference_size_points2) / 2 * pie_size_scale
     )
-    center_index = centers.set_index(node_key, drop=False)
+    node_nmax = max(float(anchors.n_cells.max()), 1.0)
+    anchors["size_points2"] = [
+        _size_for_count(n, node_nmax, node_size, node_scale_by_n)
+        for n in anchors.n_cells
+    ]
+    anchors["pie_radius_points"] = np.sqrt(anchors.size_points2) / 2 * pie_size_scale
+    anchors["drawn"] = anchors.observed
+    anchors["pie_drawn"] = anchors.usable & anchors.pie_available
+    anchor_index = anchors.set_index("state", drop=False)
     velocity_index = None if velocity is None else velocity.set_index(node_key)
     vector_rows = []
     for row in centers.itertuples(index=False):
@@ -1009,6 +1172,8 @@ def paga_shift_map(
         visible = valid_shift and arrow_scale > 0 and length > 0
         if valid_shift and not visible:
             reason = "zero_vector" if length == 0 else "zero_display_scale"
+        if not show_shift:
+            visible, reason = False, "shift_disabled"
         vector_rows.append(
             {
                 "state": state,
@@ -1090,6 +1255,7 @@ def paga_shift_map(
             ylim = ax.get_ylim()
     axes = {"map": ax}
     artists = {
+        "nodes": {},
         "reference_nodes": {},
         "comparison_nodes": {},
         "insufficient_nodes": [],
@@ -1143,23 +1309,27 @@ def paga_shift_map(
     obstacles, label_anchors = [], {}
     for _, row in centers.iterrows():
         state, color = row[node_key], node_colors[row[node_key]]
-        if row.n0:
-            anchor = (float(row.x0), float(row.y0))
+        node = anchor_index.loc[state]
+        if node.observed:
+            anchor = (float(node.x), float(node.y))
             label_anchors[state] = anchor
-            reference_size = float(row.reference_size_points2)
-            if row.present0:
-                artists["reference_nodes"][state] = ax.scatter(
+            anchor_size = float(node.size_points2)
+            if node.usable:
+                marker = ax.scatter(
                     *anchor,
-                    s=reference_size,
+                    s=anchor_size,
                     marker="o",
                     facecolors="white",
                     edgecolors=[color],
                     linewidths=1.7,
                     zorder=5,
                 )
-                radius = np.sqrt(reference_size) / 2
-                if composition_index is not None:
-                    radius = float(row.pie_radius_points)
+                artists["nodes"][state] = marker
+                if node_position == "reference":
+                    artists["reference_nodes"][state] = marker
+                radius = np.sqrt(anchor_size) / 2
+                if composition_index is not None and node.pie_available:
+                    radius = float(node.pie_radius_points)
                     box, ring, highlight = pie_glyph(
                         ax,
                         anchor,
@@ -1180,7 +1350,7 @@ def paga_shift_map(
                 elif state in highlights:
                     artists["highlight_rings"][state] = ax.scatter(
                         *anchor,
-                        s=(np.sqrt(reference_size) + 6) ** 2,
+                        s=(np.sqrt(anchor_size) + 6) ** 2,
                         facecolors="none",
                         edgecolors=highlight_edgecolor,
                         linewidths=highlight_lw,
@@ -1196,9 +1366,41 @@ def paga_shift_map(
                     linewidths=1.5,
                     zorder=5,
                 )
+                artists["nodes"][state] = marker
                 artists["insufficient_nodes"].append(marker)
                 obstacles.append((*anchor, np.sqrt(endpoint_size) / 2 + 2))
-        if row.n1 and (show_endpoints or not row.n0):
+        if (
+            node_position == "pooled"
+            and row.n0
+            and (
+                show_shift
+                or show_endpoints
+                or (show_velocity and velocity_mode == "state")
+            )
+        ):
+            reference = (float(row.x0), float(row.y0))
+            if row.present0:
+                marker = ax.scatter(
+                    *reference,
+                    s=endpoint_size,
+                    facecolors="white",
+                    edgecolors=[color],
+                    linewidths=1.2,
+                    zorder=6,
+                )
+            else:
+                marker = ax.scatter(
+                    *reference,
+                    s=endpoint_size,
+                    marker="x",
+                    c=[color],
+                    linewidths=1.5,
+                    zorder=6,
+                )
+                artists["insufficient_nodes"].append(marker)
+            artists["reference_nodes"][state] = marker
+            obstacles.append((*reference, np.sqrt(endpoint_size) / 2 + 2))
+        if row.n1 and (show_endpoints or (node_position == "reference" and not row.n0)):
             point = (float(row.x1), float(row.y1))
             if state not in label_anchors:
                 label_anchors[state] = point
@@ -1279,7 +1481,12 @@ def paga_shift_map(
         ylabel=f"{basis_name.upper()} 2",
         xticks=[],
         yticks=[],
-        title=title or f"PAGA topology and condition contrast · {g0} → {g1}",
+        title=title
+        or (
+            f"PAGA topology and condition contrast · {g0} → {g1}"
+            if show_shift
+            else f"PAGA topology and composition · {g0} / {g1}"
+        ),
     )
     for spine in ax.spines.values():
         spine.set_visible(False)
@@ -1307,18 +1514,36 @@ def paga_shift_map(
             markerfacecolor="white",
             markeredgecolor="#52616C",
             markersize=8,
-            label=f"Reference: {g0}",
-        ),
-        Line2D(
-            [],
-            [],
-            color=shift_color,
-            marker=">",
-            markersize=5,
-            lw=arrow_linewidth,
-            label=f"Condition contrast ×{arrow_scale:g}",
+            label=f"Reference: {g0}"
+            if node_position == "reference"
+            else "Pooled state node",
         ),
     ]
+    if show_shift:
+        legend_handles.append(
+            Line2D(
+                [],
+                [],
+                color=shift_color,
+                marker=">",
+                markersize=5,
+                lw=arrow_linewidth,
+                label=f"Condition contrast ×{arrow_scale:g}",
+            )
+        )
+    if node_position == "pooled" and artists["reference_nodes"]:
+        legend_handles.append(
+            Line2D(
+                [],
+                [],
+                marker="o",
+                linestyle="none",
+                markerfacecolor="white",
+                markeredgecolor="#52616C",
+                markersize=6,
+                label=f"Reference center: {g0}",
+            )
+        )
     if show_endpoints:
         legend_handles.insert(
             1,
@@ -1347,7 +1572,9 @@ def paga_shift_map(
         )
     elif local_render is not None:
         legend_handles.extend(local_render["legend_handles"])
-    if (centers.coverage_status == "comparison_only").any():
+    if (centers.coverage_status == "comparison_only").any() and (
+        node_position == "reference" or artists["comparison_nodes"]
+    ):
         legend_handles.append(
             Line2D(
                 [],
@@ -1359,7 +1586,9 @@ def paga_shift_map(
                 label="Comparison only; no reference",
             )
         )
-    if (centers.coverage_status == "reference_only").any():
+    if (centers.coverage_status == "reference_only").any() and (
+        node_position == "reference" or artists["reference_nodes"]
+    ):
         legend_handles.append(
             Line2D(
                 [],
@@ -1397,6 +1626,18 @@ def paga_shift_map(
             )
         )
     if pie_key is not None:
+        if node_position == "pooled" or pie_mode == "sample_abundance":
+            legend_handles.append(
+                Line2D(
+                    [],
+                    [],
+                    linestyle="none",
+                    color="none",
+                    label="Pies: relative sample abundance"
+                    if pie_mode == "sample_abundance"
+                    else "Pies: captured cell fractions",
+                )
+            )
         legend_handles.extend(
             Patch(
                 facecolor=pie_colors[category],
@@ -1405,14 +1646,14 @@ def paga_shift_map(
             )
             for category in pie_categories
         )
-    if node_scale_by_n and centers.present0.any():
+    if node_scale_by_n and anchors.usable.any():
         counts = np.unique(
             np.round(
-                np.quantile(centers.loc[centers.present0, "n0"], [0, 0.5, 1])
+                np.quantile(anchors.loc[anchors.usable, "n_cells"], [0, 0.5, 1])
             ).astype(int)
         )
         for count in counts[:3]:
-            size = _size_for_count(count, nmax, node_size, True)
+            size = _size_for_count(count, node_nmax, node_size, True)
             legend_handles.append(
                 Line2D(
                     [],
@@ -1423,7 +1664,9 @@ def paga_shift_map(
                     markeredgecolor="#83919A",
                     markersize=np.sqrt(size)
                     * (pie_size_scale if pie_key is not None else 1.0),
-                    label=f"{g0}: {count} cells",
+                    label=f"{g0}: {count} cells"
+                    if node_position == "reference"
+                    else f"Pooled: {count} cells",
                 )
             )
     if len(displayed_edges):
@@ -1491,6 +1734,7 @@ def paga_shift_map(
     )
     data = {
         "centroids": centers,
+        "node_anchors": anchors,
         "edges": edges,
         "edge_table": edge_table,
         "display_cells": cells,
@@ -1499,8 +1743,14 @@ def paga_shift_map(
     }
     if composition is not None:
         data.update(
-            {"composition": composition, "composition_counts": composition_counts}
+            {
+                "composition": composition,
+                "composition_counts": composition_counts,
+                "pie_values": pie_values,
+            }
         )
+    if pie_sample_counts is not None:
+        data["pie_sample_counts"] = pie_sample_counts
     if velocity is not None:
         data["velocity"] = velocity
     if alignment is not None:
@@ -1524,6 +1774,14 @@ def paga_shift_map(
         "group1": g1,
         "center_method": agg,
         "center_unit": "cells",
+        "node_position": node_position,
+        "node_anchor_count_scope": "reference_condition"
+        if node_position == "reference"
+        else "pooled_selected_conditions",
+        "node_anchor_coverage_policy": "reference_count_at_least_min_cells"
+        if node_position == "reference"
+        else "observed_pooled_count_positive",
+        "node_count_max": node_nmax,
         "min_cells": int(min_cells),
         "node_color_mode": node_color_mode,
         "graph_key": paga_key,
@@ -1555,11 +1813,30 @@ def paga_shift_map(
         "velocity_conditions": [g0, g1] if show_velocity else None,
         "composition_scope": "selected_conditions" if pie_key else None,
         "pie_key": pie_key,
+        "pie_mode": pie_mode if pie_key is not None else None,
+        "pie_sample_key": pie_sample_key,
+        "pie_fraction_denominator": (
+            "sum of equal-sample mean state abundances across selected conditions"
+            if pie_mode == "sample_abundance"
+            else "all captured cells in the state across selected conditions"
+        )
+        if pie_key is not None
+        else None,
+        "pie_sample_denominator": "annotated cells per sample-condition unit"
+        if pie_mode == "sample_abundance"
+        else None,
+        "pie_sample_roster_scope": "all supplied selected-condition units before state, focus, or display filtering"
+        if pie_mode == "sample_abundance"
+        else None,
+        "pie_inference": "descriptive; no abundance test or directed transitions inferred",
+        "composition_counts_metric": "raw captured-cell counts and within-state cell fractions",
         "pie_categories": pie_categories if pie_key else None,
         "pie_palette": pie_colors,
         "pie_missing_category": missing_pie,
         "pie_size_units": "points",
-        "pie_radius_formula": "sqrt(reference_size_points2)/2 * pie_size_scale",
+        "pie_radius_formula": "sqrt(reference_size_points2)/2 * pie_size_scale"
+        if node_position == "reference"
+        else "sqrt(node_anchors.size_points2)/2 * pie_size_scale",
         "node_size_units": "points_squared",
         "node_size_scale_by_n": node_scale_by_n,
         "reference_count_max": nmax,
@@ -1572,6 +1849,8 @@ def paga_shift_map(
         "endpoint_size": endpoint_size,
         "comparison_markers": "actual unscaled comparison centers",
         "arrow_scale": arrow_scale,
+        "show_shift": bool(show_shift),
+        "shift_anchor_source": "actual reference-condition center; independent of topology node positions",
         "velocity_scale": velocity_scale if velocity_mode == "state" else None,
         "arrow_width": arrow_width,
         "arrow_width_units": "data (legacy)" if arrow_width is not None else "points",
@@ -1592,7 +1871,9 @@ def paga_shift_map(
         "edge_focus": edge_focus,
         "n_edges_total": len(edge_table),
         "n_edges_displayed": int(edge_table.displayed.sum()),
-        "n_edges_focus_filtered": int(edge_table.reason.str.contains("outside_focus").sum()),
+        "n_edges_focus_filtered": int(
+            edge_table.reason.str.contains("outside_focus").sum()
+        ),
         "highlight_edgecolor": highlight_edgecolor,
         "legend": legend,
         "legend_loc": legend_loc,

@@ -327,6 +327,21 @@ the observations used to compute the explanation or sample curves.
 
 ## Biological samples and uncertainty
 
+### States with few or no reference cells
+
+An unavailable within-state displacement does not make the observed expression
+or abundance uninteresting. For explicit genes or programs, use
+`panels=('distribution', 'expression')` to show per-sample expression summaries
+and the expression map. Zero-cell sample slots have missing expression, not
+zero expression. Requested curve or contribution panels that lack the required
+axis are labelled unavailable. Supply genes/programs explicitly when no valid
+contribution ranking exists.
+
+An optional `coordinate_key` names a documented numeric observation column for
+descriptive curves; it does not replace the stored shift or create new gene
+contributions. See [states with sparse condition coverage](CONDITION_SPARSE_STATES.md)
+for composition pies, per-sample support, and a separate broader-parent analysis.
+
 `sample_key` is inherited from the source `robust_shift()` result. When
 biological samples are available, cells contribute to their sample centers;
 cells are not relabeled as independent experimental replicates. Repeating

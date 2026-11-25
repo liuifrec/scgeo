@@ -10,12 +10,14 @@
     ]
   },
   "scgeo.pl.shift_curves": {
-    "summary": "Plot sample-balanced gene or program curves along a stored geometric shift coordinate with coordinated expression and signed-contribution maps.",
+    "summary": "Plot sample curves, observed expression distributions and expression/contribution maps while retaining states with sparse condition coverage.",
     "notes": [
-      "Unreleased development API. Curves use a frozen, expression-derived coordinate; it is not pseudotime, observed time, a trajectory, or an independent causal endpoint.",
+      "Unreleased development API. The default curve coordinate is a frozen, expression-derived shift score. coordinate_key can explicitly name a numeric observation coordinate without changing stored shifts or contribution coefficients; neither choice automatically supplies time or trajectory evidence.",
       "Compact-kernel smoothing occurs within each sample and condition, with equal weighting of supported samples. Unsupported regions remain gaps and curves do not extrapolate beyond sample support. The optional ribbon is the observed between-sample range, not a confidence interval; fewer than two supporting samples produce no range.",
       "Program curves show mean member expression while contribution maps sum member-gene contributions. A difference between condition curves at the same expression-derived coordinate is not a matched causal treatment effect.",
-      "Reads stored explanations without changing AnnData; source signatures and labels reject stale inputs before drawing. Scatter subsampling changes display only. Supplied axes support composition, and return_result=True exposes complete source tables and figure exports."
+      "Reads stored explanations without changing AnnData; source signatures and labels reject stale inputs before drawing. Scatter subsampling changes display only. Supplied axes support composition, and return_result=True exposes complete source tables and figure exports.",
+      "Expression and distribution panels do not require a shift direction. Unsupported requested curve/contribution panels receive availability messages. Explicit genes/programs are required when no valid contribution ranking exists, including zero-shift states.",
+      "Distribution panels show empirical sample medians and interquartile ranges, with observed counts. The full supplied AnnData roster retains zero-cell state/sample slots as missing expression; a singleton remains one observed point. Coverage, per-sample expression and panel availability are exported. Distribution-only calls do not require an embedding."
     ]
   },
   "scgeo.pl.shift_embedding": {
@@ -171,7 +173,10 @@
       "Projected velocity must match the display basis. Velocity and composition summaries use only group0/group1; background=\"all\" can retain other cells as context.",
       "Equal aspect, distinct condition endpoints, point-sized glyphs, automatic labels, and graphical legends are the new defaults. Explicit arrow_width retains the legacy data-unit style.",
       "return_result=True returns PlotResult with named map axis and full cell/edge/vector sources. Legacy owned (fig, ax), supplied ax, and (fig, ax, data) returns remain supported.",
-      "velocity_mode=\"state\" preserves the original aggregate arrows. Opt-in \"grid\"/\"stream\" use selected-condition local fields; velocity_options controls finite-radius support and rendering, with full velocity_* source tables."
+      "velocity_mode=\"state\" preserves the original aggregate arrows. Opt-in \"grid\"/\"stream\" use selected-condition local fields; velocity_options controls finite-radius support and rendering, with full velocity_* source tables.",
+      "node_position=\"reference\" preserves the legacy reference-anchored layout. node_position=\"pooled\" places topology, node glyphs and pies at observed pooled selected-condition centers even with sparse or absent reference cells. Actual condition centers and displacement-arrow origins remain unchanged; show_shift=False supports composition-only views.",
+      "pie_key selects categorical sectors. pie_mode=\"cell_fraction\" retains raw captured-cell proportions. pie_mode=\"sample_abundance\", with pie_key equal to condition_key and pie_sample_key supplied, averages state frequencies equally across valid samples within each condition and normalizes condition means for plotting. It exports raw counts, sample denominators, means and plotted values; these sectors are not raw cell fractions or inferential evidence.",
+      "Zero-state samples with positive denominator contribute frequency zero; zero denominator is undefined. The supplied AnnData defines the denominator population and observed sample roster. Apply focus_states for display rather than subsetting away denominator cells or absent-state samples."
     ]
   },
   "scgeo.pl.paga_scgeo": {

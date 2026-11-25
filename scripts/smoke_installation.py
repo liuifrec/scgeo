@@ -148,6 +148,13 @@ else:
             assert {"cells", "curves", "sample_curves", "features"} <= set(curve_export["tables"])
             assert Path(curve_export["figures"]["svg"]).is_file()
             plt.close(curves.fig)
+            distributions = sg.pl.shift_curves(
+                adata, var_names=[adata.var_names[0]], panels="distribution",
+                return_result=True, show=False,
+            )
+            assert len(distributions.data["coverage"]) == 6
+            assert distributions.data["sample_expression"].n_cells.sum() == adata.n_obs
+            plt.close(distributions.fig)
             connector = sg.pl.shift_embedding(
                 adata, basis="pca", return_result=True, show=False,
             )
@@ -181,6 +188,17 @@ else:
             assert {"velocity_grid", "velocity_cells", "velocity_vectors"} <= set(graph_export["tables"])
             assert all(Path(path).is_file() for path in graph_export["figures"].values())
             plt.close(paga.fig)
+            composition = sg.pl.paga_shift_map(
+                adata, node_key="state", condition_key="condition",
+                group0="control", group1="treated", basis="pca",
+                graph_node_order=["A", "B"], node_position="pooled",
+                pie_key="condition", pie_mode="sample_abundance",
+                pie_sample_key="sample", show_shift=False, show_endpoints=False,
+                return_result=True, show=False,
+            )
+            assert {"node_anchors", "pie_values", "pie_sample_counts"} <= set(composition.data)
+            np.testing.assert_allclose(composition.data["pie_values"].fraction, 0.5)
+            plt.close(composition.fig)
             field = sg.pl.velocity_field(
                 adata, basis="pca", condition_key="condition", groups=["control"],
                 mode="stream", grid_size=20, n_neighbors=12, radius=0.28,

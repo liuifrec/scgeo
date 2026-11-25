@@ -192,7 +192,9 @@ def _expression_column(adata, positions, gene, layer):
     return values
 
 
-def _features(adata, bundle, cells, state, var_names, program_names):
+def _features(
+    adata, bundle, cells, state, var_names, program_names, *, attribution_available=True
+):
     genes = bundle.get("genes")
     if not isinstance(genes, pd.DataFrame) or not {"state", "gene"} <= set(genes):
         raise ValueError(
@@ -204,6 +206,11 @@ def _features(adata, bundle, cells, state, var_names, program_names):
     genes["gene"] = genes.gene.astype(str)
     genes = genes.set_index("gene", drop=False)
     if var_names is None and program_names is None:
+        if not attribution_available:
+            raise ValueError(
+                "No valid contribution ranking is available for this state. "
+                "Supply var_names or program_names to inspect observed expression."
+            )
         if "contribution" not in genes:
             raise ValueError(
                 "Supply var_names when no stored contribution ranking is available."
@@ -217,7 +224,8 @@ def _features(adata, bundle, cells, state, var_names, program_names):
         )
         if not var_names:
             raise ValueError(
-                "No finite contributions are available; supply a supported state."
+                "No finite contribution ranking is available. Supply var_names or "
+                "program_names to inspect observed expression."
             )
     requested = []
     if var_names is not None:
@@ -319,6 +327,9 @@ def _features(adata, bundle, cells, state, var_names, program_names):
                     contribution[:] = np.nan
             else:
                 contribution[:] = np.nan
+        if not attribution_available:
+            contribution[:] = np.nan
+            mapped = 0
         output[feature_id] = (expression, contribution)
         feature_rows.append(
             {
@@ -339,17 +350,26 @@ def _features(adata, bundle, cells, state, var_names, program_names):
 
 
 def _smooth_samples(
-    cells, values, *, grid, bandwidth, min_cells, has_samples, uncertainty
+    cells,
+    values,
+    *,
+    grid,
+    bandwidth,
+    min_cells,
+    has_samples,
+    uncertainty,
+    coordinate="shift_score",
+    conditions=None,
 ):
     """Compact-kernel means within each sample, with explicit unsupported points."""
     sample_rows, summary_rows = [], []
-    for condition in pd.unique(cells.condition):
+    for condition in pd.unique(cells.condition) if conditions is None else conditions:
         group = cells.loc[cells.condition.eq(condition)]
         fits = []
         counts = []
         for sample, frame in group.groupby("sample", sort=False, observed=True):
             indexes = frame.index.to_numpy(dtype=int)
-            x, y = frame.shift_score.to_numpy(dtype=float), values[indexes]
+            x, y = frame[coordinate].to_numpy(dtype=float), values[indexes]
             finite = np.isfinite(x) & np.isfinite(y)
             x, y = x[finite], y[finite]
             estimate, support = (
@@ -380,7 +400,8 @@ def _smooth_samples(
                     )
             fits.append(estimate)
             counts.append(support)
-        fits, counts = np.asarray(fits), np.asarray(counts)
+        fits = np.asarray(fits).reshape((-1, len(grid)))
+        counts = np.asarray(counts).reshape((-1, len(grid)))
         for j, point in enumerate(grid):
             valid = np.isfinite(fits[:, j])
             n = int(valid.sum())
@@ -399,7 +420,9 @@ def _smooth_samples(
                     "n_smoothing_units": n,
                     "n_cells": int(counts[valid, j].sum()),
                     "support": (
-                        "unsupported"
+                        "no_observed_cells"
+                        if group.empty
+                        else "unsupported"
                         if n == 0
                         else "pooled_cells_only"
                         if not has_samples
@@ -410,6 +433,121 @@ def _smooth_samples(
                 }
             )
     return pd.DataFrame(summary_rows), pd.DataFrame(sample_rows)
+
+
+def _state_plot_status(bundle, cells, state):
+    entries = [
+        entry
+        for entry in bundle.get("state_results", {}).values()
+        if isinstance(entry, Mapping) and str(entry.get("state")) == state
+    ]
+    status = str(entries[0].get("status", "unknown")) if entries else "unknown"
+    finite = np.isfinite(cells.shift_score)
+    supported = (
+        status not in {"zero_shift", "insufficient_cells"}
+        and finite.any()
+        and float(np.ptp(cells.loc[finite, "shift_score"])) > 1e-12
+    )
+    return status, bool(supported)
+
+
+def _coverage(adata, bundle, cells, has_samples):
+    """Keep zero-cell samples from the supplied contrast roster as missing data."""
+    params = bundle["params"]
+    conditions = [str(params["group0"]), str(params["group1"])]
+    if len(set(conditions)) != 2 or not set(cells.condition) <= set(conditions):
+        raise ValueError(
+            "Stored cells must belong to the two distinct declared conditions."
+        )
+    condition_key, sample_key = params.get("condition_key"), params.get("sample_key")
+    if condition_key not in adata.obs:
+        raise KeyError(
+            "The stored condition key is required to retain the sample roster."
+        )
+    condition_labels = adata.obs[condition_key].astype(str)
+    rows = []
+    for condition in conditions:
+        roster = adata.obs.loc[condition_labels.eq(condition)]
+        if has_samples:
+            if sample_key not in roster or roster[sample_key].isna().any():
+                raise ValueError(
+                    "The supplied contrast roster requires nonmissing sample labels."
+                )
+            _, samples, _ = observation_labels(roster[sample_key], sample_key)
+            sample_names = samples or [None]
+        else:
+            sample_names = ["pooled cells"]
+        for sample in sample_names:
+            mask = cells.condition.eq(condition) & cells["sample"].eq(sample)
+            n_cells = int(mask.sum())
+            rows.append(
+                {
+                    "state": str(cells.state.iloc[0]),
+                    "condition": condition,
+                    "sample": sample,
+                    "n_cells": n_cells,
+                    "n_coordinate_cells": int(
+                        np.isfinite(cells.loc[mask, "curve_coordinate"]).sum()
+                    ),
+                    "sample_in_roster": bool(
+                        len(roster) and (not has_samples or sample is not None)
+                    ),
+                    "biological_sample": bool(has_samples and sample is not None),
+                    "status": "no_observed_cells"
+                    if n_cells == 0
+                    else "single_observed_cell"
+                    if n_cells == 1
+                    else "observed",
+                }
+            )
+    return conditions, pd.DataFrame(rows)
+
+
+def _sample_expression(cells, expression, coverage):
+    rows = []
+    for row in coverage.to_dict(orient="records"):
+        mask = cells.condition.eq(row["condition"]) & cells["sample"].eq(row["sample"])
+        values = expression[mask.to_numpy()]
+        # A singleton is an observed value, never an estimated interval.
+        q25, q75 = (
+            np.quantile(values, [0.25, 0.75]) if len(values) >= 2 else (np.nan, np.nan)
+        )
+        rows.append(
+            {
+                **row,
+                "mean": float(values.mean()) if len(values) else np.nan,
+                "median": float(np.median(values)) if len(values) else np.nan,
+                "q25": float(q25),
+                "q75": float(q75),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _unavailable_axis(axis, label, reason):
+    axis.text(
+        0.5,
+        0.52,
+        label,
+        ha="center",
+        va="center",
+        transform=axis.transAxes,
+        fontsize=10,
+        weight="bold",
+    )
+    axis.text(
+        0.5,
+        0.38,
+        reason,
+        ha="center",
+        va="center",
+        transform=axis.transAxes,
+        fontsize=8,
+        color="0.35",
+        wrap=True,
+    )
+    axis.set_xticks([])
+    axis.set_yticks([])
 
 
 def _canvas(panel_names, axes, ax, nrows, ncols, figsize, colorbar_keys, show_colorbar):
@@ -475,6 +613,7 @@ def shift_curves(
     key="explain_shift",
     basis="umap",
     panels=("curve", "expression", "contribution"),
+    coordinate_key=None,
     color=None,
     palette=None,
     cmap="viridis",
@@ -505,6 +644,23 @@ def shift_curves(
     ``var_names=None`` selects up to three genes by absolute stored contribution.
     Select one ``state`` when the explanation contains several states.
 
+    States without a supported shift can still use explicit ``var_names`` or
+    ``program_names`` with ``panels=('distribution', 'expression')``. The
+    distribution panel shows each biological sample's observed expression
+    median and cell interquartile range, with its cell count. A singleton is
+    one observed point without an interval. Zero-cell samples from the full
+    supplied AnnData roster stay blank; missing expression is never zero.
+    Both declared conditions remain visible. Without ``sample_key``, these
+    are explicitly pooled-cell distributions. A distribution-only plot needs
+    no embedding. Unsupported curve/contribution panels are labelled as such.
+    An unsupported state has no automatic contribution-based gene selection.
+
+    ``coordinate_key`` optionally names a numeric ``adata.obs`` column for
+    descriptive curves. It must be explicitly supplied; the plot does not
+    manufacture a direction or extrapolate an absent condition. The original
+    stored ``shift_score`` is preserved. Exports use ``curve_coordinate`` and
+    ``coordinate_source`` to distinguish a supplied coordinate from the shift.
+
     Curves are tricube-kernel means estimated separately in each biological
     sample and condition, then averaged with equal sample weights at every
     supported grid point. ``bandwidth`` is a fraction of the state's observed
@@ -515,9 +671,11 @@ def shift_curves(
     point. It is *not* a confidence interval. ``uncertainty='none'`` hides it.
     With no biological sample key, only a pooled descriptive curve is drawn.
 
-    The x axis is an expression-derived geometric coordinate, not time or an
-    inferred trajectory. Curves and ribbons are conditional on the frozen
-    coordinate and smoothing choice, and cannot establish causal drivers.
+    The default x axis is an expression-derived geometric coordinate, not time
+    or an inferred trajectory. A supplied coordinate is used as provided and
+    has no inferred temporal or causal meaning here. Curves and ribbons are
+    conditional on the coordinate and smoothing choice, and cannot establish
+    causal drivers.
     Program expression uses stored membership weights (a mean); program
     contribution sums the member genes' signed axis contributions.
 
@@ -528,7 +686,8 @@ def shift_curves(
     provide ``'gene:Gata1:expression_colorbar'`` and the analogous contribution
     colorbar axis. ``ax`` is a convenience for one feature and one panel.
     Supplied figures retain their size, layout and title. ``return_result=True``
-    exposes full cell, curve, sample-curve and feature tables via ``PlotResult``.
+    exposes full cell, curve, sample-curve, feature, coverage, sample-expression
+    and panel-status tables via ``PlotResult``.
     No AnnData data are modified. Files are written only when ``save`` is set.
     """
     _validate_style(style, size, alpha, random_state, figsize, save)
@@ -549,24 +708,60 @@ def shift_curves(
     ):
         raise TypeError("show_samples and show_colorbar must be boolean.")
     panels = _labels(panels, "panels")
-    if not set(panels) <= {"curve", "expression", "contribution"}:
-        raise ValueError("panels can contain only curve, expression and contribution.")
+    if not set(panels) <= {"curve", "distribution", "expression", "contribution"}:
+        raise ValueError(
+            "panels can contain only curve, distribution, expression and contribution."
+        )
     expression_cmap, signed_cmap = (
         mpl.colormaps.get_cmap(cmap),
         mpl.colormaps.get_cmap(contribution_cmap),
     )
     bundle, cells, has_samples = _explanation(adata, key)
     state, cells = _selected_state(cells, state)
-    finite_score = np.isfinite(cells.shift_score)
-    if (
-        not finite_score.any()
-        or float(np.ptp(cells.loc[finite_score, "shift_score"])) <= 1e-12
-    ):
-        raise ValueError(
-            f"State {state!r} has no supported nonconstant shift coordinate (zero shift or insufficient coverage)."
+    state_status, shift_available = _state_plot_status(bundle, cells, state)
+    values, features = _features(
+        adata,
+        bundle,
+        cells,
+        state,
+        var_names,
+        program_names,
+        attribution_available=shift_available,
+    )
+    if coordinate_key is not None:
+        if not isinstance(coordinate_key, str):
+            raise TypeError("coordinate_key must name a numeric observation column.")
+        if coordinate_key not in adata.obs:
+            raise KeyError(
+                f"coordinate_key {coordinate_key!r} is not present in adata.obs."
+            )
+        raw_coordinate = adata.obs.iloc[cells.obs_position.to_numpy(dtype=int)][
+            coordinate_key
+        ]
+        if not pd.api.types.is_numeric_dtype(
+            raw_coordinate
+        ) or pd.api.types.is_bool_dtype(raw_coordinate):
+            raise TypeError(
+                "coordinate_key must name a numeric, nonboolean observation column."
+            )
+        coordinate = pd.to_numeric(raw_coordinate, errors="raise").to_numpy(
+            dtype=float, na_value=np.nan
         )
-    values, features = _features(adata, bundle, cells, state, var_names, program_names)
-    conditions = list(pd.unique(cells.condition))
+        if np.isinf(coordinate).any():
+            raise ValueError("The supplied coordinate must be finite or missing.")
+        coordinate_source = f"obs:{coordinate_key}"
+    else:
+        coordinate = cells.shift_score.to_numpy(dtype=float).copy()
+        coordinate_source = "stored_shift_score"
+    cells["curve_coordinate"] = coordinate
+    cells["coordinate_source"] = coordinate_source
+    finite_coordinate = np.isfinite(coordinate)
+    curve_available = bool(
+        finite_coordinate.any()
+        and np.ptp(coordinate[finite_coordinate]) > 1e-12
+        and (coordinate_key is not None or shift_available)
+    )
+    conditions, coverage = _coverage(adata, bundle, cells, has_samples)
     colors = category_palette(conditions, palette)
     scatter_colors = cells.condition.map(colors).to_numpy()
     scatter_numeric = None
@@ -597,7 +792,17 @@ def shift_curves(
     display = display_indices(cells.condition.to_numpy(), max_points, random_state)
     cells["displayed"] = False
     cells.loc[display, "displayed"] = True
-    if any(panel != "curve" for panel in panels):
+    feature_attribution = {
+        feature: bool(
+            shift_available
+            and np.isfinite(data[1]).any()
+            and features.set_index("feature").loc[feature, "n_attributed_members"] > 0
+        )
+        for feature, data in values.items()
+    }
+    if "expression" in panels or (
+        "contribution" in panels and any(feature_attribution.values())
+    ):
         display_key, coordinates = resolve_embedding(adata, basis)
         xy = np.asarray(
             coordinates[cells.obs_position.to_numpy(dtype=int), :2], dtype=float
@@ -607,25 +812,110 @@ def shift_curves(
         cells["x"], cells["y"] = xy[:, 0], xy[:, 1]
     else:
         display_key, xy = None, None
-    low, high = cells.loc[finite_score, "shift_score"].agg(["min", "max"])
-    grid = np.linspace(low, high, grid_size)
-    absolute_bandwidth = float(bandwidth * (high - low))
-    curve_tables, sample_tables, cell_tables = [], [], []
-    for feature, (expression, contribution) in values.items():
-        curves, samples = _smooth_samples(
-            cells,
-            expression,
-            grid=grid,
-            bandwidth=absolute_bandwidth,
-            min_cells=min_cells,
-            has_samples=has_samples,
-            uncertainty=uncertainty,
+    if curve_available:
+        low, high = (
+            coordinate[finite_coordinate].min(),
+            coordinate[finite_coordinate].max(),
         )
+        grid = np.linspace(low, high, grid_size)
+        absolute_bandwidth = float(bandwidth * (high - low))
+    else:
+        grid, absolute_bandwidth = np.empty(0), np.nan
+    curve_tables, sample_tables, cell_tables, expression_tables, panel_rows = (
+        [],
+        [],
+        [],
+        [],
+        [],
+    )
+    for feature, (expression, contribution) in values.items():
+        if curve_available:
+            curves, samples = _smooth_samples(
+                cells,
+                expression,
+                grid=grid,
+                bandwidth=absolute_bandwidth,
+                min_cells=min_cells,
+                has_samples=has_samples,
+                uncertainty=uncertainty,
+                coordinate="curve_coordinate",
+                conditions=conditions,
+            )
+            observed_pairs = set(zip(samples.condition, samples["sample"]))
+            missing_samples = [
+                {
+                    "condition": row.condition,
+                    "sample": row.sample,
+                    "shift_score": np.nan,
+                    "expression": np.nan,
+                    "n_cells": 0,
+                    "supported": False,
+                }
+                for row in coverage.itertuples(index=False)
+                if (row.condition, row.sample) not in observed_pairs
+            ]
+            if missing_samples:
+                samples = pd.concat(
+                    [samples, pd.DataFrame(missing_samples)], ignore_index=True
+                )
+        else:
+            curves = pd.DataFrame(
+                {
+                    "condition": conditions,
+                    "shift_score": np.nan,
+                    "expression": np.nan,
+                    "lower": np.nan,
+                    "upper": np.nan,
+                    "n_samples": 0,
+                    "n_smoothing_units": 0,
+                    "n_cells": 0,
+                    "support": "coordinate_unavailable",
+                }
+            )
+            samples = coverage[["condition", "sample", "n_cells"]].copy()
+            samples["shift_score"], samples["expression"], samples["supported"] = (
+                np.nan,
+                np.nan,
+                False,
+            )
         for table in (curves, samples):
             table.insert(0, "feature", feature)
             table.insert(0, "state", state)
+            table["curve_coordinate"] = table.shift_score
+            table["coordinate_source"] = coordinate_source
+            if coordinate_key is not None:
+                table["shift_score"] = np.nan
         curve_tables.append(curves)
         sample_tables.append(samples)
+        distribution = _sample_expression(cells, expression, coverage)
+        distribution.insert(1, "feature", feature)
+        expression_tables.append(distribution)
+        for panel in panels:
+            available = (
+                curve_available
+                if panel == "curve"
+                else feature_attribution[feature]
+                if panel == "contribution"
+                else True
+            )
+            reason = (
+                ""
+                if available
+                else "no_supported_shift_coordinate"
+                if panel == "curve" and coordinate_key is None
+                else "no_variable_supplied_coordinate"
+                if panel == "curve"
+                else "shift_attribution_unavailable"
+            )
+            panel_rows.append(
+                {
+                    "state": state,
+                    "feature": feature,
+                    "panel": panel,
+                    "status": "available" if available else "unavailable",
+                    "reason": reason,
+                }
+            )
         source = cells.copy(deep=True)
         source["feature"], source["expression"], source["contribution"] = (
             feature,
@@ -636,6 +926,8 @@ def shift_curves(
     curves = pd.concat(curve_tables, ignore_index=True)
     samples = pd.concat(sample_tables, ignore_index=True)
     sources = pd.concat(cell_tables, ignore_index=True)
+    sample_expression = pd.concat(expression_tables, ignore_index=True)
+    panel_status = pd.DataFrame(panel_rows)
     warnings = [
         "Geometric shift coordinates are expression-derived; association and attribution are descriptive, not causal."
     ]
@@ -643,13 +935,29 @@ def shift_curves(
         warnings.append(
             "No biological sample key: pooled cell curves have no sample uncertainty band."
         )
+    if not shift_available:
+        warnings.append(
+            "No supported shift direction for this state: expression remains descriptive and no shift contribution is inferred."
+        )
+    if not curve_available and "curve" in panels:
+        warnings.append(
+            "No supported variable curve coordinate; the requested curve panel is labelled unavailable."
+        )
+    if coverage.n_cells.eq(0).any():
+        warnings.append(
+            "Zero observed cells imply unavailable state expression, not zero expression or biological absence."
+        )
+    if coordinate_key is not None:
+        warnings.append(
+            "Curves use the explicitly supplied observation coordinate; its causal or temporal interpretation is not inferred."
+        )
     if has_samples and any(
         cells.loc[cells.condition.eq(c), "sample"].nunique() < 2 for c in conditions
     ):
         warnings.append(
             "At least one condition has fewer than two biological samples; its uncertainty band is withheld."
         )
-    if features.n_attributed_members.lt(features.n_members).any():
+    if shift_available and features.n_attributed_members.lt(features.n_members).any():
         warnings.append(
             "Some requested genes are not used in the analysis representation; attribution coverage is listed in features."
         )
@@ -658,7 +966,8 @@ def shift_curves(
         f"{feature}:{panel}_colorbar"
         for feature in values
         for panel in panels
-        if panel != "curve"
+        if panel == "expression"
+        or (panel == "contribution" and feature_attribution[feature])
     ]
     if figsize is None:
         figsize = (4.1 * len(panels), 3.4 * len(values))
@@ -679,14 +988,97 @@ def shift_curves(
             for panel in panels:
                 name = f"{feature}:{panel}"
                 axis = selected[name]
-                if panel == "curve":
+                if panel == "distribution":
+                    distribution = sample_expression.loc[
+                        sample_expression.feature.eq(feature)
+                    ]
+                    tick_labels, median_artists, interval_artists = [], [], []
+                    for x, row in enumerate(distribution.itertuples(index=False)):
+                        condition_color = colors[row.condition]
+                        if row.n_cells >= 2:
+                            interval_artists.append(
+                                axis.vlines(
+                                    x,
+                                    row.q25,
+                                    row.q75,
+                                    color=condition_color,
+                                    lw=3,
+                                    alpha=0.75,
+                                )
+                            )
+                        if row.n_cells:
+                            median_artists.append(
+                                axis.scatter(
+                                    [x],
+                                    [row.median],
+                                    s=36,
+                                    color=condition_color,
+                                    edgecolors="white",
+                                    linewidths=0.5,
+                                    zorder=3,
+                                )
+                            )
+                        else:
+                            axis.text(
+                                x,
+                                0.06,
+                                "0 observed\ncells",
+                                transform=axis.get_xaxis_transform(),
+                                fontsize=7,
+                                color="0.4",
+                                ha="center",
+                                va="bottom",
+                            )
+                        sample_label = (
+                            str(row.sample)
+                            if row.biological_sample
+                            else "pooled cells"
+                            if not has_samples
+                            else "no sample records"
+                        )
+                        tick_labels.append(
+                            f"{sample_label}\n{row.condition}\nn={row.n_cells}"
+                        )
+                    axis.set_xticks(np.arange(len(distribution)))
+                    axis.set_xticklabels(tick_labels, fontsize=7)
+                    axis.set_xlim(-0.6, len(distribution) - 0.4)
+                    axis.set_ylabel(
+                        "Mean program expression"
+                        if feature_row.kind == "program"
+                        else "Expression"
+                    )
+                    axis.set_title(
+                        f"{feature_row['name']} · {'samples' if has_samples else 'pooled cells'}"
+                    )
+                    axis.text(
+                        0.02,
+                        0.98,
+                        "Point: median · bar: observed cell IQR",
+                        transform=axis.transAxes,
+                        fontsize=7,
+                        color="0.35",
+                        va="top",
+                    )
+                    artists[f"{name}:medians"] = median_artists
+                    artists[f"{name}:iqr"] = interval_artists
+                elif panel == "curve":
+                    if not curve_available:
+                        _unavailable_axis(
+                            axis,
+                            "Curve unavailable",
+                            "No supported shift coordinate."
+                            if coordinate_key is None
+                            else f"No variable observed coordinate in {coordinate_key}.",
+                        )
+                        axis.set_title(f"{feature_row['name']} · {state}")
+                        continue
                     point_colors = (
                         scatter_colors
                         if isinstance(scatter_colors, str)
                         else scatter_colors[display]
                     )
                     artist = axis.scatter(
-                        cells.shift_score.iloc[display],
+                        cells.curve_coordinate.iloc[display],
                         expression[display],
                         c=point_colors,
                         cmap=expression_cmap if scatter_numeric is not None else None,
@@ -707,7 +1099,7 @@ def shift_curves(
                                 "sample", sort=False, observed=True
                             ):
                                 axis.plot(
-                                    frame.shift_score,
+                                    frame.curve_coordinate,
                                     frame.expression,
                                     color=condition_color,
                                     lw=0.75,
@@ -720,12 +1112,16 @@ def shift_curves(
                             cells.condition.eq(condition), "sample"
                         ].nunique()
                         label = (
-                            f"{condition} (n={n_samples} samples)"
-                            if has_samples
-                            else f"{condition} (pooled cells)"
+                            f"{condition} (0 observed cells)"
+                            if not cells.condition.eq(condition).any()
+                            else (
+                                f"{condition} (n={n_samples} samples)"
+                                if has_samples
+                                else f"{condition} (pooled cells)"
+                            )
                         )
                         axis.plot(
-                            frame.shift_score,
+                            frame.curve_coordinate,
                             frame.expression,
                             color=condition_color,
                             lw=2,
@@ -733,14 +1129,18 @@ def shift_curves(
                         )
                         if uncertainty == "sample_range":
                             axis.fill_between(
-                                frame.shift_score.to_numpy(),
+                                frame.curve_coordinate.to_numpy(),
                                 frame.lower.to_numpy(),
                                 frame.upper.to_numpy(),
                                 color=condition_color,
                                 alpha=0.16,
                                 linewidth=0,
                             )
-                    axis.set_xlabel("Geometric shift coordinate")
+                    axis.set_xlabel(
+                        "Geometric shift coordinate"
+                        if coordinate_key is None
+                        else coordinate_key
+                    )
                     axis.set_ylabel(
                         "Mean program expression"
                         if feature_row.kind == "program"
@@ -761,10 +1161,15 @@ def shift_curves(
                 else:
                     data = expression if panel == "expression" else contribution
                     finite = np.isfinite(data)
-                    if not finite.any() or (
-                        panel == "contribution"
-                        and feature_row.n_attributed_members == 0
-                    ):
+                    if panel == "contribution" and not feature_attribution[feature]:
+                        if xy is None:
+                            _unavailable_axis(
+                                axis,
+                                "Contribution unavailable",
+                                "No supported shift attribution for this state.",
+                            )
+                            axis.set_title("Signed shift contribution")
+                            continue
                         artist = axis.scatter(
                             xy[display, 0],
                             xy[display, 1],
@@ -777,7 +1182,7 @@ def shift_curves(
                             0.5,
                             0.5,
                             "Attribution unavailable"
-                            if not finite.any()
+                            if not shift_available or not finite.any()
                             else "Not used in analysis representation",
                             transform=axis.transAxes,
                             ha="center",
@@ -844,10 +1249,15 @@ def shift_curves(
                 "curves": curves,
                 "sample_curves": samples,
                 "features": features,
+                "coverage": coverage,
+                "sample_expression": sample_expression,
+                "panel_status": panel_status,
             },
             metadata={
                 "plot": "shift_curves",
                 "state": state,
+                "state_status": state_status,
+                "shift_direction_available": shift_available,
                 "explanation_key": key,
                 "analysis_rep": bundle["params"].get("rep"),
                 "display_basis": display_key,
@@ -861,7 +1271,16 @@ def shift_curves(
                 "sample_weighting": "equal among locally supported samples",
                 "uncertainty": uncertainty,
                 "interval_is_confidence_interval": False,
-                "coordinate_interpretation": "frozen geometric projection; not time or a trajectory",
+                "coordinate_interpretation": "frozen geometric projection; not time or a trajectory"
+                if coordinate_key is None
+                else "explicitly supplied observation coordinate; no temporal or causal meaning inferred",
+                "coordinate_key": coordinate_key,
+                "coordinate_source": coordinate_source,
+                "curve_coordinate_available": curve_available,
+                "sample_roster_source": "full supplied AnnData observations in the declared contrast",
+                "distribution_summary": "one observed median and within-sample cell IQR per sample; no confidence interval"
+                if has_samples
+                else "pooled-cell median and observed cell IQR; no biological-sample inference",
                 "max_points": max_points,
                 "n_drawn_cells": len(display),
                 "show_samples": bool(show_samples),
