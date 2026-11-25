@@ -5,6 +5,11 @@ shows how each state's display center differs between two conditions. Use the
 same canvas to inspect condition endpoints, stored geometric alignment,
 observed cell composition, and a compatible projected velocity overlay.
 
+For states with sparse reference coverage, `node_position="pooled"` retains
+observed nodes and their pies independently of reference-center availability.
+The optional `pie_mode="sample_abundance"` uses equal biological-sample weights
+for condition abundance profiles. See [sparse-state examples](CONDITION_SPARSE_STATES.md).
+
 [Plotting guide](PLOTTING.md) · [Plotting API](api/pl.md) ·
 [Local velocity fields](VELOCITY_FIELDS.md) · [Geometry–velocity focus](GEOMETRY_VELOCITY_INTERPRETATION.md) · [Interpretation](RESULT_INTERPRETATION.md) · [Citation guide](CITING.md)
 
@@ -113,7 +118,8 @@ center-to-center displacement. If arrows are enlarged, the treated endpoint
 stays at the observed center; the scaled arrow tip is recorded separately in
 the exported vector table.
 
-Reference-node sizes describe **observed control-cell counts**, not the number
+With the default `node_position="reference"`, reference-node sizes describe
+**observed control-cell counts**, not the number
 of biological samples. Comparison endpoints have their own marker size. The
 synthetic example has four independent samples per condition, but that sample
 count is not what a large reference node signifies.
@@ -123,8 +129,10 @@ requested comparison. A state missing one condition remains an availability
 case: no missing center, displacement vector, or alignment is invented.
 The gallery's treatment-only state makes this behavior visible: a triangle
 marks its observed treated center, and it has no reference displacement arrow.
-Edges without usable reference anchors are omitted from the display and
-retain their omission reasons in the source table.
+With the default reference layout, edges without usable reference anchors
+are omitted from the display and retain their omission reasons in the source
+table. Pooled layout instead anchors topology at observed pooled state centers;
+it does not change condition-center coordinates or displacement eligibility.
 
 ## Color the map by a stored scalar
 
@@ -305,13 +313,25 @@ view above.
 
 Pies summarize composition among the selected contrast cells. Cells from a
 third condition do not enter their denominators. Keep `pie_categories` and
-`pie_palette` consistent across panels. Pies are drawn at usable reference
-centers. A state with no reference cells retains its comparison-only marker;
-its observed category counts remain in the exported composition source table.
+`pie_palette` consistent across panels. In the default reference layout, pies
+are drawn at usable reference centers. A state with no reference cells retains
+its comparison-only marker; its observed category counts remain in the exported
+composition source table. Set `node_position="pooled"` to draw observed state
+nodes and pies regardless of reference coverage. For a composition-only view,
+set `show_shift=False`, `show_endpoints=False`, and `show_velocity=False`.
 
-These are cell-count summaries. They do not account for sample-to-sample
+The default `pie_mode="cell_fraction"` gives cell-count summaries. They do not account for sample-to-sample
 variation or provide sample-level abundance uncertainty. Use a suitable
 biological-sample analysis for inferential claims about composition.
+
+For condition pies, `pie_mode="sample_abundance"` and
+`pie_sample_key="sample"` first calculate each sample's state frequency among
+eligible annotated cells in the supplied AnnData. Condition means give valid samples
+equal weight and are normalized across conditions for the sectors. The plotted
+sectors therefore represent a relative abundance profile, not captured-cell
+fractions. Zero-state samples with positive denominators are retained; zero
+denominators remain missing. Both the sample denominators and the plotted
+values are exported. This remains descriptive and does not add an abundance test.
 
 ## Compose matching panels and control labels
 

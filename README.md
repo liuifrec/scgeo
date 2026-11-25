@@ -84,6 +84,12 @@ original expression input. Curves describe a geometric coordinate; ribbons show
 between-sample ranges. Contributions and signed target responses are descriptive
 evidence, not causal-driver estimates. [Complete workflow and synthetic gallery](https://github.com/liuifrec/scgeo/blob/main/docs/EXPLAIN_SHIFT.md).
 
+For states enriched in one condition with sparse reference coverage, retain
+expression maps and sample distributions with `panels=("distribution", "expression")`.
+PAGA composition views can use `node_position="pooled"` so their nodes and pies
+remain visible without a supported reference-state center. See
+[sparse-state expression and PAGA pies](https://github.com/liuifrec/scgeo/blob/main/docs/CONDITION_SPARSE_STATES.md).
+
 ## Start here
 
 | Your goal | Best starting point |

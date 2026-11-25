@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "data_kind": "fully synthetic; generic samples; no private inputs or downloads",
+  "seed": 83,
+  "generator_sha256": "442a4c519283e817ff3c9203662e867ff26c6f4d040bdcc0cf11827cd04bd804",
+  "checks": {
+    "insufficient_cells_status_preserved": true,
+    "zero_and_one_control_cells_preserved": true,
+    "no_invented_direction": true,
+    "no_invented_contributions": true,
+    "absent_control_expression_is_missing": true,
+    "singleton_is_a_point_without_interval": true,
+    "no_invented_shift_curve": true,
+    "sample_balanced_zero_count_keeps_denominator": true,
+    "sample_abundance_invariant_to_capture_duplication": true,
+    "raw_cell_pies_respond_to_capture_duplication": true,
+    "pie_slices_normalized_or_missing": true,
+    "enriched_pie_visible_in_all_modes": true
+  },
+  "metrics": {
+    "n_cells": 1060,
+    "enriched_counts": {
+      "C1": 0,
+      "C2": 1,
+      "T1": 60,
+      "T2": 120
+    },
+    "raw_pie_maximum_change_after_fivefold_T2_capture": 0.29035509106552837,
+    "sample_abundance_maximum_change_after_fivefold_T2_capture": 0.0,
+    "original_condition_cell_fractions": [
+      {
+        "node": "Shared",
+        "control": 0.8379970545,
+        "treated": 0.1620029455
+      },
+      {
+        "node": "Enriched",
+        "control": 0.0055248619,
+        "treated": 0.9944751381
+      },
+      {
+        "node": "Other",
+        "control": 0.45,
+        "treated": 0.55
+      }
+    ],
+    "original_condition_sample_abundance_slices": [
+      {
+        "node": "Shared",
+        "control": 0.7345132743,
+        "treated": 0.2654867257
+      },
+      {
+        "node": "Enriched",
+        "control": 0.0163934426,
+        "treated": 0.9836065574
+      },
+      {
+        "node": "Other",
+        "control": 0.5454545455,
+        "treated": 0.4545454545
+      }
+    ]
+  },
+  "mapping": {
+    "kind": "verified_affine",
+    "intercept": [
+      -4.9012752314325585,
+      -5.060588546761408,
+      0.5563053830259626,
+      0.3936038589537394
+    ],
+    "max_abs_residual": 2.2525476417456503e-07,
+    "tolerance": 4.135324097143592e-05,
+    "centered_representation_scale": 4.035324097143592,
+    "analysis_coordinate_dtype": "float32 converted to float64, matching robust_shift",
+    "loadings_source": "varm['PCs']"
+  },
+  "source_parameters": {
+    "rep": "X_pca",
+    "condition_key": "condition",
+    "group0": "control",
+    "group1": "treated",
+    "by": "state",
+    "sample_key": "sample",
+    "center": "geometric_median",
+    "trim_fraction": 0.1,
+    "n_boot": 0,
+    "bootstrap_unit": "auto",
+    "resolved_bootstrap_unit": "sample",
+    "normalize_by": "pooled_robust_scale",
+    "seed": 83,
+    "store_key": "robust_shift"
+  },
+  "plot_manifests": {
+    "sparse_state_expression": "sparse_state_expression.json",
+    "paga_condition_raw_cells": "paga_condition_raw_cells.json",
+    "paga_condition_sample_abundance": "paga_condition_sample_abundance.json",
+    "paga_sample_identity": "paga_sample_identity.json"
+  },
+  "interpretation": {
+    "expression": "Observed cells only; absent control cells have missing expression, not zero expression.",
+    "cell_fraction": "Fraction of captured cells in each state assigned to each displayed category.",
+    "sample_abundance": "Mean per-sample state fractions within each condition, then normalized across conditions for pie slices.",
+    "denominator": "All annotated synthetic Shared/Enriched/Other cells in each sample.",
+    "graph": "Supplied symmetric fixture on pooled display anchors; no condition shift or velocity arrows.",
+    "validation": "Software semantics on synthetic input; not evidence for any biological mechanism."
+  },
+  "reproduce": "python examples/condition_sparse_states_gallery.py --seed 83 --output-dir NEW_OUTPUT_DIRECTORY",
+  "preview_images": {
+    "sparse_state_expression": {
+      "file": "docs/assets/condition_sparse_states/sparse_state_expression.png",
+      "bytes": 63016,
+      "sha256": "b574a3ad88f389754805f4ff0e10136778423905890788e2e5890bdf27b57528",
+      "dpi": 110,
+      "visually_reviewed": true
+    },
+    "paga_condition_sample_abundance": {
+      "file": "docs/assets/condition_sparse_states/paga_condition_sample_abundance.png",
+      "bytes": 62126,
+      "sha256": "646aa0980695575192f1b6cda802f4604e28814a9d29547d74d787f3adf30a82",
+      "dpi": 110,
+      "visually_reviewed": true
+    }
+  },
+  "results_directory": "results/condition_sparse_states",
+  "validation_scope": "Synthetic API behavior and source exports; neither biological evidence nor an inferential test."
+}

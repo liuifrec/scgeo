@@ -62,7 +62,7 @@ intentional and should not be replaced with another implementation.
 | `delta_rank` | ax | Yes | Now exports exact original/displayed sources and accepts caller axes; see summary guide. |
 | `score_umap` | ax | Yes | Delegates through kwargs to score_embedding; no duplicate implementation. |
 | `score_embedding` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
-| `shift_curves` | ax / axes | Yes | Sample-balanced response curves, observed sample ranges, expression/contribution maps and full source tables. |
+| `shift_curves` | ax / axes | Yes | Sample curves, expression/distribution panels for sparse states, explicit coordinate support, coverage and source tables. |
 | `shift_embedding` | ax | Yes | Frozen center weights projected for display; curved connectors explicitly schematic. |
 | `highlight_topk_cells` | ax | Yes | Now exports full cell selection/display flags and accepts shared normalization. |
 | `distribution_test_volcano` | ax | Yes | Now exports source rows, exact coordinates, clipping/label flags; validates probability range. |
@@ -85,7 +85,7 @@ intentional and should not be replaced with another implementation.
 | `legend_from_data` | ax | Yes | Full entry exports with explicit truncation; composable legend-only axes. |
 | `_get_scanpy_palette` | n/a | n/a | Exported compatibility palette helper; retain its name. |
 | `_fallback_palette` | n/a | n/a | Exported compatibility palette helper; retain its name. |
-| `paga_shift_map` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+| `paga_shift_map` | ax | Yes | Reference or pooled node anchors, captured-cell or sample-abundance pies, and separate contrast/vector evidence. |
 | `ood_landscape` | ax / axes | Yes | Full cells/summary/contour-bin exports; explicit thresholds, support and omission reasons. |
 | `velocity_shift_alignment` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
 | `velocity_field` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |

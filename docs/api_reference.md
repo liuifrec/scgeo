@@ -3045,11 +3045,13 @@ scgeo.pl.paga_shift_map(
     background_alpha: 'float' = 0.12,
     node_size: 'float' = 220.0,
     node_scale_by_n: 'bool' = True,
+    node_position: 'str' = 'reference',
     edge_lw: 'float' = 2.0,
     edge_alpha: 'float' = 0.32,
     arrow_width: 'Optional[float]' = None,
     arrow_alpha: 'float' = 0.95,
     arrow_scale: 'float' = 1.0,
+    show_shift: 'bool' = True,
     label: 'bool' = True,
     label_top_n: 'Optional[int]' = None,
     label_fontsize: 'int' = 8,
@@ -3058,6 +3060,8 @@ scgeo.pl.paga_shift_map(
     pie_categories: 'Optional[list[str]]' = None,
     pie_palette: 'Optional[dict[str, Any]]' = None,
     pie_size_scale: 'float' = 1.0,
+    pie_mode: 'str' = 'cell_fraction',
+    pie_sample_key: 'Optional[str]' = None,
     velocity_basis: 'Optional[str]' = None,
     show_velocity: 'bool' = False,
     velocity_color: 'str' = '#008C95',
@@ -3118,6 +3122,9 @@ scgeo.pl.paga_shift_map(
 - Equal aspect, distinct condition endpoints, point-sized glyphs, automatic labels, and graphical legends are the new defaults. Explicit arrow_width retains the legacy data-unit style.
 - return_result=True returns PlotResult with named map axis and full cell/edge/vector sources. Legacy owned (fig, ax), supplied ax, and (fig, ax, data) returns remain supported.
 - velocity_mode="state" preserves the original aggregate arrows. Opt-in "grid"/"stream" use selected-condition local fields; velocity_options controls finite-radius support and rendering, with full velocity_* source tables.
+- node_position="reference" preserves the legacy reference-anchored layout. node_position="pooled" places topology, node glyphs and pies at observed pooled selected-condition centers even with sparse or absent reference cells. Actual condition centers and displacement-arrow origins remain unchanged; show_shift=False supports composition-only views.
+- pie_key selects categorical sectors. pie_mode="cell_fraction" retains raw captured-cell proportions. pie_mode="sample_abundance", with pie_key equal to condition_key and pie_sample_key supplied, averages state frequencies equally across valid samples within each condition and normalizes condition means for plotting. It exports raw counts, sample denominators, means and plotted values; these sectors are not raw cell fractions or inferential evidence.
+- Zero-state samples with positive denominator contribute frequency zero; zero denominator is undefined. The supplied AnnData defines the denominator population and observed sample roster. Apply focus_states for display rather than subsetting away denominator cells or absent-state samples.
 
 
 <details>
@@ -3131,7 +3138,13 @@ display coordinates. They are not inferred cell trajectories. Reference
 anchors are open markers; comparison endpoints are filled and remain at
 their actual centers even when ``arrow_scale`` changes the displayed vector.
 States present in only one condition or below ``min_cells`` remain visible.
-Graph edges require usable reference anchors at both ends.
+By default graph edges require usable reference anchors at both ends.
+``node_position='pooled'`` instead places topology nodes and pies at the
+pooled selected-condition cell centers. Every observed pooled node remains
+drawable, including a state absent from one condition; low pooled coverage
+is flagged in ``node_anchors``. Actual x0/x1 centers and condition vectors
+are never re-anchored. ``show_shift=False`` omits condition-shift arrows;
+combine with ``show_endpoints=False`` for a composition-only topology view.
 
 Velocity and pie summaries use only ``group0`` and ``group1``. Projected
 velocity must use the matching ``velocity_<basis>`` key and match the
@@ -3156,6 +3169,17 @@ colors or separate condition panels.
 Explicit ``pie_categories`` must include every observed selected category;
 missing values use a separate ``(missing)`` category (escaped if that literal
 label already exists). Retained slices are never silently renormalized.
+``pie_mode='cell_fraction'`` retains the captured-cell composition.
+``pie_mode='sample_abundance'`` requires ``pie_key=condition_key`` and
+``pie_sample_key``. It first computes state fractions within each
+sample×condition over annotated cells, averages those fractions equally
+within each condition, then normalizes the condition means into pie slices.
+This is a relative sample-abundance profile, not within-node cell fractions.
+Zero-state samples contribute zeros; sample units with no annotated cells
+retain unavailable denominators. All selected sample units are retained
+before focus or display filtering. ``pie_values`` and ``pie_sample_counts``
+expose the actual slice values and their denominators; ``composition_counts``
+always retains the raw cell counts/fractions. These summaries are descriptive.
 
 ``graph_node_order`` labels matrix rows/columns explicitly, including graph
 states absent from a subset. Without it, a labeled matrix, stored node_order,
@@ -3610,7 +3634,7 @@ scgeo.pl.score_umap(adata, score_key: 'str', **kwargs)
 
 ### `scgeo.pl.shift_curves`
 
-Plot sample-balanced gene or program curves along a stored geometric shift coordinate with coordinated expression and signed-contribution maps.
+Plot sample curves, observed expression distributions and expression/contribution maps while retaining states with sparse condition coverage.
 
 ```text
 scgeo.pl.shift_curves(
@@ -3622,6 +3646,7 @@ scgeo.pl.shift_curves(
     key='explain_shift',
     basis='umap',
     panels=('curve', 'expression', 'contribution'),
+    coordinate_key=None,
     color=None,
     palette=None,
     cmap='viridis',
@@ -3649,10 +3674,12 @@ scgeo.pl.shift_curves(
 
 [View implementation](../scgeo/pl/_shift_explanation.py)
 
-- Unreleased development API. Curves use a frozen, expression-derived coordinate; it is not pseudotime, observed time, a trajectory, or an independent causal endpoint.
+- Unreleased development API. The default curve coordinate is a frozen, expression-derived shift score. coordinate_key can explicitly name a numeric observation coordinate without changing stored shifts or contribution coefficients; neither choice automatically supplies time or trajectory evidence.
 - Compact-kernel smoothing occurs within each sample and condition, with equal weighting of supported samples. Unsupported regions remain gaps and curves do not extrapolate beyond sample support. The optional ribbon is the observed between-sample range, not a confidence interval; fewer than two supporting samples produce no range.
 - Program curves show mean member expression while contribution maps sum member-gene contributions. A difference between condition curves at the same expression-derived coordinate is not a matched causal treatment effect.
 - Reads stored explanations without changing AnnData; source signatures and labels reject stale inputs before drawing. Scatter subsampling changes display only. Supplied axes support composition, and return_result=True exposes complete source tables and figure exports.
+- Expression and distribution panels do not require a shift direction. Unsupported requested curve/contribution panels receive availability messages. Explicit genes/programs are required when no valid contribution ranking exists, including zero-shift states.
+- Distribution panels show empirical sample medians and interquartile ranges, with observed counts. The full supplied AnnData roster retains zero-cell state/sample slots as missing expression; a singleton remains one observed point. Coverage, per-sample expression and panel availability are exported. Distribution-only calls do not require an embedding.
 
 
 <details>
@@ -3666,6 +3693,23 @@ and ``contribution`` panels. Use ``panels=('curve',)`` without an embedding.
 ``var_names=None`` selects up to three genes by absolute stored contribution.
 Select one ``state`` when the explanation contains several states.
 
+States without a supported shift can still use explicit ``var_names`` or
+``program_names`` with ``panels=('distribution', 'expression')``. The
+distribution panel shows each biological sample's observed expression
+median and cell interquartile range, with its cell count. A singleton is
+one observed point without an interval. Zero-cell samples from the full
+supplied AnnData roster stay blank; missing expression is never zero.
+Both declared conditions remain visible. Without ``sample_key``, these
+are explicitly pooled-cell distributions. A distribution-only plot needs
+no embedding. Unsupported curve/contribution panels are labelled as such.
+An unsupported state has no automatic contribution-based gene selection.
+
+``coordinate_key`` optionally names a numeric ``adata.obs`` column for
+descriptive curves. It must be explicitly supplied; the plot does not
+manufacture a direction or extrapolate an absent condition. The original
+stored ``shift_score`` is preserved. Exports use ``curve_coordinate`` and
+``coordinate_source`` to distinguish a supplied coordinate from the shift.
+
 Curves are tricube-kernel means estimated separately in each biological
 sample and condition, then averaged with equal sample weights at every
 supported grid point. ``bandwidth`` is a fraction of the state's observed
@@ -3676,9 +3720,11 @@ the observed between-sample range where at least two samples support a
 point. It is *not* a confidence interval. ``uncertainty='none'`` hides it.
 With no biological sample key, only a pooled descriptive curve is drawn.
 
-The x axis is an expression-derived geometric coordinate, not time or an
-inferred trajectory. Curves and ribbons are conditional on the frozen
-coordinate and smoothing choice, and cannot establish causal drivers.
+The default x axis is an expression-derived geometric coordinate, not time
+or an inferred trajectory. A supplied coordinate is used as provided and
+has no inferred temporal or causal meaning here. Curves and ribbons are
+conditional on the coordinate and smoothing choice, and cannot establish
+causal drivers.
 Program expression uses stored membership weights (a mean); program
 contribution sums the member genes' signed axis contributions.
 
@@ -3689,7 +3735,8 @@ axes in one Figure. For supplied axes and ``show_colorbar=True``, also
 provide ``'gene:Gata1:expression_colorbar'`` and the analogous contribution
 colorbar axis. ``ax`` is a convenience for one feature and one panel.
 Supplied figures retain their size, layout and title. ``return_result=True``
-exposes full cell, curve, sample-curve and feature tables via ``PlotResult``.
+exposes full cell, curve, sample-curve, feature, coverage, sample-expression
+and panel-status tables via ``PlotResult``.
 No AnnData data are modified. Files are written only when ``save`` is set.
 ```
 

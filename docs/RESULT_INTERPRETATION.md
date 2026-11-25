@@ -49,6 +49,13 @@ without sample-bootstrap intervals; `zero_shift` has no inferred direction.
 along a geometric coordinate. `pl.shift_embedding` curves are schematic display
 connectors, not estimated trajectories. See [shift interpretation](EXPLAIN_SHIFT.md).
 
+Sparse condition coverage suppresses only the unsupported comparison. Explicit
+expression/distribution panels remain available, and pooled PAGA nodes can show
+observed composition without reference-state centers. Missing state expression
+is not zero expression. Equal-sample PAGA abundance profiles use declared
+sample denominators and differ from raw captured-cell fractions; see
+[sparse-state plotting](CONDITION_SPARSE_STATES.md).
+
 Recommended language includes:
 
 - “descriptive cell-level stability” when cells, rather than biological

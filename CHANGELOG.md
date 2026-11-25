@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased plots for states with sparse condition coverage
+
+- Keep explicit expression maps and per-sample expression distributions available
+  when a stored state has no supported shift direction. Retain zero-cell sample
+  slots as missing expression, annotate unavailable curve/contribution panels,
+  and optionally use an explicitly supplied numeric observation coordinate.
+- Extend PAGA pie displays with pooled node positions independent of control
+  coverage, while condition arrows retain their actual centers and coverage rules.
+- Add equal-sample abundance profiles alongside the existing captured-cell pies,
+  with sample denominators, zero-state observations, and plotting values exported.
+- Add a synthetic sparse-state gallery and regression coverage for absent and
+  singleton controls, sample weighting, and state/graph mapping.
+
 ## Unreleased shift explanations and response curves
 
 - Add `tl.explain_shift` for checked affine gene attribution to stored mean or
