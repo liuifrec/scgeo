@@ -1,4 +1,39 @@
 {
+  "scgeo.pl.recovery_compass": {
+    "summary": "Combine a state map with descriptive display geometry or stored evidence, explicit source support, and individual-sample summaries.",
+    "notes": [
+      "Legacy tuple returns and map-first layout remain available. mode='stored' requires shift_df and an explicit analysis_rep; alignment_df is optional. Stored values are joined by state identity and source inputs are never modified or refitted.",
+      "Recorded representation, ordered contrast, center and other available provenance must agree. Caller declarations fill missing metadata as unverified declarations, not verified analysis provenance. Shift and velocity weighting retain their distinct meanings.",
+      "node_position='pooled' retains observed sparse states without inventing a reference center. Source counts determine stored comparison support; current display coverage does not replace them. Missing velocity does not suppress a supported effect; known descriptive-only intervals are withheld. Raw and normalized intervals must match their effect metric.",
+      "Display mode defaults to velocity_scope='contrast'; request 'all' explicitly for legacy pooling. Velocity must match the display basis and complete finite rows; zero shifts and zero-scale arrows have no invented direction. OOD threshold, scope and missing-score coverage are explicit, and missing OOD remains unavailable.",
+      "layout='summary' adds effect, alignment, observed sample-frequency and current-coverage axes. Full observed sample rosters preserve state zeros with positive denominators. Shared color norms, node-size references, point-sized arrows, label controls and max_points affect rendering only.",
+      "return_result=True exports original source tables, evidence/support flags, current coverage, sample counts/frequencies, all graph edges and display glyphs. The historical function name does not establish recovery or lineage."
+    ]
+  },
+  "scgeo.pl.geometry_velocity_concordance": {
+    "summary": "Compare compatible stored displacement and alignment while retaining missing evidence and source support.",
+    "notes": [
+      "Validates available representation, ordered contrast and estimator metadata across both tables without modifying them. Missing metadata remains explicitly unverified; optional caller declarations do not verify source provenance.",
+      "Effect and alignment eligibility are separate. Explicit or recorded min_cells/min_samples apply to the corresponding source tables. Unavailable rows remain visible; zero shift or zero velocity has no defined alignment. Known descriptive-only results have no inferential interval and normalized effects never borrow raw-magnitude intervals.",
+      "label_key supplies display text while state IDs remain join keys. max_labels is a deterministic soft budget that retains all requested highlights; omissions and overflow are exported. Distinct caller-owned axes preserve the parent canvas."
+    ]
+  },
+  "scgeo.pl.consensus_structure": {
+    "summary": "Highlight global top-k or threshold-selected scores with complete group and sample denominators.",
+    "notes": [
+      "selection='topk' preserves the default rule; selection='threshold' requires a finite threshold and allows an empty selection. Missing/nonfinite scores are not selected; finite-coordinate filtering changes display only.",
+      "Face and outline opacity use separate artists and share the declared numerical color scale. Group and optional sample summaries distinguish composition among selected cells from selection prevalence among all or scored cells, retaining observed zeros and missing-score coverage.",
+      "max_points is a total display budget that preserves all drawable selected cells and group/sample strata; an insufficient budget raises with retention details. Source selection and denominators remain unchanged. The historical four-item return remains the default; return_result=True exports cells, summaries and samples."
+    ]
+  },
+  "scgeo.pl.geometry_dynamics_atlas": {
+    "summary": "Compose geometry and dynamics views with comparable color scales, controlled labels and explicit coverage.",
+    "notes": [
+      "Supports caller-owned Figure/SubFigure axes and opt-in adaptive layout. Shared cmap/norm/vmin/vmax use full input values independently of background display sampling.",
+      "State labels retain explicit highlights before filling max_labels. Label offsets and omission metadata remain auditable. Long legends can be truncated with a visible notice and complete exported category table; a supplied legend axis can hold the full legend.",
+      "Optional sample coverage is preserved for supplied axes and uses a reserved footer for an owned figure. Labels, legend entries, sample coverage and panel source tables are exported without refitting stored scientific evidence."
+    ]
+  },
   "scgeo.tl.explain_shift": {
     "summary": "Account for a stored sample-aware displacement using signed gene and program contributions in a verified affine expression representation.",
     "notes": [

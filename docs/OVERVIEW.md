@@ -72,6 +72,8 @@ or unresolved; they do not create causal evidence.
   contributions, local responses, supplied regulatory evidence and response curves.
 - [States with sparse condition coverage](CONDITION_SPARSE_STATES.md): observed
   expression, per-sample support, pooled PAGA pies and explicit abundance denominators.
+- [State response compass](COMPASS_EVIDENCE.md): stored effect/alignment evidence,
+  pooled sparse-state anchors, individual samples, and comparable display controls.
 - [PAGA shift maps](PAGA_SHIFT_MAP.md): state connectivity, condition centres, projected velocity, and stored alignment on a shared display.
 - [Local velocity fields](VELOCITY_FIELDS.md): projected-vector grids and streamlines, local support diagnostics, and matched condition panels.
 - [State associations and density](STATE_FLOW_AND_DENSITY.md): alluvial and chord cross-tabs, conserved counts, and comparable embedding-density panels.

@@ -19,6 +19,30 @@ without running any new kinetics, PAGA, or geometric analysis.
 
 *The linked source runs the composed four-panel atlas and exports the input tables and plotting manifest; this preview is synthetic.*
 
+## State response compass and sample evidence
+
+![Synthetic stored-evidence compass with pooled sparse-state nodes, effect and alignment panels, individual samples and coverage](assets/compass_stored_evidence.png)
+
+The enriched state remains on the pooled map. Its stored displacement is
+retained in the source table but is unavailable as a supported comparison
+because the synthetic reference has one cell. The sample panel keeps all
+observed sample denominators, including a zero-state sample. Supported states
+retain their stored estimates and matching intervals.
+
+![Threshold-selected synthetic expression scores with independently controlled faces and outlines](assets/compass_threshold_selection.png)
+
+The [executable source](../examples/compass_evidence_gallery.py) runs the actual
+ScGeo analysis APIs on a fully synthetic fixture, exports five figures with
+complete source tables, and checks display/evidence invariance. The second
+representation is an orthogonal rotation of the same simulated coordinates;
+it exercises coordinate handling and does not provide independent validation.
+See the [compass guide](COMPASS_EVIDENCE.md) for source coverage, comparison
+scope, shared scales, threshold selection and the optional rendering benchmark.
+
+```bash
+python examples/compass_evidence_gallery.py --output-dir results/compass_upgrade --formats png svg pdf
+```
+
 ## Faceted UMAP and projected velocity
 
 ![Synthetic, matched condition-specific velocity streamlines](assets/embedding_facets_synthetic_stream.png)

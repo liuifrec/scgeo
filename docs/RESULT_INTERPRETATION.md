@@ -56,6 +56,20 @@ is not zero expression. Equal-sample PAGA abundance profiles use declared
 sample denominators and differ from raw captured-cell fractions; see
 [sparse-state plotting](CONDITION_SPARSE_STATES.md).
 
+The [state response compass](COMPASS_EVIDENCE.md) separates observed display
+centers from stored analysis-space evidence. A computable stored value can
+still lack adequate source cells or samples. The plot preserves the original
+value and labels its support; display counts never replace recorded analysis
+counts. Missing velocity does not suppress an independently supported shift.
+Normalized effects require normalized intervals. Known descriptive-only results
+do not acquire inferential intervals from plotting.
+
+Positive alignment means agreement with the declared reference-to-comparison
+direction; negative alignment means opposition. Neither establishes recovery.
+Pooled node positions and sample abundance can remain visible when a contrast
+is unsupported. Missing OOD scores remain unknown, and any percentile-based
+OOD threshold describes its declared input population.
+
 Recommended language includes:
 
 - “descriptive cell-level stability” when cells, rather than biological

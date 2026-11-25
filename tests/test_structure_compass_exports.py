@@ -104,7 +104,7 @@ def test_compass_graph_order_sources_and_exact_arrow_endpoints(data, tmp_path):
     assert result.metadata["graph_node_order"] == ["A", "B", "C"]
     assert result.metadata["graph_order_source"] == "stored_node_order"
     assert result.metadata["alignment_source"] == "display_coordinates"
-    assert result.metadata["velocity_scope"] == "all_input_conditions"
+    assert result.metadata["velocity_scope"] == "contrast"
     assert len(result.data["edges"]) == 2 and result.data["edges"].displayed.sum() == 1
     glyph = result.data["glyphs"].set_index("node")
     np.testing.assert_allclose(glyph.loc["A", ["x", "y", "arrow_end_x", "arrow_end_y"]].to_numpy(float), [.1, 0., 2.1, 0.])
@@ -113,7 +113,7 @@ def test_compass_graph_order_sources_and_exact_arrow_endpoints(data, tmp_path):
     pd.testing.assert_frame_equal(data.obs, obs_before)
     output = result.save(tmp_path / "compass", formats="svg")
     meta = json.loads(Path(output["metadata"]).read_text())
-    assert len(meta["tables"]) == 5
+    assert {"cells", "nodes", "edges", "graph_nodes", "glyphs"} <= set(meta["tables"])
     assert len(pd.read_csv(output["tables"]["cells"])) == 8
     assert meta["plot"]["ood_threshold"] == np.quantile(data.obs.ood, .95)
     _, _, nodes, edges = compass(data, return_data=True)

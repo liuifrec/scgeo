@@ -90,6 +90,12 @@ PAGA composition views can use `node_position="pooled"` so their nodes and pies
 remain visible without a supported reference-state center. See
 [sparse-state expression and PAGA pies](https://github.com/liuifrec/scgeo/blob/main/docs/CONDITION_SPARSE_STATES.md).
 
+The [state response compass](https://github.com/liuifrec/scgeo/blob/main/docs/COMPASS_EVIDENCE.md)
+can now pair pooled state locations with stored displacement and alignment,
+individual sample frequencies, and explicit coverage. Its optional summary
+layout retains a sparse state while marking unsupported comparisons unavailable.
+Display-only changes do not alter the stored quantitative evidence.
+
 ## Start here
 
 | Your goal | Best starting point |
@@ -98,6 +104,7 @@ remain visible without a supported reference-state center. See
 | Try ScGeo without downloading a dataset | [Runnable synthetic example](https://github.com/liuifrec/scgeo/blob/main/examples/quickstart.py) |
 | Build evidence figures and compare contrasts | [Development plotting guide](https://github.com/liuifrec/scgeo/blob/main/docs/PLOTTING.md) and [visual gallery](https://github.com/liuifrec/scgeo/blob/main/docs/PLOTTING_GALLERY.md) |
 | Display state connectivity, condition shifts, and velocity | [PAGA shift-map guide](https://github.com/liuifrec/scgeo/blob/main/docs/PAGA_SHIFT_MAP.md) |
+| Combine a state map, stored evidence, and individual samples | [State response compass](https://github.com/liuifrec/scgeo/blob/main/docs/COMPASS_EVIDENCE.md) |
 | Compare conditions, timepoints, batches or cell types in matched UMAP/velocity facets | [Embedding faceting](https://github.com/liuifrec/scgeo/blob/main/docs/EMBEDDING_FACETS.md) |
 | Inspect local projected velocity and compare conditions | [Local velocity fields](https://github.com/liuifrec/scgeo/blob/main/docs/VELOCITY_FIELDS.md) |
 | Explain displacement with genes/programs and plot response curves | [Shift explanations and curves](https://github.com/liuifrec/scgeo/blob/main/docs/EXPLAIN_SHIFT.md) |

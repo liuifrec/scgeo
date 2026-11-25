@@ -1526,7 +1526,7 @@ use the full data. The returned source table records which cells are shown.
 
 ### `scgeo.pl.consensus_structure`
 
-Consensus score structure on a stored embedding, with a separate legend.
+Highlight global top-k or threshold-selected scores with complete group and sample denominators.
 
 ```text
 scgeo.pl.consensus_structure(
@@ -1556,10 +1556,20 @@ scgeo.pl.consensus_structure(
     vmin=None,
     vmax=None,
     return_result: 'bool' = False,
+    selection: 'str' = 'topk',
+    threshold=None,
+    sample_key=None,
+    max_points=None,
+    random_state=0,
+    rasterized='auto',
 )
 ```
 
 [View implementation](../scgeo/pl/_consensus_structure.py)
+
+- selection='topk' preserves the default rule; selection='threshold' requires a finite threshold and allows an empty selection. Missing/nonfinite scores are not selected; finite-coordinate filtering changes display only.
+- Face and outline opacity use separate artists and share the declared numerical color scale. Group and optional sample summaries distinguish composition among selected cells from selection prevalence among all or scored cells, retaining observed zeros and missing-score coverage.
+- max_points is a total display budget that preserves all drawable selected cells and group/sample strata; an insufficient budget raises with retention details. Source selection and denominators remain unchanged. The historical four-item return remains the default; return_result=True exports cells, summaries and samples.
 
 
 <details>
@@ -1583,8 +1593,29 @@ Note:
   - If you want a legend figure, build it from legend_data.
   - ``return_result=True`` exports all cells, selection/display flags and
     full group summaries (including groups excluded from the legend).
-  - ``colorbar=False`` or ``cax`` supports composition. Supplied axes are
-    never laid out or resized. The default four-item return is unchanged.
+  - ``colorbar=False`` or ``cax`` preserves supplied panel bounds. An
+    automatic colorbar reserves space from the embedding axis. Supplied
+    figures are never laid out or resized. The four-item return is unchanged.
+
+``selection='threshold'`` selects finite scores >= the explicit finite
+``threshold`` and ignores ``topk``. An empty threshold selection is valid.
+The default top-k rule and deterministic tie order are unchanged.
+``summary.fraction`` describes the selected set's group composition;
+``selected_fraction_all_cells`` and ``selected_fraction_scored_cells`` use
+each group's full input or finite-score denominator. ``score_coverage`` is
+the finite-score fraction. Optional ``samples`` exports the full group×sample
+roster, including absent combinations with zero counts and unavailable
+within-group rates. Its ``fraction`` denominator is selected cells in the
+same sample. Missing sample IDs are explicitly marked, not identified as
+biological samples. No statistical test or uncertainty is fitted.
+
+``max_points`` limits visible cells only, retaining every selected cell
+with finite coordinates and one cell per group (group×sample when supplied).
+A budget too small for these requirements raises. Source counts, selection,
+and color normalization precede display filtering. ``rasterized='auto'``
+rasterizes cell layers above 2,000 displayed cells. ``hi_alpha`` controls
+score faces independently of ``outline_alpha``; the score colorbar remains
+opaque and uses the same normalization.
 ```
 
 </details>
@@ -2325,7 +2356,7 @@ alignment. The legacy return is ``(fig, (ax1, ax2, ax3, ax4))``.
 
 ### `scgeo.pl.geometry_dynamics_atlas`
 
-Build coordinated states, projected-velocity, PAGA, and evidence panels.
+Compose geometry and dynamics views with comparable color scales, controlled labels and explicit coverage.
 
 ```text
 scgeo.pl.geometry_dynamics_atlas(
@@ -2348,9 +2379,21 @@ scgeo.pl.geometry_dynamics_atlas(
     max_states=12,
     highlight_states=None,
     palette=None,
+    cmap='viridis',
+    norm=None,
+    vmin=None,
+    vmax=None,
     max_points=6000,
     random_state=0,
     label_states=True,
+    max_labels=14,
+    label_mode='auto',
+    label_offsets=None,
+    legend='auto',
+    legend_max_items=12,
+    legend_loc='outside',
+    layout='grid',
+    show_sample_coverage=True,
     style='paper',
     figsize=None,
     title=None,
@@ -2362,6 +2405,10 @@ scgeo.pl.geometry_dynamics_atlas(
 ```
 
 [View implementation](../scgeo/pl/_geometry_dynamics_atlas.py)
+
+- Supports caller-owned Figure/SubFigure axes and opt-in adaptive layout. Shared cmap/norm/vmin/vmax use full input values independently of background display sampling.
+- State labels retain explicit highlights before filling max_labels. Label offsets and omission metadata remain auditable. Long legends can be truncated with a visible notice and complete exported category table; a supplied legend axis can hold the full legend.
+- Optional sample coverage is preserved for supplied axes and uses a reserved footer for an owned figure. Labels, legend entries, sample coverage and panel source tables are exported without refitting stored scientific evidence.
 
 
 <details>
@@ -2382,8 +2429,9 @@ The states panel reads ``adata.obs[color]`` (categorical or numeric).
 ``node_key`` identifies states used for PAGA and highlighting; it defaults
 to ``color`` when that is categorical. ``condition_key`` can infer the
 contrast only when precisely two nonmissing groups are observed. When
-samples are available, ``sample_key`` adds descriptive counts to metadata
-without inventing statistical tests. ``max_points`` affects drawing only.
+samples are available, ``sample_key`` exports descriptive counts and
+``show_sample_coverage=True`` displays them even on supplied axes, without
+inventing statistical tests. ``max_points`` affects drawing only.
 
 The velocity and PAGA panels delegate to existing ScGeo plotting functions
 with common embedding limits and compatible node palettes. Projected
@@ -2404,13 +2452,29 @@ and title. For a numeric states panel, supply ``axes['colorbar']`` or use
 ``show_colorbar=False``. The optional colorbar artist is available through
 ``result.artists['states_colorbar']``. ``figsize``/``title`` apply only to
 a canvas created by this function.
+
+Numeric states use ``cmap`` and either ``norm`` or ``vmin``/``vmax`` for
+shared figure scales. Automatic normalization uses all finite input scores,
+before drawing subsampling. ``max_labels`` limits ordinary state labels;
+explicit highlighted states are always retained when their coordinates are
+finite, even if they exceed that budget. Label anchors are unchanged state
+medians; ``label_offsets`` supplies manual point offsets and ``label_mode``
+selects deterministic collision reduction (``'auto'``) or ``'on_data'``.
+
+``legend='auto'`` shows at most ``legend_max_items`` categories with a
+visible omitted-count notice and a full exported legend table. ``True``
+shows all categories; ``False`` hides the legend. A supplied ``axes['legend']``
+can host it separately; otherwise ``legend_loc='outside'`` places it below
+the states panel. ``layout='adaptive'`` opts into a compact evidence strip
+under three or more panels. The default grid and supplied canvas geometry
+are preserved.
 ```
 
 </details>
 
 ### `scgeo.pl.geometry_velocity_concordance`
 
-Show descriptive concordance between stored displacement and alignment.
+Compare compatible stored displacement and alignment while retaining missing evidence and source support.
 
 ```text
 scgeo.pl.geometry_velocity_concordance(
@@ -2426,12 +2490,20 @@ scgeo.pl.geometry_velocity_concordance(
     usable_key='usable',
     label_key=None,
     analysis_rep=None,
+    condition_key=None,
+    group0=None,
+    group1=None,
+    node_key=None,
+    min_cells=None,
+    min_samples=None,
     positive_threshold=0.5,
     opposed_threshold=-0.25,
     sample_count_keys=('n_mice_control', 'n_mice_irradiated'),
     show_ci=True,
     highlight_states=None,
     max_labels=16,
+    label_mode='auto',
+    label_offsets=None,
     axes=None,
     figsize=(12.0, 5.6),
     title=None,
@@ -2443,28 +2515,39 @@ scgeo.pl.geometry_velocity_concordance(
 
 [View implementation](../scgeo/pl/_geometry_velocity_concordance.py)
 
+- Validates available representation, ordered contrast and estimator metadata across both tables without modifying them. Missing metadata remains explicitly unverified; optional caller declarations do not verify source provenance.
+- Effect and alignment eligibility are separate. Explicit or recorded min_cells/min_samples apply to the corresponding source tables. Unavailable rows remain visible; zero shift or zero velocity has no defined alignment. Known descriptive-only results have no inferential interval and normalized effects never borrow raw-magnitude intervals.
+- label_key supplies display text while state IDs remain join keys. max_labels is a deterministic soft budget that retains all requested highlights; omissions and overflow are exported. Distinct caller-owned axes preserve the parent canvas.
+
 
 <details>
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Show descriptive concordance between stored displacement and alignment.
+Show stored displacement and alignment with separate availability.
 
-Provide one row per state in ``shift_df`` and ``alignment_df``; the latter
-may use a different state column. Only rows with usable alignment, finite
-values and an eligible coverage status are plotted as estimated results.
-Ineligible states are counted and exported rather than silently dropped.
-``positive_threshold`` and ``opposed_threshold`` are visual descriptions,
-never significance thresholds or evidence of trajectories. A shared
-``analysis_rep`` is declared by the caller, not inferred from UMAP.
+Recorded provenance is checked within and between both tables. Optional
+representation/contrast declarations must agree with recorded metadata;
+missing metadata remains unverified. No embedding coordinates are used.
 
-Raw ``delta_norm`` may use stored ``magnitude_ci95_low/high`` intervals.
-Normalized magnitudes require their own explicitly named intervals; raw
-intervals are never applied to normalized estimates. No confidence
-intervals, mouse-level replication or missing velocities are fabricated.
+The left panel shows states with both effects and alignment available. The
+right panel retains every state, including valid displacement estimates
+with missing velocity and named unavailable results. ``effect_status``
+takes precedence over a combined ``coverage_status`` when present.
+Optional ``min_cells``/``min_samples`` and recorded source support floors
+are enforced against recorded counts; unknown counts do not satisfy a
+requested floor. No count threshold is invented when none is supplied.
 
-Default return is ``(fig, axes)``; ``return_result=True`` provides a
-:class:`scgeo.pl.PlotResult` with included and excluded state tables.
+Raw and normalized effects use only their own named stored intervals.
+Known descriptive-only results retain their estimates but not confidence
+intervals. These displays do not create hypotheses, bootstrap replicates,
+uncertainty or recovery claims. The thresholds classify cosine values
+descriptively, not statistically.
+
+``label_key`` supplies display text while stable state IDs remain the join
+keys. ``max_labels`` is a soft budget: explicit highlights are retained,
+then remaining states are ordered by effect and stable ID. ``label_offsets``
+uses state IDs and point units. Caller-owned axes retain their layout.
 ```
 
 </details>
@@ -3271,7 +3354,7 @@ Figure entries and adds ``plot_results`` with source data and metadata.
 
 ### `scgeo.pl.recovery_compass`
 
-Signature ScGeo synthesis plot combining: - PAGA topology - centroid displacement - velocity-shift alignment - OOD burden - abundance
+Combine a state map with descriptive display geometry or stored evidence, explicit source support, and individual-sample summaries.
 
 ```text
 scgeo.pl.recovery_compass(
@@ -3291,8 +3374,8 @@ scgeo.pl.recovery_compass(
     node_size_scale: 'float' = 380.0,
     fill_color_mode: 'str' = 'alignment',
     fill_cmap: 'str' = 'coolwarm',
-    fill_vmin: 'float' = -1.0,
-    fill_vmax: 'float' = 1.0,
+    fill_vmin: 'Optional[float]' = None,
+    fill_vmax: 'Optional[float]' = None,
     ring_mode: 'str' = 'ood_frac',
     ring_color: 'str' = 'gold',
     ring_max_lw: 'float' = 4.0,
@@ -3300,7 +3383,7 @@ scgeo.pl.recovery_compass(
     arrow_color: 'str' = 'black',
     arrow_cmap: 'str' = 'magma',
     arrow_scale: 'float' = 1.0,
-    arrow_width: 'float' = 0.008,
+    arrow_width: 'Optional[float]' = None,
     edge_alpha: 'float' = 0.45,
     edge_lw: 'float' = 2.0,
     bg_size: 'float' = 5.0,
@@ -3310,49 +3393,106 @@ scgeo.pl.recovery_compass(
     label_fontsize: 'int' = 8,
     legend: 'bool' = True,
     title: 'Optional[str]' = None,
-    figsize: 'tuple[float, float]' = (9.5, 8.0),
+    figsize=None,
     ax=None,
     return_data: 'bool' = False,
     show: 'bool' = True,
     caxes=None,
     graph_node_order=None,
     return_result: 'bool' = False,
+    mode: 'str' = 'display',
+    shift_df=None,
+    alignment_df=None,
+    analysis_rep=None,
+    effect_metric: 'str' = 'auto',
+    report_state_key=None,
+    alignment_state_key=None,
+    velocity_scope: 'str' = 'contrast',
+    node_position: 'str' = 'reference',
+    sample_key=None,
+    ood_threshold=None,
+    ood_scope: 'str' = 'contrast',
+    fill_norm=None,
+    arrow_norm=None,
+    arrow_vmin=None,
+    arrow_vmax=None,
+    node_size_reference=None,
+    arrow_linewidth: 'float' = 1.6,
+    arrow_head_size: 'float' = 11.0,
+    show_endpoints: 'bool' = True,
+    label_mode: 'str' = 'auto',
+    label_offsets=None,
+    label_names=None,
+    max_points=None,
+    random_state: 'int' = 0,
+    layout: 'str' = 'map',
+    axes=None,
+    show_colorbar=None,
+    max_states: 'int' = 12,
 )
 ```
 
 [View implementation](../scgeo/pl/_recovery_compass.py)
+
+- Legacy tuple returns and map-first layout remain available. mode='stored' requires shift_df and an explicit analysis_rep; alignment_df is optional. Stored values are joined by state identity and source inputs are never modified or refitted.
+- Recorded representation, ordered contrast, center and other available provenance must agree. Caller declarations fill missing metadata as unverified declarations, not verified analysis provenance. Shift and velocity weighting retain their distinct meanings.
+- node_position='pooled' retains observed sparse states without inventing a reference center. Source counts determine stored comparison support; current display coverage does not replace them. Missing velocity does not suppress a supported effect; known descriptive-only intervals are withheld. Raw and normalized intervals must match their effect metric.
+- Display mode defaults to velocity_scope='contrast'; request 'all' explicitly for legacy pooling. Velocity must match the display basis and complete finite rows; zero shifts and zero-scale arrows have no invented direction. OOD threshold, scope and missing-score coverage are explicit, and missing OOD remains unavailable.
+- layout='summary' adds effect, alignment, observed sample-frequency and current-coverage axes. Full observed sample rosters preserve state zeros with positive denominators. Shared color norms, node-size references, point-sized arrows, label controls and max_points affect rendering only.
+- return_result=True exports original source tables, evidence/support flags, current coverage, sample counts/frequencies, all graph edges and display glyphs. The historical function name does not establish recovery or lineage.
 
 
 <details>
 <summary>Parameters, returns and usage notes</summary>
 
 ```text
-Signature ScGeo synthesis plot combining:
-- PAGA topology
-- centroid displacement
-- velocity-shift alignment
-- OOD burden
-- abundance
+Plot condition geometry with explicit evidence, coverage and missingness.
 
-Returns
--------
-If return_data is False:
-    (fig, ax) or ax
-If return_data is True:
-    (fig, ax, node_df, edges)
-If return_result is True:
-    PlotResult with all input cells, node summaries, graph edges and exact
-    node/arrow encodings. This takes priority over return_data.
+``mode='display'`` (default) calculates descriptive means and cosine in the
+first two display coordinates. ``velocity_scope='contrast'`` now limits
+velocity to the selected conditions; ``'all'`` restores the legacy scope,
+and ``'group0'``/``'group1'`` select one condition. Projected velocities must
+match ``basis`` and only jointly finite vector rows count toward support.
+Zero displacement and ``arrow_scale=0`` produce no arrow.
 
-Notes
------
-Centroids, shifts and cosine values here are descriptive computations in
-the first two display coordinates, not stored analysis-space effects or
-evidence of biological recovery. Velocity means pool all input conditions.
-PAGA edges are undirected; graph order/metadata are validated by the shared
-PAGA renderer. ``graph_node_order`` can declare the matrix order explicitly.
-``caxes`` maps ``fill`` and/or ``arrow`` to explicit colorbar axes when ax
-and legend=True are supplied. Legacy tuple/axis returns remain available.
+``mode='stored'`` requires ``shift_df`` and ``analysis_rep``. Optional
+``alignment_df`` supplies independently eligible alignment. The stored
+quantities and provenance are validated, never estimated from the map.
+``report_state_key``/``alignment_state_key`` resolve nonstandard state IDs.
+``effect_metric='auto'`` prefers a finite normalized magnitude, then raw
+magnitude. Intervals must have matching units; raw intervals never label
+normalized effects. Source counts/status gate evidence independently of
+current display coverage. Known low-sample or descriptive intervals are
+withheld, while original estimates/endpoints remain in exported sources.
+
+``node_position='pooled'`` retains observed condition-enriched states as
+topology nodes. Actual condition centers and vector origins stay separate;
+no missing reference or shift is synthesized. ``ood_scope`` defaults to
+the contrast. OOD fractions divide flagged by finitely scored cells;
+unmeasured states remain unavailable. ``ood_threshold`` freezes a supplied
+cutoff; otherwise the selected scope's finite-score 95th percentile is
+used and recorded as a descriptive threshold.
+
+``layout='summary'`` adds effect, alignment, per-sample abundance and current
+coverage panels. ``sample_key`` uses the complete selected-condition sample
+roster: zero-state samples have observed zero frequency, and samples with
+no annotated denominator stay missing. Without a sample key no samples or
+intervals are fabricated. Supplied ``axes`` map map/effect/alignment/
+abundance/coverage to distinct axes. ``max_states`` limits side panels only.
+
+``fill_norm``/``arrow_norm`` or explicit limits support matched panels;
+signed abundance defaults to a zero-centered scale. ``node_size_reference``
+shares the sizing denominator. Default arrows/labels use point units;
+explicit ``arrow_width`` retains legacy data units. ``max_points`` affects
+background drawing only. ``show_colorbar`` is independent of ``legend``;
+None preserves the legacy coupling. Caller figures retain their layout.
+
+Default map returns are ``(fig, ax)`` or the supplied ax; ``return_data``
+adds the observed-contrast node table and displayed edges as before.
+Summary returns ``(fig, axes)``. ``return_result=True`` takes priority and
+preserves cells/nodes/edges/graph_nodes/glyphs plus evidence and coverage
+tables. No AnnData or supplied result table is modified. This plot does not
+establish recovery, causality, cell trajectories or directed PAGA edges.
 ```
 
 </details>
