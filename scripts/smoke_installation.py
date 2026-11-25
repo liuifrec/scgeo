@@ -199,6 +199,41 @@ else:
             assert {"node_anchors", "pie_values", "pie_sample_counts"} <= set(composition.data)
             np.testing.assert_allclose(composition.data["pie_values"].fraction, 0.5)
             plt.close(composition.fig)
+            # Exercise the installed stored-evidence helpers with actual output.
+            sg.tl.robust_shift(
+                adata, rep="X_pca", condition_key="condition",
+                group0="control", group1="treated", by="state",
+                sample_key="sample", center="mean", n_boot=12,
+                store_key="compass_source",
+            )
+            report = sg.get.state_report(
+                adata, node_key="state", robust_shift_key="compass_source",
+            )
+            compass = sg.pl.recovery_compass(
+                adata, node_key="state", condition_key="condition",
+                group0="control", group1="treated", basis="pca",
+                graph_node_order=["A", "B"], mode="stored", shift_df=report,
+                analysis_rep="X_pca", effect_metric="delta_norm",
+                node_position="pooled", sample_key="sample", min_cells=2,
+                layout="summary", ring_mode="none", return_result=True, show=False,
+            )
+            assert {"evidence", "sample_abundance", "coverage", "shift_source"} <= set(compass.data)
+            assert compass.data["evidence"].effect_available.all()
+            assert not compass.data["evidence"].alignment_available.any()
+            assert compass.data["evidence"].set_index("state").loc["B", "effect_descriptive"]
+            compass_export = compass.save(Path(temporary) / "compass", formats=("svg",))
+            assert Path(compass_export["figures"]["svg"]).is_file()
+            plt.close(compass.fig)
+            adata.obs["selection_score"] = coordinates[:, 0]
+            selected = sg.pl.consensus_structure(
+                adata, score_key="selection_score", basis="pca", groupby="state",
+                selection="threshold", threshold=0.5, sample_key="sample",
+                max_points=18, print_legend=False, return_result=True, show=False,
+            )
+            assert selected.data["cells"].selected.sum() == 12
+            assert {"selected_fraction_all_cells", "score_coverage"} <= set(selected.data["summary"])
+            assert "samples" in selected.data
+            plt.close(selected.fig)
             field = sg.pl.velocity_field(
                 adata, basis="pca", condition_key="condition", groups=["control"],
                 mode="stream", grid_size=20, n_neighbors=12, radius=0.28,
@@ -241,6 +276,7 @@ else:
     print("PASS: core import is independent of the Unix-only benchmark profiler")
     print("PASS: stored sample centers, plotting API, and source-data figure export")
     print("PASS: PAGA local velocity grid and exported graph/field sources")
+    print("PASS: stored compass evidence, sparse sample coverage, and threshold selection")
     print("PASS: supported projected streamlines with selected-condition source export")
     print("PASS: alluvial/chord count conservation and filtered-link source exports")
     print("PASS: density contour counts, shared scale, and grid source export")

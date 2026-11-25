@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased compass evidence and plotting readability
+
+- Add a stored-evidence compass mode, pooled placement for condition-sparse
+  states, source coverage, per-sample abundance, and a composed evidence view.
+- Restrict default display-velocity summaries to the selected contrast, require
+  complete compatible vectors, suppress zero arrows, and retain missing OOD
+  evidence with explicit score counts and threshold provenance.
+- Validate stored contrast and representation provenance across quantitative
+  plots. Preserve unavailable states, independent effect/alignment availability,
+  display names, and metric-matched uncertainty.
+- Add shared scales, deterministic label placement, explicit legend handling,
+  and display budgets. Fix consensus highlight/outline opacity and export
+  selected-cell composition separately from within-group/sample prevalence.
+- Add synthetic examples, scientific invariance checks, and an optional
+  rendering benchmark. Statistical estimators remain unchanged.
+
 ## Unreleased plots for states with sparse condition coverage
 
 - Keep explicit expression maps and per-sample expression distributions available

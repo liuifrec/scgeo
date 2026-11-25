@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "data_kind": "fully synthetic; no private input or external download",
+  "seed": 83,
+  "n_cells": 1060,
+  "checks": {
+    "sparse_source_effect_not_presented_as_supported": true,
+    "supported_effects_remain_available": true,
+    "pooled_sparse_node_remains_visible": true,
+    "zero_state_sample_retains_denominator": true,
+    "stored_evidence_invariant_to_display_change": true,
+    "missing_ood_is_unavailable": true,
+    "unrelated_condition_does_not_change_default_alignment": true,
+    "selection_prevalence_invariant_to_display_budget": true,
+    "highlight_face_and_outline_opacity_independent": true,
+    "highlighted_atlas_state_is_labelled": true,
+    "adaptive_atlas_resolves_evidence_strip": true,
+    "stored_source_tables_unchanged": true
+  },
+  "source_report_provenance": {
+    "package_version": "0.1.0",
+    "created_at": "2026-11-25T02:28:57.954665+00:00",
+    "source_store_keys": {
+      "robust_shift": "robust_shift",
+      "representation_stability": "representation_stability",
+      "local_geometry_stability": "local_geometry_stability"
+    },
+    "comparison_label": "treated_vs_control",
+    "condition_key": "condition",
+    "group0": "control",
+    "group1": "treated",
+    "representations": [
+      "X_pca",
+      "X_rotated"
+    ],
+    "effect_representation": "X_pca",
+    "k_values": [],
+    "sample_key": "sample",
+    "center": "geometric_median",
+    "bootstrap_unit": "sample",
+    "consensus_rules": {
+      "min_usable_representations": 2,
+      "min_usable_fraction": 0.5,
+      "min_samples_per_condition": 2,
+      "min_pairwise_spearman": 0.5,
+      "max_rank_std": 1.25,
+      "max_leave_one_rep_magnitude_relative_deviation": 0.5,
+      "max_leave_one_rep_class_switch_fraction": 0.34,
+      "class_fraction_threshold": 0.6,
+      "neutral_normalized_magnitude_max": 0.25,
+      "neutral_delta_norm_median_max": 0.5,
+      "label_order": [
+        "insufficient_coverage",
+        "representation_unstable",
+        "stable_neutral",
+        "stable_effect",
+        "stable_aligned",
+        "stable_discordant"
+      ],
+      "stable_aligned": "coverage passes, coordinate-safe magnitude/rank diagnostics pass, and aligned velocity classes meet class_fraction_threshold",
+      "stable_discordant": "coverage passes, coordinate-safe magnitude/rank diagnostics pass, and discordant velocity classes meet class_fraction_threshold",
+      "stable_neutral": "coverage passes and normalized magnitudes are consistently below neutral_normalized_magnitude_max, or raw median magnitude is below neutral_delta_norm_median_max with leave-one-representation agreement",
+      "stable_effect": "coverage passes, coordinate-safe magnitude/rank diagnostics pass, and a non-neutral effect is stable across representations without velocity evidence",
+      "representation_unstable": "coverage passes for a non-neutral effect, but rank agreement, rank spread, leave-one-representation-out magnitude deviation, or velocity-class agreement fails an explicit threshold",
+      "insufficient_coverage": "too few usable representations, too low usable representation fraction, or no velocity evidence for a non-neutral shifted state when velocity_keys is provided"
+    },
+    "local_pair_aggregation": "median",
+    "include_worst_case": true
+  },
+  "generator_sha256": "314852174e215ffdc2dab534ac3ca8e8a8d3986e85ba01f7090daf9c9cf7946c",
+  "implementation_sha256": {
+    "_recovery_compass.py": "3182bbb2b4fb363c4f8ec14fedeccdf6b2f43fe397ca6a4a9d665cfed302a78e",
+    "_compass_data.py": "b5fb4ba08426be5cc32915d2f6d1c498c7df0970dbc93272ae00b75835450431",
+    "_stored_evidence.py": "f45857465070d8053d385a8c91a0b5cf4f609f9f957f8be0ed0f75a0762e114e",
+    "_geometry_velocity_concordance.py": "a879cf0641d7c759dd2e2c642cf77e1c5bd4ea30d3b877d9b81371bbaebde05e",
+    "_consensus_structure.py": "aa659441e3dc5f4d42a73105364bd6ba40e6fc4c5ad3defce347e4302276cc49",
+    "_geometry_dynamics_atlas.py": "508f374edc9adc7f8c2dd7075e79ca05125e54e64e26aadd684b198e5d7f9cd1",
+    "_paga_layout.py": "b87e82267b5f7fc3e4c3001b51474c951f1b52e03eec944daa583283b68ae243"
+  },
+  "input_generator_sha256": "442a4c519283e817ff3c9203662e867ff26c6f4d040bdcc0cf11827cd04bd804",
+  "plot_manifests": {
+    "stored_compass_summary": "stored_compass_summary.json",
+    "compass_ood_coverage": "compass_ood_coverage.json",
+    "named_concordance": "named_concordance.json",
+    "threshold_selection": "threshold_selection.json",
+    "compact_atlas": "compact_atlas.json"
+  },
+  "benchmark": {
+    "summary_invariant": true,
+    "measurements": [
+      {
+        "max_points": null,
+        "rasterized": true,
+        "input_cells": 21200,
+        "displayed_background_cells": 21200,
+        "median_create_and_draw_seconds": 0.1281671880005888,
+        "median_svg_export_seconds": 0.10197944299943629,
+        "median_svg_bytes": 47819,
+        "repeats": 3
+      },
+      {
+        "max_points": 1200,
+        "rasterized": true,
+        "input_cells": 21200,
+        "displayed_background_cells": 1200,
+        "median_create_and_draw_seconds": 0.12420118099907995,
+        "median_svg_export_seconds": 0.0815268959995592,
+        "median_svg_bytes": 52079,
+        "repeats": 3
+      }
+    ],
+    "interpretation": "Observed timings in this environment, with no pass/fail speed threshold."
+  },
+  "reproduce": "python examples/compass_evidence_gallery.py --output-dir NEW_OUTPUT_DIRECTORY --formats png svg pdf",
+  "interpretation": "Stored effects and eligible intervals are read from real ScGeo outputs on synthetic input; no inference about biological recovery.",
+  "base_commit": "53eaf0cb272f7b3cb233eea3662229cd5dfcbf2a",
+  "branch": "feat/compass-evidence-20261125",
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "packages": {
+      "numpy": "2.3.5",
+      "pandas": "3.1.1",
+      "scipy": "1.18.1",
+      "matplotlib": "3.10.8",
+      "anndata": "0.13.4",
+      "scikit-learn": "1.8.0",
+      "pytest": "9.2.0"
+    }
+  },
+  "local_verification": {
+    "pytest_command": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 LOKY_MAX_CPU_COUNT=2 python -m pytest tests scripts/tests -q",
+    "pytest_passed": 785,
+    "pytest_skipped": 1,
+    "pytest_warnings": 186,
+    "pytest_seconds": 148.42,
+    "pytest_log_sha256": "dd9e0d0426e391e587bf3a4c68704aed70f46e00d8c69f17e4c5d2afa0ce7207",
+    "generated_api_and_manifests": "passed:104publicexports;8generatedAPIpages",
+    "documentation_links": "passed;recheckedafteraddingthisrecord",
+    "changed_plotting_lint": "passed;legacyUP045ruleexcluded",
+    "wheel_and_sdist_build": "passed",
+    "wheel_python_modules_byte_matched": 85,
+    "installed_wheel_smoke_outside_checkout": "passed",
+    "remote_ci": "Recorded separately in the pull request checks."
+  },
+  "documentation_previews": {
+    "compass_stored_evidence.png": "66c3ce1667b2c6295fdfd2b6151833806607abbd1083283e81baec1253309435",
+    "compass_threshold_selection.png": "328a22f2720dac99cddb248e3d450687d333624c06b4b93660f60f6874a76f25"
+  }
+}

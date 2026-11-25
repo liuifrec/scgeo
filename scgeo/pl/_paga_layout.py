@@ -79,12 +79,14 @@ def _intersection_area(left, right):
     return width * height
 
 
-def place_labels(ax, rows, *, fontsize, mode, offsets, obstacles):
+def place_labels(ax, rows, *, fontsize, mode, offsets, obstacles, labels=None):
     """Place labels in screen space, retaining unchanged data-coordinate anchors.
 
     ``rows`` is an ordered list of (state, x, y). Candidate selection minimizes
     overlap with glyphs/previous labels and clipping. It is deterministic and
     requires no external label-adjustment dependency. Offsets are in points.
+    ``labels`` optionally maps stable state IDs to display text; artist and
+    source-table keys remain the original state IDs, including repeated text.
     """
     import pandas as pd
 
@@ -126,9 +128,10 @@ def place_labels(ax, rows, *, fontsize, mode, offsets, obstacles):
     ]
     artists, records = {}, []
     for state, x, y in rows:
+        text = str(labels.get(state, state)) if labels is not None else str(state)
         anchor = ax.transData.transform((x, y))
         width, height, _ = renderer.get_text_width_height_descent(
-            str(state), font, ismath=False
+            text, font, ismath=False
         )
         width += 6 * px_per_pt
         height = max(height, fontsize * px_per_pt) + 4 * px_per_pt
@@ -167,7 +170,7 @@ def place_labels(ax, rows, *, fontsize, mode, offsets, obstacles):
             }
         )
         annotation = ax.annotate(
-            str(state),
+            text,
             xy=(x, y),
             xytext=(dx, dy),
             textcoords="offset points",

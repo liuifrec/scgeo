@@ -389,12 +389,17 @@ and retain their historical default returns. The executable
 [legacy gallery](../examples/legacy_plotting_gallery.py) uses only synthetic
 scores and explicitly labels them as illustrative; it fits no mapping model.
 
-## Consensus legends and the legacy recovery compass
+## Consensus selection and the state response compass
 
 `consensus_structure(..., return_result=True)` exports all input cells, exact
-finite-score top-k selection, visible highlights, complete group summaries and
-the filtered legend. Selection statistics include cells without finite display
-coordinates; the table makes that distinction explicit. Use `cax` or
+finite-score selection, visible highlights, complete group summaries and
+the filtered legend. Global top-k remains the default; use
+`selection="threshold", threshold=...` for a declared common threshold.
+The group and optional sample summaries expose all-cell and finite-score
+denominators, observed zeros, and score coverage. Face and outline opacity are
+independent. Selection statistics include cells without finite display
+coordinates; the table makes that distinction explicit. `max_points` changes
+only the display and retains all highlights and group/sample strata. Use `cax` or
 `colorbar=False` to compose the view without changing neighbouring axes.
 Without the result flag, the historical `(fig, ax, stats, legend_data)` remains.
 
@@ -403,20 +408,31 @@ caller-owned area. Its source table retains all entries when `max_items`
 truncates the visible legend, and the result records that omission. Default
 `(fig, ax)` returns and input dictionaries remain supported.
 
-`recovery_compass` keeps its legacy display-space calculations and return
-values. Its name does **not** imply evidence of biological recovery. Centroids,
-shifts and cosine values are computed in the first two display coordinates;
-velocity means pool all input conditions. OOD fractions use all input node
-cells and the finite-score 95th percentile. These are descriptive summaries,
-not sample-level tests, stored analysis-space effects, or inferred lineage.
-For fixed quantitative evidence use the stored modes described above.
+`recovery_compass` retains its map-first default and legacy return values.
+Its name does **not** imply evidence of biological recovery. In `mode="display"`,
+means, shifts and cosine are descriptive summaries in the first two display
+coordinates. The corrected default `velocity_scope="contrast"` uses only the
+selected conditions; request `"all"` explicitly for the older scope. Incomplete
+vectors and undefined zero-shift alignment remain unavailable. OOD threshold,
+scope and score coverage are exported; no finite scores means unavailable OOD.
+
+Use `mode="stored"`, `shift_df`, optional `alignment_df`, and `analysis_rep`
+to display existing analysis evidence without refitting it. Known provenance
+conflicts raise; missing metadata stays unverified. Source counts determine
+comparison support independently of the display subset. Pooled nodes retain
+sparse states, while `layout="summary"` adds stored effect/alignment, observed
+sample abundance and coverage axes. See the full
+[compass guide and executable gallery](COMPASS_EVIDENCE.md).
 
 The compass now validates PAGA dimensions, symmetry, grouping and matrix order
 through the existing PAGA renderer. Supply `graph_node_order` when needed;
 otherwise the chosen source of matrix order is recorded. Its opt-in result
 exports cells, node summaries, all nonzero graph edges (including suppressed
-ones), matrix labels, and actual glyph sizes/arrow endpoints. Unknown alignment
-and insufficient condition support stay unavailable. Place numeric scales with
+ones), matrix labels, and actual glyph sizes/arrow endpoints. Stored mode adds
+unchanged source tables and separate evidence/coverage availability. Shared
+normalization, node-size references, point-sized arrowheads and label offsets
+support comparable figures. Unknown alignment and insufficient condition
+support stay unavailable. Place numeric scales with
 `caxes={"fill": fill_ax, "arrow": arrow_ax}` alongside `ax`, or use `legend=False`.
 
 ## Style, display size, and export

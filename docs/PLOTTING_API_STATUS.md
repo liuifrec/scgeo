@@ -45,6 +45,12 @@ The development shift-explanation extension adds `shift_curves` and
 function is documented separately in [EXPLAIN_SHIFT.md](EXPLAIN_SHIFT.md);
 the earlier plotting milestones below remain historical records.
 
+The [compass evidence update](COMPASS_EVIDENCE.md) adds stored evidence and
+individual-sample summaries, corrects contrast-scoped vector aggregation and
+missing OOD behavior, and extends consensus selection, concordance labels,
+atlas legends and display budgets. Existing return contracts remain available;
+the intentional display-mode correctness changes are documented in that guide.
+
 The table describes interface coverage, **not a claim that every scientific or
 visual edge case is resolved**. `Yes` means `return_result=True` is available.
 All Matplotlib renderers now expose this opt-in contract. The Plotly and bundle contracts are
@@ -57,7 +63,7 @@ intentional and should not be replaced with another implementation.
 | `category_palette` | n/a | n/a | Shared result/export/style utility. |
 | `style_context` | n/a | n/a | Shared result/export/style utility. |
 | `evidence_comparison` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
-| `geometry_velocity_concordance` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
+| `geometry_velocity_concordance` | axes | Yes | Validates stored provenance; separate effect/alignment availability, source coverage, display names and deterministic labels. |
 | `replicate_effect` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
 | `delta_rank` | ax | Yes | Now exports exact original/displayed sources and accepts caller axes; see summary guide. |
 | `score_umap` | ax | Yes | Delegates through kwargs to score_embedding; no duplicate implementation. |
@@ -81,7 +87,7 @@ intentional and should not be replaced with another implementation.
 | `mapping_confidence_umap` | ax | Yes | Lowest finite scores; full selection/display identity and explicit colorbar axes. |
 | `ood_cells` | ax | Yes | Explicit threshold provenance; unavailable flags stay nullable; X-prefixed bases accepted. |
 | `mapping_qc_panel` | axes | Yes | Novel reference-palette labels retained; query and scalar display scopes exported. |
-| `consensus_structure` | ax | Yes | Full selection/group summaries, separate legend and caller colorbar; preserved four-item legacy return. |
+| `consensus_structure` | ax | Yes | Top-k or threshold; independent face/outline opacity, complete group/sample denominators and display budgets; four-item return retained. |
 | `legend_from_data` | ax | Yes | Full entry exports with explicit truncation; composable legend-only axes. |
 | `_get_scanpy_palette` | n/a | n/a | Exported compatibility palette helper; retain its name. |
 | `_fallback_palette` | n/a | n/a | Exported compatibility palette helper; retain its name. |
@@ -93,8 +99,8 @@ intentional and should not be replaced with another implementation.
 | `composition_drift` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
 | `robustness_matrix` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
 | `gallery_overview` | axes | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
-| `geometry_dynamics_atlas` | axes | Yes | Now composes in caller Figure/SubFigure; parent export and source scope recorded. |
-| `recovery_compass` | ax | Yes | Cells/nodes/graph/glyph sources; shared PAGA validation; display-space means and cosine explicitly labeled. |
+| `geometry_dynamics_atlas` | axes | Yes | Caller canvas support, adaptive layout, shared normalization, highlight-aware labels, explicit legend omissions and sample coverage. |
+| `recovery_compass` | ax / axes | Yes | Display or stored evidence, pooled sparse-state anchors, sample/coverage summary axes, shared scales and complete source exports. |
 | `state_flow_sankey` | Plotly | Native | Intentional Plotly adapter: complete counts in layout.meta; native HTML/JSON export. |
 | `state_flow_alluvial` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |
 | `state_flow_chord` | ax | Yes | Existing axes/result implementation; retain scientific and backward-compatibility regression coverage. |

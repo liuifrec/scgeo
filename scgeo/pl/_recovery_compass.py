@@ -1,332 +1,349 @@
+"""Compass maps with separate display context and stored scientific evidence."""
+
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any, Optional
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize, TwoSlopeNorm, is_color_like
+from matplotlib.lines import Line2D
 
-from ._paga_shift_map import _graph, _string_labels
+from ._compass_data import (
+    context_nodes,
+    ood_nodes,
+    sample_context,
+    stored_evidence,
+    velocity_nodes,
+)
+from ._paga_layout import place_labels
+from ._paga_shift_map import _draw_vector, _graph, _node_anchors, _string_labels
 from ._result import PlotResult
+from ._style import category_palette
 from ._table_plot_utils import panel_axes
-from ._utils import resolve_embedding
+from ._utils import display_indices, resolve_embedding
 
 
-def _get_basis_xy(adata, basis: str) -> np.ndarray:
-    try:
-        _, xy = resolve_embedding(adata, basis)
-    except KeyError as exc:
-        raise KeyError(f"Embedding {basis!r} not found in adata.obsm.") from exc
-    return xy[:, :2]
-
-
-def _as_str_series(s: pd.Series) -> pd.Series:
-    return _string_labels(s, str(s.name))
-
-
-def _compute_shift_summary(
-    adata,
-    *,
-    node_key: str,
-    condition_key: str,
-    group0: Any,
-    group1: Any,
-    basis: str,
-    min_cells: int = 10,
-    agg: str = "mean",
-) -> pd.DataFrame:
-    if node_key not in adata.obs:
-        raise KeyError(f"'{node_key}' not found in adata.obs.")
-    if condition_key not in adata.obs:
-        raise KeyError(f"'{condition_key}' not found in adata.obs.")
-
-    xy = _get_basis_xy(adata, basis)
-    g0 = str(group0)
-    g1 = str(group1)
-
-    df = pd.DataFrame(
-        {
-            node_key: _as_str_series(adata.obs[node_key]),
-            condition_key: _as_str_series(adata.obs[condition_key]).to_numpy(),
-            "x": xy[:, 0],
-            "y": xy[:, 1],
-        },
-        index=adata.obs_names,
-    )
-    df = df[df[condition_key].isin([g0, g1])].copy()
-    if df.empty:
-        raise ValueError(f"No cells found for groups {g0!r} and {g1!r}.")
-
-    grouped = df.groupby([node_key, condition_key], observed=False)[["x", "y"]]
-    if agg == "median":
-        cent = grouped.median().reset_index()
-    elif agg == "mean":
-        cent = grouped.mean().reset_index()
-    else:
-        raise ValueError("agg must be one of {'mean', 'median'}.")
-
-    counts = (
-        df.groupby([node_key, condition_key], observed=False)
-        .size()
-        .rename("n_cells")
-        .reset_index()
-    )
-    cent = cent.merge(counts, on=[node_key, condition_key], how="left")
-
-    c0 = cent[cent[condition_key] == g0].rename(
-        columns={"x": "x0", "y": "y0", "n_cells": "n0"}
-    )[[node_key, "x0", "y0", "n0"]]
-    c1 = cent[cent[condition_key] == g1].rename(
-        columns={"x": "x1", "y": "y1", "n_cells": "n1"}
-    )[[node_key, "x1", "y1", "n1"]]
-
-    out = c0.merge(c1, on=node_key, how="outer")
-    out["n0"] = out["n0"].fillna(0).astype(int)
-    out["n1"] = out["n1"].fillna(0).astype(int)
-    out["present0"] = out["n0"] >= int(min_cells)
-    out["present1"] = out["n1"] >= int(min_cells)
-    out["dx"] = out["x1"] - out["x0"]
-    out["dy"] = out["y1"] - out["y0"]
-    out["shift_norm"] = np.sqrt(np.square(out["dx"]) + np.square(out["dy"]))
-    return out
-
-
-def _compute_velocity_summary(
-    adata,
-    *,
-    node_key: str,
-    basis: str,
-    velocity_basis: Optional[str] = None,
-    min_cells: int = 10,
-    agg: str = "mean",
-) -> pd.DataFrame:
-    if node_key not in adata.obs:
-        raise KeyError(f"'{node_key}' not found in adata.obs.")
-
-    if velocity_basis is None:
-        vel_key = f"velocity_{basis}" if not basis.startswith("X_") else f"velocity_{basis[2:]}"
-    else:
-        vel_key = velocity_basis if velocity_basis.startswith("velocity_") else f"velocity_{velocity_basis}"
-
-    if vel_key not in adata.obsm:
-        raise KeyError(f"Velocity embedding '{vel_key}' not found in adata.obsm.")
-
-    vel = np.asarray(adata.obsm[vel_key])
-    if vel.ndim != 2 or vel.shape[1] < 2:
-        raise ValueError(f"Velocity embedding '{vel_key}' must have shape (n_cells, >=2).")
-
-    df = pd.DataFrame(
-        {
-            node_key: _as_str_series(adata.obs[node_key]),
-            "vx": vel[:, 0],
-            "vy": vel[:, 1],
-        },
-        index=adata.obs_names,
-    )
-
-    grouped = df.groupby(node_key, observed=False)[["vx", "vy"]]
-    if agg == "median":
-        out = grouped.median().reset_index()
-    elif agg == "mean":
-        out = grouped.mean().reset_index()
-    else:
-        raise ValueError("agg must be one of {'mean', 'median'}.")
-
-    counts = df.groupby(node_key, observed=False).size().rename("n_vel").reset_index()
-    out = out.merge(counts, on=node_key, how="left")
-    out["velocity_present"] = out["n_vel"].fillna(0).astype(int) >= int(min_cells)
-    out["vel_norm"] = np.sqrt(np.square(out["vx"]) + np.square(out["vy"]))
-    return out
-
-
-def _compute_composition_summary(
-    adata,
-    *,
-    node_key: str,
-    condition_key: str,
-    group0: Any,
-    group1: Any,
-) -> pd.DataFrame:
-    if node_key not in adata.obs:
-        raise KeyError(f"'{node_key}' not found in adata.obs.")
-    if condition_key not in adata.obs:
-        raise KeyError(f"'{condition_key}' not found in adata.obs.")
-
-    g0 = str(group0)
-    g1 = str(group1)
-
-    df = pd.DataFrame(
-        {
-            node_key: _as_str_series(adata.obs[node_key]),
-            condition_key: _as_str_series(adata.obs[condition_key]).to_numpy(),
-        },
-        index=adata.obs_names,
-    )
-    df = df[df[condition_key].isin([g0, g1])].copy()
-    if df.empty:
-        raise ValueError(f"No cells found for groups {g0!r} and {g1!r}.")
-
-    counts = (
-        df.groupby([node_key, condition_key], observed=False)
-        .size()
-        .rename("n_cells")
-        .reset_index()
-    )
-    totals = (
-        counts.groupby(condition_key, observed=False)["n_cells"]
-        .sum()
-        .rename("total_cells")
-        .reset_index()
-    )
-    counts = counts.merge(totals, on=condition_key, how="left")
-    counts["fraction"] = counts["n_cells"] / counts["total_cells"]
-
-    c0 = counts[counts[condition_key] == g0].rename(
-        columns={"n_cells": "n0_comp", "fraction": "frac0"}
-    )[[node_key, "n0_comp", "frac0"]]
-    c1 = counts[counts[condition_key] == g1].rename(
-        columns={"n_cells": "n1_comp", "fraction": "frac1"}
-    )[[node_key, "n1_comp", "frac1"]]
-
-    out = c0.merge(c1, on=node_key, how="outer")
-    out["n0_comp"] = out["n0_comp"].fillna(0).astype(int)
-    out["n1_comp"] = out["n1_comp"].fillna(0).astype(int)
-    out["frac0"] = out["frac0"].fillna(0.0).astype(float)
-    out["frac1"] = out["frac1"].fillna(0.0).astype(float)
-    out["delta_frac"] = out["frac1"] - out["frac0"]
-    out["delta_abs"] = np.abs(out["delta_frac"])
-    return out
-
-
-def _compute_ood_node_summary(
-    adata,
-    *,
-    node_key: str,
-    ood_key: str,
-    threshold: Optional[float] = None,
-) -> pd.DataFrame:
-    if node_key not in adata.obs:
-        raise KeyError(f"'{node_key}' not found in adata.obs.")
-    if ood_key not in adata.obs:
-        raise KeyError(f"'{ood_key}' not found in adata.obs.")
-
-    scores = pd.to_numeric(adata.obs[ood_key], errors="coerce").to_numpy(dtype=float, na_value=np.nan)
-    finite = np.isfinite(scores)
-    if not np.any(finite):
-        raise ValueError(f"No finite values found in '{ood_key}'.")
-
-    thr = float(np.nanquantile(scores[finite], 0.95)) if threshold is None else float(threshold)
-    flagged = finite & (scores >= thr)
-
-    df = pd.DataFrame(
-        {
-            node_key: _as_str_series(adata.obs[node_key]),
-            "ood_score": scores,
-            "ood_flagged": flagged,
-        },
-        index=adata.obs_names,
-    )
-
-    out = (
-        df.groupby(node_key, observed=False)
-        .agg(
-            ood_mean=("ood_score", "mean"),
-            ood_median=("ood_score", "median"),
-            ood_flagged_n=("ood_flagged", "sum"),
-            ood_frac=("ood_flagged", "mean"),
-            ood_n=(node_key, "size"),
+def _positive(value, name, *, zero=False):
+    if (
+        isinstance(value, (bool, np.bool_))
+        or not np.isscalar(value)
+        or not np.isfinite(value)
+        or (value < 0 if zero else value <= 0)
+    ):
+        raise ValueError(
+            f"{name} must be finite and {'nonnegative' if zero else 'positive'}."
         )
-        .reset_index()
-    )
-    out["ood_threshold_used"] = thr
-    return out
 
 
-def _safe_cosine(dx: np.ndarray, dy: np.ndarray, vx: np.ndarray, vy: np.ndarray) -> np.ndarray:
-    dot = dx * vx + dy * vy
-    dn = np.sqrt(dx * dx + dy * dy)
-    vn = np.sqrt(vx * vx + vy * vy)
-    denom = dn * vn
-    out = np.full_like(dot, np.nan, dtype=float)
-    mask = np.isfinite(denom) & (denom > 0)
-    out[mask] = dot[mask] / denom[mask]
-    return out
+def _integer(value, name, minimum=0):
+    if (
+        isinstance(value, (bool, np.bool_))
+        or not isinstance(value, (int, np.integer))
+        or value < minimum
+    ):
+        raise ValueError(f"{name} must be an integer >= {minimum}.")
 
 
-def _assemble_recovery_compass_table(
-    adata,
-    *,
-    node_key: str,
-    condition_key: str,
-    group0: Any,
-    group1: Any,
-    basis: str,
-    velocity_basis: Optional[str],
-    ood_key: Optional[str],
-    min_cells: int,
-    agg: str = "mean",
-) -> pd.DataFrame:
-    shift_df = _compute_shift_summary(
-        adata,
-        node_key=node_key,
-        condition_key=condition_key,
-        group0=group0,
-        group1=group1,
-        basis=basis,
-        min_cells=min_cells,
-        agg=agg,
-    )
-    comp_df = _compute_composition_summary(
-        adata,
-        node_key=node_key,
-        condition_key=condition_key,
-        group0=group0,
-        group1=group1,
-    )
-
-    out = shift_df.merge(comp_df, on=node_key, how="left")
-
-    try:
-        vel_df = _compute_velocity_summary(
-            adata,
-            node_key=node_key,
-            basis=basis,
-            velocity_basis=velocity_basis,
-            min_cells=min_cells,
-            agg=agg,
-        )
-        out = out.merge(vel_df, on=node_key, how="left")
-        out["alignment_cosine"] = _safe_cosine(
-            out["dx"].to_numpy(dtype=float),
-            out["dy"].to_numpy(dtype=float),
-            out["vx"].to_numpy(dtype=float),
-            out["vy"].to_numpy(dtype=float),
-        )
-    except KeyError:
-        out["vx"] = np.nan
-        out["vy"] = np.nan
-        out["vel_norm"] = np.nan
-        out["velocity_present"] = False
-        out["alignment_cosine"] = np.nan
-
-    if ood_key is not None:
-        ood_df = _compute_ood_node_summary(
-            adata,
-            node_key=node_key,
-            ood_key=ood_key,
-        )
-        out = out.merge(ood_df, on=node_key, how="left")
+def _normalization(values, supplied, vmin, vmax, *, kind):
+    if supplied is not None:
+        if not isinstance(supplied, Normalize):
+            raise TypeError(f"{kind}_norm must be a matplotlib Normalize.")
+        if vmin is not None or vmax is not None:
+            raise ValueError(f"Supply {kind}_norm or its vmin/vmax, not both.")
+        norm = supplied
     else:
-        out["ood_mean"] = np.nan
-        out["ood_median"] = np.nan
-        out["ood_flagged_n"] = np.nan
-        out["ood_frac"] = np.nan
-        out["ood_n"] = np.nan
-        out["ood_threshold_used"] = np.nan
+        finite = np.asarray(values)[np.isfinite(values)]
+        if kind == "alignment":
+            low, high = -1.0, 1.0
+        elif kind == "delta":
+            extent = max(float(np.max(np.abs(finite))) if len(finite) else 0.0, 1e-6)
+            low, high = -extent, extent
+        else:
+            low, high = (
+                (float(finite.min()), float(finite.max()))
+                if len(finite)
+                else (0.0, 1.0)
+            )
+            if np.isclose(low, high):
+                low, high = 0.0, max(high, 1.0)
+        low = low if vmin is None else vmin
+        high = high if vmax is None else vmax
+        if not np.isfinite([low, high]).all() or low >= high:
+            raise ValueError("Color limits must be finite and strictly increasing.")
+        norm = (
+            TwoSlopeNorm(0.0, vmin=low, vmax=high)
+            if kind == "delta" and low < 0 < high
+            else Normalize(low, high)
+        )
+    finite = np.asarray(values)[np.isfinite(values)]
+    norm.autoscale_None(
+        finite
+        if len(finite)
+        else np.array([-1.0, 1.0])
+        if kind == "alignment"
+        else np.array([0.0, 1.0])
+    )
+    if not np.isfinite([norm.vmin, norm.vmax]).all() or norm.vmin >= norm.vmax:
+        raise ValueError("Color normalization needs finite increasing bounds.")
+    return norm
 
-    out["usable_shift"] = out["present0"].fillna(False).astype(bool) & out["present1"].fillna(False).astype(bool)
-    out["usable_velocity"] = out["usable_shift"] & out["velocity_present"].fillna(False).astype(bool)
-    return out
+
+def _canvas(layout, ax, axes, figsize):
+    names = (
+        ["map"]
+        if layout == "map"
+        else ["map", "effect", "alignment", "abundance", "coverage"]
+    )
+    if ax is not None:
+        if axes is not None or layout != "map":
+            raise ValueError(
+                "ax is available only for layout='map'; use axes for summary composition."
+            )
+        axes = {"map": ax}
+    if axes is not None:
+        return panel_axes(names, axes, None)
+    if layout == "map":
+        return panel_axes(names, None, figsize or (9.5, 8.0))
+    fig = plt.figure(figsize=figsize or (14.0, 8.5), constrained_layout=True)
+    if hasattr(fig, "get_layout_engine"):
+        fig.get_layout_engine().set(rect=(0.0, 0.045, 1.0, 0.955))
+    grid = fig.add_gridspec(2, 3, width_ratios=(1.8, 1, 1))
+    return (
+        fig,
+        {
+            "map": fig.add_subplot(grid[:, 0]),
+            "effect": fig.add_subplot(grid[0, 1]),
+            "alignment": fig.add_subplot(grid[0, 2]),
+            "abundance": fig.add_subplot(grid[1, 1]),
+            "coverage": fig.add_subplot(grid[1, 2]),
+        },
+        True,
+    )
+
+
+def _unavailable(ax, message):
+    ax.text(
+        0.5,
+        0.5,
+        message,
+        transform=ax.transAxes,
+        ha="center",
+        va="center",
+        fontsize=9,
+        color=".4",
+        wrap=True,
+    )
+
+
+def _summary_panels(
+    axes,
+    evidence,
+    sample_counts,
+    coverage,
+    states,
+    groups,
+    colors,
+    mode,
+    metric,
+    sample_key,
+):
+    positions = {state: i for i, state in enumerate(states)}
+    artists = {"effect": [], "alignment": [], "abundance": [], "coverage": []}
+    for name in ("effect", "alignment", "abundance", "coverage"):
+        axis = axes[name]
+        axis.set_yticks(np.arange(len(states)))
+        axis.set_yticklabels(states, fontsize=8)
+        axis.set_ylim(len(states) - 0.5, -0.5)
+        axis.grid(axis="x", alpha=0.15)
+    for row in evidence.loc[evidence.state.isin(states)].itertuples(index=False):
+        y = positions[row.state]
+        if row.effect_available:
+            artists["effect"].append(
+                axes["effect"].scatter(
+                    row.effect,
+                    y,
+                    s=34,
+                    facecolor="white" if row.effect_descriptive else "#315F78",
+                    edgecolor="#315F78",
+                    zorder=3,
+                )
+            )
+            if row.interval_available:
+                axes["effect"].hlines(
+                    y, row.ci_low, row.ci_high, color="#315F78", lw=1.5
+                )
+            if row.effect_descriptive:
+                axes["effect"].annotate(
+                    "unverified support"
+                    if row.effect_support_status == "source_support_not_recorded"
+                    else "descriptive",
+                    (row.effect, y),
+                    xytext=(4, 5),
+                    textcoords="offset points",
+                    fontsize=6,
+                    color=".4",
+                )
+        else:
+            axes["effect"].text(
+                0.02,
+                y,
+                row.effect_support_status.replace("source_", "").replace("_", " "),
+                transform=axes["effect"].get_yaxis_transform(),
+                fontsize=7,
+                color=".45",
+                va="center",
+            )
+        if row.alignment_available:
+            artists["alignment"].append(
+                axes["alignment"].scatter(row.alignment, y, s=34, color="#467E81")
+            )
+        else:
+            axes["alignment"].text(
+                0.02,
+                y,
+                "unavailable",
+                transform=axes["alignment"].get_yaxis_transform(),
+                fontsize=7,
+                color=".45",
+                va="center",
+            )
+    axes["effect"].set(
+        title="Stored displacement" if mode == "stored" else "Display displacement",
+        xlabel=metric.replace("_", " "),
+    )
+    axes["effect"].set_xlim(left=0)
+    if (
+        evidence.loc[evidence.state.isin(states), "interval_reason"]
+        .eq("stored_interval_unverified_support")
+        .any()
+    ):
+        axes["effect"].text(
+            0,
+            -0.17,
+            "Supplied intervals; source support unverified",
+            transform=axes["effect"].transAxes,
+            fontsize=7,
+            color=".4",
+        )
+    axes["alignment"].set(
+        title="Stored alignment" if mode == "stored" else "Display alignment",
+        xlabel="Cosine",
+        xlim=(-1.08, 1.08),
+    )
+    axes["alignment"].axvline(0, color=".7", lw=0.8, ls=":")
+    if sample_key is None:
+        _unavailable(
+            axes["abundance"],
+            "Per-sample abundance unavailable\nNo sample_key supplied",
+        )
+    else:
+        sample_ids = sorted(sample_counts["sample"].unique())
+        symbols = ["o", "s", "^", "D", "P", "X", "v", ">", "<", "h"]
+        sample_symbols = {
+            sample: symbols[i] if i < len(symbols) else f"${i + 1}$"
+            for i, sample in enumerate(sample_ids)
+        }
+        for i, group in enumerate(groups):
+            frame = sample_counts.loc[
+                sample_counts.condition.eq(group) & sample_counts.state.isin(states)
+            ]
+            for state, rows in frame.groupby("state", sort=False):
+                offset = (i - 0.5) * 0.28
+                valid = rows.loc[rows.included]
+                jitter = (
+                    np.linspace(-0.055, 0.055, len(valid))
+                    if len(valid) > 1
+                    else np.zeros(len(valid))
+                )
+                for j, sample_row in enumerate(valid.itertuples(index=False)):
+                    artists["abundance"].append(
+                        axes["abundance"].scatter(
+                            sample_row.state_fraction * 100,
+                            positions[state] + offset + jitter[j],
+                            s=25,
+                            marker=sample_symbols[sample_row.sample],
+                            color=colors[group],
+                            alpha=0.8,
+                        )
+                    )
+                if (~rows.included).any():
+                    axes["abundance"].text(
+                        0.98,
+                        positions[state] + offset,
+                        "NA denominator",
+                        ha="right",
+                        va="center",
+                        transform=axes["abundance"].get_yaxis_transform(),
+                        fontsize=6,
+                        color=colors[group],
+                    )
+        axes["abundance"].set_xlim(left=-1)
+        artists["sample_legend"] = axes["abundance"].legend(
+            handles=[
+                Line2D(
+                    [],
+                    [],
+                    marker=sample_symbols[sample],
+                    color=".4",
+                    linestyle="none",
+                    markersize=4,
+                    label=sample,
+                )
+                for sample in sample_ids
+            ],
+            fontsize=6,
+            frameon=False,
+            loc="upper left",
+            bbox_to_anchor=(0, -0.17),
+            ncol=min(6, max(len(sample_ids), 1)),
+        )
+    axes["abundance"].set(
+        title="Observed sample abundance", xlabel="State / annotated sample cells (%)"
+    )
+    for i, group in enumerate(groups):
+        frame = coverage.loc[coverage.condition.eq(group) & coverage.state.isin(states)]
+        for row in frame.itertuples(index=False):
+            y = positions[row.state] + (i - 0.5) * 0.3
+            artists["coverage"].append(
+                axes["coverage"].scatter(row.n_cells, y, s=22, color=colors[group])
+            )
+            text = (
+                f"{row.n_cells} cells"
+                if sample_key is None
+                else f"{row.n_cells} cells / {int(row.n_samples)}/{int(row.n_samples_total)} samples"
+            )
+            axes["coverage"].annotate(
+                text,
+                (row.n_cells, y),
+                xytext=(4, 0),
+                textcoords="offset points",
+                va="center",
+                fontsize=8,
+                color=colors[group],
+            )
+    max_count = (
+        float(coverage.loc[coverage.state.isin(states), "n_cells"].max())
+        if len(coverage)
+        else 1
+    )
+    axes["coverage"].set(
+        xlim=(-max(1.0, max_count * 0.04), max(4.0, max_count * 2.4)),
+        title="Current data coverage",
+        xlabel="Observed state cells",
+    )
+    handles = [
+        Line2D(
+            [], [], marker="o", linestyle="none", color=colors[g], markersize=4, label=g
+        )
+        for g in groups
+    ]
+    axes["coverage"].legend(
+        handles=handles, fontsize=7, frameon=False, loc="lower right"
+    )
+    return artists
 
 
 def recovery_compass(
@@ -346,8 +363,8 @@ def recovery_compass(
     node_size_scale: float = 380.0,
     fill_color_mode: str = "alignment",
     fill_cmap: str = "coolwarm",
-    fill_vmin: float = -1.0,
-    fill_vmax: float = 1.0,
+    fill_vmin: Optional[float] = None,
+    fill_vmax: Optional[float] = None,
     ring_mode: str = "ood_frac",
     ring_color: str = "gold",
     ring_max_lw: float = 4.0,
@@ -355,7 +372,7 @@ def recovery_compass(
     arrow_color: str = "black",
     arrow_cmap: str = "magma",
     arrow_scale: float = 1.0,
-    arrow_width: float = 0.008,
+    arrow_width: Optional[float] = None,
     edge_alpha: float = 0.45,
     edge_lw: float = 2.0,
     bg_size: float = 5.0,
@@ -365,107 +382,456 @@ def recovery_compass(
     label_fontsize: int = 8,
     legend: bool = True,
     title: Optional[str] = None,
-    figsize: tuple[float, float] = (9.5, 8.0),
+    figsize=None,
     ax=None,
     return_data: bool = False,
     show: bool = True,
     caxes=None,
     graph_node_order=None,
     return_result: bool = False,
+    mode: str = "display",
+    shift_df=None,
+    alignment_df=None,
+    analysis_rep=None,
+    effect_metric: str = "auto",
+    report_state_key=None,
+    alignment_state_key=None,
+    velocity_scope: str = "contrast",
+    node_position: str = "reference",
+    sample_key=None,
+    ood_threshold=None,
+    ood_scope: str = "contrast",
+    fill_norm=None,
+    arrow_norm=None,
+    arrow_vmin=None,
+    arrow_vmax=None,
+    node_size_reference=None,
+    arrow_linewidth: float = 1.6,
+    arrow_head_size: float = 11.0,
+    show_endpoints: bool = True,
+    label_mode: str = "auto",
+    label_offsets=None,
+    label_names=None,
+    max_points=None,
+    random_state: int = 0,
+    layout: str = "map",
+    axes=None,
+    show_colorbar=None,
+    max_states: int = 12,
 ):
-    """
-    Signature ScGeo synthesis plot combining:
-    - PAGA topology
-    - centroid displacement
-    - velocity-shift alignment
-    - OOD burden
-    - abundance
+    """Plot condition geometry with explicit evidence, coverage and missingness.
 
-    Returns
-    -------
-    If return_data is False:
-        (fig, ax) or ax
-    If return_data is True:
-        (fig, ax, node_df, edges)
-    If return_result is True:
-        PlotResult with all input cells, node summaries, graph edges and exact
-        node/arrow encodings. This takes priority over return_data.
+    ``mode='display'`` (default) calculates descriptive means and cosine in the
+    first two display coordinates. ``velocity_scope='contrast'`` now limits
+    velocity to the selected conditions; ``'all'`` restores the legacy scope,
+    and ``'group0'``/``'group1'`` select one condition. Projected velocities must
+    match ``basis`` and only jointly finite vector rows count toward support.
+    Zero displacement and ``arrow_scale=0`` produce no arrow.
 
-    Notes
-    -----
-    Centroids, shifts and cosine values here are descriptive computations in
-    the first two display coordinates, not stored analysis-space effects or
-    evidence of biological recovery. Velocity means pool all input conditions.
-    PAGA edges are undirected; graph order/metadata are validated by the shared
-    PAGA renderer. ``graph_node_order`` can declare the matrix order explicitly.
-    ``caxes`` maps ``fill`` and/or ``arrow`` to explicit colorbar axes when ax
-    and legend=True are supplied. Legacy tuple/axis returns remain available.
+    ``mode='stored'`` requires ``shift_df`` and ``analysis_rep``. Optional
+    ``alignment_df`` supplies independently eligible alignment. The stored
+    quantities and provenance are validated, never estimated from the map.
+    ``report_state_key``/``alignment_state_key`` resolve nonstandard state IDs.
+    ``effect_metric='auto'`` prefers a finite normalized magnitude, then raw
+    magnitude. Intervals must have matching units; raw intervals never label
+    normalized effects. Source counts/status gate evidence independently of
+    current display coverage. Known low-sample or descriptive intervals are
+    withheld, while original estimates/endpoints remain in exported sources.
+
+    ``node_position='pooled'`` retains observed condition-enriched states as
+    topology nodes. Actual condition centers and vector origins stay separate;
+    no missing reference or shift is synthesized. ``ood_scope`` defaults to
+    the contrast. OOD fractions divide flagged by finitely scored cells;
+    unmeasured states remain unavailable. ``ood_threshold`` freezes a supplied
+    cutoff; otherwise the selected scope's finite-score 95th percentile is
+    used and recorded as a descriptive threshold.
+
+    ``layout='summary'`` adds effect, alignment, per-sample abundance and current
+    coverage panels. ``sample_key`` uses the complete selected-condition sample
+    roster: zero-state samples have observed zero frequency, and samples with
+    no annotated denominator stay missing. Without a sample key no samples or
+    intervals are fabricated. Supplied ``axes`` map map/effect/alignment/
+    abundance/coverage to distinct axes. ``max_states`` limits side panels only.
+
+    ``fill_norm``/``arrow_norm`` or explicit limits support matched panels;
+    signed abundance defaults to a zero-centered scale. ``node_size_reference``
+    shares the sizing denominator. Default arrows/labels use point units;
+    explicit ``arrow_width`` retains legacy data units. ``max_points`` affects
+    background drawing only. ``show_colorbar`` is independent of ``legend``;
+    None preserves the legacy coupling. Caller figures retain their layout.
+
+    Default map returns are ``(fig, ax)`` or the supplied ax; ``return_data``
+    adds the observed-contrast node table and displayed edges as before.
+    Summary returns ``(fig, axes)``. ``return_result=True`` takes priority and
+    preserves cells/nodes/edges/graph_nodes/glyphs plus evidence and coverage
+    tables. No AnnData or supplied result table is modified. This plot does not
+    establish recovery, causality, cell trajectories or directed PAGA edges.
     """
     for name, value, allowed in (
-        ("node_size_mode", node_size_mode, {"group1_n", "group0_n", "delta_abs", "constant"}),
+        ("mode", mode, {"display", "stored"}),
+        ("layout", layout, {"map", "summary"}),
+        ("node_position", node_position, {"reference", "pooled"}),
+        (
+            "node_size_mode",
+            node_size_mode,
+            {"group1_n", "group0_n", "delta_abs", "constant"},
+        ),
         ("fill_color_mode", fill_color_mode, {"alignment", "delta_frac", "constant"}),
         ("arrow_color_mode", arrow_color_mode, {"shift", "constant"}),
         ("ring_mode", ring_mode, {"ood_frac", "none"}),
+        ("velocity_scope", velocity_scope, {"contrast", "all", "group0", "group1"}),
+        ("ood_scope", ood_scope, {"contrast", "all", "group0", "group1"}),
+        ("label_mode", label_mode, {"auto", "on_data"}),
     ):
         if value not in allowed:
             raise ValueError(f"{name} must be one of {sorted(allowed)}.")
-    if str(group0) == str(group1):
-        raise ValueError("group0 and group1 must be distinct.")
-    if isinstance(min_cells, bool) or not isinstance(min_cells, (int, np.integer)) or min_cells < 1:
-        raise ValueError("min_cells must be a positive integer.")
-    if not np.isfinite(connectivity_threshold) or connectivity_threshold < 0:
-        raise ValueError("connectivity_threshold must be finite and nonnegative.")
-    if not np.isfinite(arrow_scale) or arrow_scale < 0:
-        raise ValueError("arrow_scale must be finite and nonnegative.")
-    if caxes is not None:
-        from collections.abc import Mapping
-        if not isinstance(caxes, Mapping):
-            raise TypeError("caxes must be a mapping of colorbar names to Axes.")
-        allowed = ({"fill"} if fill_color_mode != "constant" else set()) | ({"arrow"} if arrow_color_mode == "shift" else set())
-        if ax is None or not legend or set(caxes) - allowed:
-            raise ValueError("caxes requires ax, legend=True and active fill/arrow color encodings.")
-        panel_axes(["compass", *caxes], {"compass": ax, **caxes}, None)
-    xy = _get_basis_xy(adata, basis)
-    labels = _as_str_series(adata.obs[node_key])
-    node_names, edge_table, graph_order_source = _graph(
-        adata, node_key, paga_key, graph_node_order, labels.dropna().unique().tolist(),
+    if mode == "display" and any(
+        v is not None
+        for v in (
+            shift_df,
+            alignment_df,
+            analysis_rep,
+            report_state_key,
+            alignment_state_key,
+        )
+    ):
+        raise ValueError("Stored evidence inputs require mode='stored'.")
+    if pd.isna(group0) or pd.isna(group1) or str(group0) == str(group1):
+        raise ValueError("group0 and group1 must be distinct nonmissing labels.")
+    groups = (str(group0), str(group1))
+    for key in (node_key, condition_key):
+        if key not in adata.obs:
+            raise KeyError(f"obs[{key!r}] not found.")
+    for name, value in (("min_cells", min_cells), ("max_states", max_states)):
+        _integer(value, name, 1)
+    _integer(random_state, "random_state")
+    if label_top_n is not None:
+        _integer(label_top_n, "label_top_n")
+    if max_points is not None:
+        _integer(max_points, "max_points", 1)
+    for name, value in (
+        ("connectivity_threshold", connectivity_threshold),
+        ("arrow_scale", arrow_scale),
+        ("ring_max_lw", ring_max_lw),
+    ):
+        _positive(value, name, zero=True)
+    for name, value in (
+        ("node_size_scale", node_size_scale),
+        ("edge_lw", edge_lw),
+        ("bg_size", bg_size),
+        ("arrow_linewidth", arrow_linewidth),
+        ("arrow_head_size", arrow_head_size),
+        ("label_fontsize", label_fontsize),
+    ):
+        _positive(value, name)
+    if arrow_width is not None:
+        _positive(arrow_width, "arrow_width")
+    if node_size_reference is not None:
+        _positive(node_size_reference, "node_size_reference")
+    for name, value in (("edge_alpha", edge_alpha), ("bg_alpha", bg_alpha)):
+        if not np.isfinite(value) or not 0 <= value <= 1:
+            raise ValueError(f"{name} must be in [0, 1].")
+    for value in (ring_color, arrow_color):
+        if not is_color_like(value):
+            raise ValueError(f"Invalid color {value!r}.")
+    for name, value in (
+        ("label", label),
+        ("legend", legend),
+        ("show_endpoints", show_endpoints),
+    ):
+        if not isinstance(value, (bool, np.bool_)):
+            raise TypeError(f"{name} must be boolean.")
+    if show_colorbar is None:
+        show_colorbar = legend
+    elif not isinstance(show_colorbar, (bool, np.bool_)):
+        raise TypeError("show_colorbar must be boolean or None.")
+    if figsize is not None and (
+        len(figsize) != 2 or not np.isfinite(figsize).all() or min(figsize) <= 0
+    ):
+        raise ValueError("figsize must contain two positive finite values.")
+    try:
+        embedding_key, coordinates = resolve_embedding(adata, basis)
+    except KeyError as exc:
+        raise KeyError(f"Embedding {basis!r} not found in adata.obsm.") from exc
+    xy = np.asarray(coordinates[:, :2], dtype=float)
+    labels = _string_labels(adata.obs[node_key], node_key)
+    conditions = _string_labels(adata.obs[condition_key], condition_key)
+    cells = pd.DataFrame(
+        {
+            "cell": adata.obs_names.astype(str),
+            "obs_position": np.arange(adata.n_obs),
+            "node": adata.obs[node_key].to_numpy(),
+            "node_label": labels.to_numpy(),
+            "state": labels.to_numpy(),
+            "condition": conditions.to_numpy(),
+            "x": xy[:, 0],
+            "y": xy[:, 1],
+            "finite_coordinates": np.isfinite(xy).all(axis=1),
+        }
     )
-    node_df = _assemble_recovery_compass_table(
+    cells["in_contrast"] = cells.condition.isin(groups)
+    cells["contrast_included"] = cells.in_contrast & cells.state.notna()
+    if not cells.contrast_included.any():
+        raise ValueError("No annotated cells are available in the selected contrast.")
+    if (cells.contrast_included & ~cells.finite_coordinates).any():
+        raise ValueError(
+            "Selected annotated cells require jointly finite display coordinates."
+        )
+    names, edge_table, order_source = _graph(
+        adata, node_key, paga_key, graph_node_order, labels.dropna().unique().tolist()
+    )
+    nodes = context_nodes(cells, names, node_key, groups, min_cells)
+    velocities, velocity_key, velocity_available = velocity_nodes(
         adata,
-        node_key=node_key,
-        condition_key=condition_key,
-        group0=group0,
-        group1=group1,
-        basis=basis,
-        velocity_basis=velocity_basis,
-        ood_key=ood_key,
-        min_cells=min_cells,
+        cells,
+        names,
+        embedding_key,
+        velocity_basis,
+        groups,
+        velocity_scope,
+        min_cells,
     )
-
-    node_idx = node_df.set_index(node_key, drop=False)
-    placeable = {
-        n for n in node_names
-        if n in node_idx.index and bool(node_idx.loc[n, "present0"])
-        and np.isfinite(node_idx.loc[n, ["x0", "y0"]].to_numpy(dtype=float)).all()
-    }
-    edge_table["displayed"] = (~edge_table.self_loop & (edge_table.weight >= connectivity_threshold)
-        & edge_table.source.isin(placeable) & edge_table.target.isin(placeable))
-    edges = list(edge_table.loc[edge_table.displayed, ["source", "target", "weight"]].itertuples(index=False, name=None))
-    fig, panels, made_fig = panel_axes(["compass"], None if ax is None else {"compass": ax}, figsize)
-    ax = panels["compass"]
-    if made_fig:
+    nodes = nodes.merge(velocities, on="state", how="left", validate="one_to_one")
+    dot = nodes.dx * nodes.vx + nodes.dy * nodes.vy
+    denominator = nodes.shift_norm * nodes.vel_norm
+    nodes["display_alignment_cosine"] = np.divide(
+        dot,
+        denominator,
+        out=np.full(len(nodes), np.nan),
+        where=np.isfinite(denominator) & denominator.gt(0),
+    )
+    nodes["alignment_cosine"] = nodes.display_alignment_cosine
+    nodes["usable_velocity"] = (
+        nodes.usable_shift
+        & nodes.velocity_present
+        & np.isfinite(nodes.display_alignment_cosine)
+    )
+    ood, resolved_threshold = ood_nodes(
+        adata, cells, names, ood_key, ood_threshold, groups, ood_scope
+    )
+    nodes = nodes.merge(ood, on="state", how="left", validate="one_to_one")
+    notes = []
+    if not velocity_available:
+        notes.append(
+            f"Projected velocity {velocity_key!r} unavailable; display alignment remains missing."
+        )
+    if velocity_scope == "all":
+        notes.append("Velocity pools all input conditions (explicit legacy scope).")
+    if ood_key is None and ring_mode == "ood_frac":
+        notes.append("OOD score not supplied; node borders do not encode OOD burden.")
+    elif ring_mode == "ood_frac" and nodes.ood_n_scored.eq(0).any():
+        notes.append(
+            "States without finite OOD scores have unavailable burden, not zero burden."
+        )
+    if ood_key is not None and ood_threshold is None:
+        notes.append(
+            "OOD threshold is the selected scope's descriptive 95th percentile, not a fitted calibration."
+        )
+    if order_source in {"current_categorical_order", "sorted_observed_labels"}:
+        notes.append(
+            "PAGA matrix order is inferred from current labels; supply graph_node_order when known."
+        )
+    source_shift = source_alignment = None
+    provenance = {"status": "display_only"}
+    if mode == "stored":
+        evidence, source_shift, source_alignment, metric, provenance, messages = (
+            stored_evidence(
+                shift_df,
+                alignment_df,
+                node_key=node_key,
+                condition_key=condition_key,
+                groups=groups,
+                analysis_rep=analysis_rep,
+                report_state_key=report_state_key,
+                alignment_state_key=alignment_state_key,
+                effect_metric=effect_metric,
+                min_cells=min_cells,
+            )
+        )
+        notes.extend(messages)
+        lookup = evidence.set_index("state")
+        nodes["alignment_cosine"] = nodes.state.map(lookup.alignment)
+        nodes["stored_alignment_available"] = (
+            nodes.state.map(lookup.alignment_available).fillna(False).astype(bool)
+        )
+    else:
+        metric = "display_shift_norm"
+        evidence = pd.DataFrame(
+            {
+                "state": nodes.state,
+                "effect": nodes.shift_norm,
+                "effect_source_eligible": nodes.usable_shift,
+                "effect_available": nodes.usable_shift & np.isfinite(nodes.shift_norm),
+                "effect_source_status": nodes.coverage_status,
+                "effect_metric": metric,
+                "effect_descriptive": True,
+                "effect_supported": False,
+                "effect_support_status": np.where(
+                    nodes.usable_shift, "display_descriptive", nodes.coverage_status
+                ),
+                "ci_low": np.nan,
+                "ci_high": np.nan,
+                "interval_available": False,
+                "interval_reason": "not_estimated",
+                "alignment": nodes.display_alignment_cosine,
+                "alignment_source_eligible": nodes.usable_velocity,
+                "alignment_available": nodes.usable_velocity,
+                "alignment_source_status": "display_descriptive",
+                "alignment_reason": np.where(
+                    nodes.usable_velocity, "available", "display_unavailable"
+                ),
+            }
+        )
+    context_states = list(dict.fromkeys([*names, *evidence.state]))
+    sample_counts, coverage = sample_context(
+        adata, cells, context_states, groups, sample_key
+    )
+    anchors = _node_anchors(cells, nodes, min_cells, "mean", node_position)
+    anchor_index = anchors.set_index("state")
+    reasons = []
+    for row in edge_table.itertuples(index=False):
+        reason = (
+            "self_loop"
+            if row.self_loop
+            else "below_threshold"
+            if row.weight < connectivity_threshold
+            else "displayed"
+        )
+        if reason == "displayed":
+            for state in (row.source, row.target):
+                anchor = anchor_index.loc[state]
+                if not anchor.observed:
+                    reason = f"missing_{node_position}_anchor"
+                    break
+                if not anchor.usable:
+                    reason = "insufficient_reference_cells"
+                    break
+        reasons.append(reason)
+    edge_table["reason"] = reasons
+    edge_table["displayed"] = edge_table.reason.eq("displayed")
+    for endpoint in ("source", "target"):
+        for dim in ("x", "y"):
+            edge_table[f"{endpoint}_{dim}"] = edge_table[endpoint].map(
+                anchor_index[dim]
+            )
+    edges = list(
+        edge_table.loc[edge_table.displayed, ["source", "target", "weight"]].itertuples(
+            index=False, name=None
+        )
+    )
+    size_values = (
+        (
+            nodes.n1
+            if node_size_mode == "group1_n"
+            else nodes.n0
+            if node_size_mode == "group0_n"
+            else nodes.delta_abs
+            if node_size_mode == "delta_abs"
+            else pd.Series(1.0, index=nodes.index)
+        )
+        .fillna(0)
+        .to_numpy(float)
+    )
+    size_max = (
+        float(node_size_reference)
+        if node_size_reference is not None
+        else max(
+            float(size_values.max()), 1.0 if node_size_mode != "delta_abs" else 1e-12
+        )
+    )
+    sizes = node_size_scale * (
+        0.45 + 0.55 * np.sqrt(np.maximum(size_values, 0) / size_max)
+    )
+    if fill_color_mode == "alignment":
+        fill_values = nodes.alignment_cosine.to_numpy(float).copy()
+        available = (
+            nodes.stored_alignment_available
+            if mode == "stored"
+            else nodes.usable_velocity
+        )
+        fill_values[~available.to_numpy()] = np.nan
+        fill_kind = "alignment"
+    elif fill_color_mode == "delta_frac":
+        fill_values, fill_kind = nodes.delta_frac.to_numpy(float), "delta"
+    else:
+        fill_values, fill_kind = np.full(len(nodes), 0.5), "constant"
+    fnorm = _normalization(fill_values, fill_norm, fill_vmin, fill_vmax, kind=fill_kind)
+    arrow_values = nodes.shift_norm.where(
+        nodes.usable_shift & nodes.shift_norm.gt(1e-12) & (arrow_scale > 0)
+    ).to_numpy(float)
+    anorm = _normalization(
+        arrow_values,
+        arrow_norm,
+        arrow_vmin,
+        arrow_vmax,
+        kind="arrow",
+    )
+    fcmap, acmap = plt.get_cmap(fill_cmap), plt.get_cmap(arrow_cmap)
+    offsets = {} if label_offsets is None else label_offsets
+    if not isinstance(offsets, Mapping) or not set(map(str, offsets)) <= set(names):
+        raise ValueError(
+            "label_offsets must map known state IDs to two finite point offsets."
+        )
+    offsets = {str(k): tuple(v) for k, v in offsets.items()}
+    if any(len(v) != 2 or not np.isfinite(v).all() for v in offsets.values()):
+        raise ValueError("label_offsets require two finite point offsets.")
+    if label_names is not None and (
+        not isinstance(label_names, Mapping)
+        or not set(map(str, label_names)) <= set(names)
+    ):
+        raise ValueError("label_names must map known state IDs to display labels.")
+    label_names = (
+        None
+        if label_names is None
+        else {str(k): str(v) for k, v in label_names.items()}
+    )
+    eligible = np.flatnonzero(cells.finite_coordinates)
+    strata = (
+        cells.loc[eligible, ["state", "condition"]]
+        .fillna("(missing)")
+        .astype(str)
+        .agg(" / ".join, axis=1)
+        .to_numpy()
+    )
+    drawn = eligible[display_indices(strata, max_points, random_state)]
+    cells["background_displayed"] = False
+    cells.loc[drawn, "background_displayed"] = True
+    if caxes is not None:
+        if not isinstance(caxes, Mapping):
+            raise TypeError("caxes must map fill/arrow to colorbar axes.")
+        active = ({"fill"} if fill_color_mode != "constant" else set()) | (
+            {"arrow"} if arrow_color_mode == "shift" else set()
+        )
+        map_ax = (
+            ax
+            if ax is not None
+            else axes.get("map")
+            if isinstance(axes, Mapping)
+            else None
+        )
+        if map_ax is None or not show_colorbar or not set(caxes) <= active:
+            raise ValueError(
+                "caxes requires supplied map axes and active color encodings with show_colorbar=True."
+            )
+        panel_axes(["map", *caxes], {"map": map_ax, **caxes}, None)
+    fig, panels, owns = _canvas(layout, ax, axes, figsize)
+    ax = panels["map"]
+    if owns and layout == "map":
         if hasattr(fig, "set_layout_engine"):
             fig.set_layout_engine("constrained")
-        else:  # Matplotlib 3.5
+        else:
             fig.set_constrained_layout(True)
-    artists = {"edges": [], "nodes": {}, "arrows": {}, "labels": {}}
-    glyphs = []
-    finite_xy = np.isfinite(xy).all(axis=1)
-
-    # Step 2: base plot
+    artists = {
+        "edges": [],
+        "nodes": {},
+        "arrows": {},
+        "labels": {},
+        "reference_nodes": {},
+        "comparison_nodes": {},
+    }
     artists["background"] = ax.scatter(
-        xy[finite_xy, 0],
-        xy[finite_xy, 1],
+        xy[drawn, 0],
+        xy[drawn, 1],
         s=bg_size,
         c="lightgrey",
         alpha=bg_alpha,
@@ -473,256 +839,395 @@ def recovery_compass(
         rasterized=True,
         zorder=0,
     )
-
-    for a, b, w in edges:
-        ra = node_idx.loc[a]
-        rb = node_idx.loc[b]
-        artists["edges"].extend(ax.plot(
-            [float(ra["x0"]), float(rb["x0"])],
-            [float(ra["y0"]), float(rb["y0"])],
-            color="black",
-            lw=edge_lw * max(w, 0.15),
-            alpha=edge_alpha,
-            zorder=1,
-        ))
-
-    # node size encoding
-    if node_size_mode == "group1_n":
-        size_values = node_df["n1"].fillna(0).to_numpy(dtype=float)
-    elif node_size_mode == "group0_n":
-        size_values = node_df["n0"].fillna(0).to_numpy(dtype=float)
-    elif node_size_mode == "delta_abs":
-        size_values = node_df["delta_abs"].fillna(0).to_numpy(dtype=float)
-    elif node_size_mode == "constant":
-        size_values = np.ones(node_df.shape[0], dtype=float)
-    else:
-        raise ValueError("node_size_mode must be one of {'group1_n', 'group0_n', 'delta_abs', 'constant'}.")
-
-    size_max = max(float(np.nanmax(size_values)) if np.any(np.isfinite(size_values)) else 1.0, 1.0)
-
-    # node fill encoding
-    if fill_color_mode == "alignment":
-        fill_values = node_df["alignment_cosine"].to_numpy(dtype=float, copy=True)
-        fill_values[~node_df.usable_velocity.to_numpy(dtype=bool)] = np.nan
-    elif fill_color_mode == "delta_frac":
-        fill_values = node_df["delta_frac"].to_numpy(dtype=float)
-        fill_vmin = float(np.nanmin(fill_values)) if np.any(np.isfinite(fill_values)) else -1.0
-        fill_vmax = float(np.nanmax(fill_values)) if np.any(np.isfinite(fill_values)) else 1.0
-        if np.isclose(fill_vmin, fill_vmax):
-            fill_vmin, fill_vmax = -1.0, 1.0
-    elif fill_color_mode == "constant":
-        fill_values = np.full(node_df.shape[0], 0.5, dtype=float)
-        fill_vmin, fill_vmax = 0.0, 1.0
-    else:
-        raise ValueError("fill_color_mode must be one of {'alignment', 'delta_frac', 'constant'}.")
-
-    fill_norm = plt.Normalize(vmin=fill_vmin, vmax=fill_vmax)
-    fill_cmap_obj = plt.get_cmap(fill_cmap)
-
-    # Step 3: arrows and nodes
-    if label_top_n is not None:
-        label_nodes = set(
-            node_df.sort_values("shift_norm", ascending=False)[node_key].head(label_top_n).astype(str)
+    for row in edge_table.loc[edge_table.displayed].itertuples(index=False):
+        artists["edges"].extend(
+            ax.plot(
+                [row.source_x, row.target_x],
+                [row.source_y, row.target_y],
+                color=".5",
+                lw=edge_lw * max(row.weight, 0.15),
+                alpha=edge_alpha,
+                zorder=1,
+            )
         )
-    else:
-        label_nodes = set(node_df[node_key].astype(str))
-
-    if arrow_color_mode == "shift":
-        arrow_vals = node_df["shift_norm"].to_numpy(dtype=float)
-        arrow_vmin = float(np.nanmin(arrow_vals)) if np.any(np.isfinite(arrow_vals)) else 0.0
-        arrow_vmax = float(np.nanmax(arrow_vals)) if np.any(np.isfinite(arrow_vals)) else 1.0
-        if np.isclose(arrow_vmin, arrow_vmax):
-            arrow_vmin, arrow_vmax = 0.0, max(arrow_vmax, 1.0)
-        arrow_norm = plt.Normalize(vmin=arrow_vmin, vmax=arrow_vmax)
-        arrow_cmap_obj = plt.get_cmap(arrow_cmap)
-    elif arrow_color_mode == "constant":
-        arrow_norm = None
-        arrow_cmap_obj = None
-    else:
-        raise ValueError("arrow_color_mode must be one of {'shift', 'constant'}.")
-
-    for _, row in node_df.iterrows():
-        n = str(row[node_key])
-
-        if n not in placeable:
-            continue
-
-        x0 = float(row["x0"])
-        y0 = float(row["y0"])
-
-        sval = size_values[node_df.index.get_loc(row.name)]
-        frac = np.sqrt(max(float(sval), 0.0) / size_max) if size_max > 0 else 1.0
-        node_size = node_size_scale * (0.45 + 0.55 * frac)
-
-        fval = fill_values[node_df.index.get_loc(row.name)]
-        if np.isfinite(fval):
-            facecolor = fill_cmap_obj(fill_norm(float(fval)))
-        else:
-            facecolor = "lightgrey"
-
-        # Step 3: ring encoding
-        if ring_mode == "ood_frac" and "ood_frac" in row.index and pd.notna(row["ood_frac"]):
-            ring_lw = 0.8 + ring_max_lw * float(row["ood_frac"])
-        elif ring_mode == "none":
-            ring_lw = 0.8
-        else:
-            ring_lw = 0.8
-
-        artists["nodes"][n] = ax.scatter(
-            x0,
-            y0,
-            s=node_size,
-            facecolor=facecolor,
-            edgecolor=ring_color,
-            linewidth=ring_lw,
-            alpha=0.98,
-            zorder=3,
+    glyphs, obstacles, label_anchors = [], [], {}
+    for i, row in nodes.iterrows():
+        state = str(row.state)
+        anchor = anchor_index.loc[state]
+        ring_available = ring_mode == "ood_frac" and np.isfinite(row.ood_frac)
+        ring_lw = 0.8 + ring_max_lw * row.ood_frac if ring_available else 0.8
+        face = (
+            fcmap(fnorm(fill_values[i])) if np.isfinite(fill_values[i]) else "lightgrey"
         )
-
-        draw_arrow = bool(row["usable_shift"]) and np.isfinite([row["dx"], row["dy"]]).all()
-        glyphs.append({"node": n, "x": x0, "y": y0, "size": node_size, "fill_value": fval,
-            "fill_available": np.isfinite(fval), "ring_lw": ring_lw,
-            "ring_available": ring_mode == "ood_frac" and pd.notna(row["ood_frac"]),
-            "arrow_displayed": draw_arrow, "label_displayed": label and n in label_nodes,
-            "arrow_end_x": x0 + float(row["dx"]) * arrow_scale if draw_arrow else np.nan,
-            "arrow_end_y": y0 + float(row["dy"]) * arrow_scale if draw_arrow else np.nan})
-        if draw_arrow:
-            dx = float(row["dx"]) * arrow_scale
-            dy = float(row["dy"]) * arrow_scale
-
-            if arrow_color_mode == "shift" and np.isfinite(row["shift_norm"]):
-                acolor = arrow_cmap_obj(arrow_norm(float(row["shift_norm"])))
-            else:
-                acolor = arrow_color
-
-            artists["arrows"][n] = ax.arrow(
-                x0,
-                y0,
-                dx,
-                dy,
-                width=arrow_width,
-                head_width=arrow_width * 8.0,
-                head_length=max(np.hypot(dx, dy) * 0.12, arrow_width * 8.0),
-                length_includes_head=True,
-                facecolor=acolor,
-                edgecolor="0.3",
-                linewidth=.55,
-                alpha=0.95,
+        drawable = bool(anchor.observed)
+        arrow_valid = bool(
+            row.usable_shift
+            and np.isfinite(row.shift_norm)
+            and row.shift_norm > 1e-12
+            and arrow_scale > 0
+        )
+        arrow_reason = (
+            "displayed"
+            if arrow_valid
+            else "zero_scale"
+            if arrow_scale == 0
+            else "zero_shift"
+            if row.usable_shift and row.shift_norm <= 1e-12
+            else row.coverage_status
+        )
+        if drawable:
+            marker = "o" if anchor.usable else "x"
+            kwargs = (
+                {
+                    "facecolor": face,
+                    "edgecolor": ring_color if ring_available else ".55",
+                }
+                if marker == "o"
+                else {"color": ".5"}
+            )
+            artists["nodes"][state] = ax.scatter(
+                anchor.x,
+                anchor.y,
+                s=sizes[i],
+                marker=marker,
+                linewidths=ring_lw,
                 zorder=4,
+                **kwargs,
             )
-
-        if label and n in label_nodes:
-            artists["labels"][n] = ax.text(
-                x0,
-                y0,
-                n,
-                fontsize=label_fontsize,
-                ha="center",
-                va="center",
-                zorder=5,
-                bbox=dict(boxstyle="round,pad=0.18", fc="white", ec="none", alpha=0.72),
+            label_anchors[state] = (anchor.x, anchor.y)
+            obstacles.append((anchor.x, anchor.y, np.sqrt(sizes[i]) / 2 + 3))
+        if show_endpoints:
+            if node_position == "pooled" and row.n0:
+                artists["reference_nodes"][state] = ax.scatter(
+                    row.x0,
+                    row.y0,
+                    s=28,
+                    facecolor="white",
+                    edgecolor=".3",
+                    linewidths=1,
+                    zorder=5,
+                )
+            if row.n1:
+                artists["comparison_nodes"][state] = ax.scatter(
+                    row.x1,
+                    row.y1,
+                    s=24,
+                    marker="o" if row.present1 else "x",
+                    color=".3",
+                    zorder=5,
+                )
+                if not drawable:
+                    label_anchors[state] = (row.x1, row.y1)
+        if arrow_valid:
+            color = (
+                acmap(anorm(row.shift_norm))
+                if arrow_color_mode == "shift"
+                else arrow_color
             )
-
-    # Step 4: colorbars
-    if legend:
-        if fill_color_mode != "constant":
-            sm_fill = plt.cm.ScalarMappable(norm=fill_norm, cmap=fill_cmap_obj)
-            sm_fill.set_array([])
-            cbar_fill = fig.colorbar(sm_fill, ax=ax, cax=None if caxes is None else caxes.get("fill"), fraction=0.046, pad=0.04)
-            artists["fill_colorbar"] = cbar_fill
-            if fill_color_mode == "alignment":
-                cbar_fill.set_label("Display-space cosine(shift, velocity)")
-            elif fill_color_mode == "delta_frac":
-                cbar_fill.set_label("Δ fraction")
-
-        if arrow_color_mode == "shift":
-            sm_arrow = plt.cm.ScalarMappable(norm=arrow_norm, cmap=arrow_cmap_obj)
-            sm_arrow.set_array([])
-            cbar_arrow = fig.colorbar(sm_arrow, ax=ax, cax=None if caxes is None else caxes.get("arrow"), fraction=0.046, pad=0.10)
-            cbar_arrow.set_label("Display-space shift magnitude")
-            artists["arrow_colorbar"] = cbar_arrow
-
-        # small manual annotation
-        annotation_lines = [
-            f"node size: {node_size_mode}",
-            f"ring: {ring_mode if ood_key is not None or ring_mode == 'none' else 'OOD unavailable'}",
-            f"fill: {fill_color_mode}",
-        ]
-        ax.text(
-            0.01,
-            0.01,
-            "\n".join(annotation_lines),
-            transform=ax.transAxes,
-            ha="left",
-            va="bottom",
-            fontsize=8,
-            bbox=dict(boxstyle="round,pad=0.25", fc="white", ec="none", alpha=0.75),
-            zorder=10,
+            artists["arrows"][state] = _draw_vector(
+                ax,
+                (row.x0, row.y0),
+                (row.x0 + row.dx * arrow_scale, row.y0 + row.dy * arrow_scale),
+                color=color,
+                alpha=0.95,
+                width=arrow_width,
+                linewidth=arrow_linewidth,
+                head_size=arrow_head_size,
+            )
+        glyphs.append(
+            {
+                "node": state,
+                "x": anchor.x,
+                "y": anchor.y,
+                "displayed": drawable,
+                "position_source": node_position,
+                "size": sizes[i],
+                "size_value": size_values[i],
+                "fill_value": fill_values[i],
+                "fill_available": np.isfinite(fill_values[i]),
+                "ring_lw": ring_lw,
+                "ring_available": ring_available,
+                "arrow_displayed": arrow_valid,
+                "arrow_reason": arrow_reason,
+                "arrow_source_x": row.x0,
+                "arrow_source_y": row.y0,
+                "arrow_end_x": row.x0 + row.dx * arrow_scale if arrow_valid else np.nan,
+                "arrow_end_y": row.y0 + row.dy * arrow_scale if arrow_valid else np.nan,
+                "comparison_x": row.x1,
+                "comparison_y": row.y1,
+                "label_displayed": False,
+            }
         )
-
-    basis_name = basis[2:] if basis.startswith("X_") else basis
-    ax.set_xlabel(f"{basis_name.upper()}1")
-    ax.set_ylabel(f"{basis_name.upper()}2")
-    ax.set_aspect("equal", adjustable="datalim")
-    ax.set_xticks([])
-    ax.set_yticks([])
+    glyphs = pd.DataFrame(glyphs)
+    if show_colorbar:
+        if fill_color_mode != "constant":
+            bar = fig.colorbar(
+                plt.cm.ScalarMappable(norm=fnorm, cmap=fcmap),
+                ax=ax,
+                cax=None if caxes is None else caxes.get("fill"),
+                fraction=0.035,
+                pad=0.025,
+            )
+            bar.set_label(
+                (
+                    "Stored alignment cosine"
+                    if mode == "stored"
+                    else "Display-space cosine"
+                )
+                if fill_color_mode == "alignment"
+                else "Captured-cell fraction difference",
+                fontsize=8,
+            )
+            artists["fill_colorbar"] = bar
+        if arrow_color_mode == "shift":
+            bar = fig.colorbar(
+                plt.cm.ScalarMappable(norm=anorm, cmap=acmap),
+                ax=ax,
+                cax=None if caxes is None else caxes.get("arrow"),
+                fraction=0.035,
+                pad=0.07,
+            )
+            bar.set_label("Display-space shift magnitude", fontsize=8)
+            artists["arrow_colorbar"] = bar
+    if legend:
+        handles = [
+            Line2D(
+                [],
+                [],
+                color=arrow_color,
+                marker=">",
+                lw=arrow_linewidth,
+                label=f"Display contrast ×{arrow_scale:g}",
+            )
+        ]
+        handles.append(
+            Line2D(
+                [],
+                [],
+                marker="o",
+                linestyle="none",
+                markerfacecolor="lightgrey",
+                markeredgecolor=".5",
+                label="Evidence unavailable",
+            )
+        )
+        if node_size_mode != "constant":
+            for value in np.unique(np.quantile(size_values, [0, 0.5, 1])):
+                diameter = np.sqrt(
+                    node_size_scale * (0.45 + 0.55 * np.sqrt(max(value, 0) / size_max))
+                )
+                handles.append(
+                    Line2D(
+                        [],
+                        [],
+                        marker="o",
+                        linestyle="none",
+                        markerfacecolor="none",
+                        markeredgecolor=".4",
+                        markersize=diameter,
+                        label=f"{node_size_mode}: {value:.3g}",
+                    )
+                )
+        if ring_mode == "ood_frac" and ood_key is not None:
+            for fraction in (0.0, 0.5, 1.0):
+                handles.append(
+                    Line2D(
+                        [],
+                        [],
+                        marker="o",
+                        linestyle="none",
+                        markerfacecolor="white",
+                        markeredgecolor=ring_color,
+                        markeredgewidth=0.8 + ring_max_lw * fraction,
+                        markersize=8,
+                        label=f"OOD among scored: {fraction:.0%}",
+                    )
+                )
+        largest_marker = max(handle.get_markersize() for handle in handles)
+        artists["legend"] = ax.legend(
+            handles=handles,
+            loc="upper left",
+            bbox_to_anchor=(0, -0.18),
+            frameon=False,
+            fontsize=7,
+            ncol=2,
+            handleheight=max(0.7, (largest_marker / 7 - 0.245) / 0.65),
+            labelspacing=0.65,
+        )
+    finite_xy = xy[np.isfinite(xy).all(axis=1)]
+    endpoints = glyphs.loc[
+        glyphs.arrow_displayed, ["arrow_end_x", "arrow_end_y"]
+    ].to_numpy(float)
+    bounds = np.vstack([finite_xy, endpoints])
+    if len(bounds):
+        for dimension, method in enumerate((ax.set_xlim, ax.set_ylim)):
+            if not owns and not (
+                ax.get_autoscalex_on() if dimension == 0 else ax.get_autoscaley_on()
+            ):
+                continue
+            low, high = bounds[:, dimension].min(), bounds[:, dimension].max()
+            pad = max((high - low) * 0.08, 0.12)
+            method(low - pad, high + pad)
+    ax.set(
+        xlabel=f"{embedding_key.removeprefix('X_').upper()}1",
+        ylabel=f"{embedding_key.removeprefix('X_').upper()}2",
+        xticks=[],
+        yticks=[],
+        title=title
+        or f"ScGeo compass · {groups[0]} → {groups[1]}\n{'Stored evidence; display-only arrows' if mode == 'stored' else 'Descriptive display-space contrast'}",
+    )
+    ax.set_aspect("equal", adjustable="box" if owns else "datalim")
     for spine in ax.spines.values():
         spine.set_visible(False)
-
-    if title is None:
-        title = f"ScGeo recovery compass ({group0} → {group1})\nDisplay-space centroids and projected-vector cosine"
-    ax.set_title(title)
-
+    summary_states = (
+        evidence.sort_values(
+            ["effect_available", "effect"],
+            ascending=[False, False],
+            kind="stable",
+            na_position="last",
+        )
+        .state.head(max_states)
+        .tolist()
+    )
+    evidence["summary_displayed"] = evidence.state.isin(summary_states) & (
+        layout == "summary"
+    )
+    if layout == "summary":
+        artists["summary"] = _summary_panels(
+            panels,
+            evidence,
+            sample_counts,
+            coverage,
+            summary_states,
+            groups,
+            category_palette(groups),
+            mode,
+            metric,
+            sample_key,
+        )
+    ranking = nodes.sort_values(
+        "shift_norm", ascending=False, kind="stable", na_position="last"
+    )
+    chosen = [state for state in ranking.state if state in label_anchors]
+    if label_top_n is not None:
+        chosen = chosen[:label_top_n]
+    rows = [(state, *label_anchors[state]) for state in chosen] if label else []
+    artists["labels"], label_table = place_labels(
+        ax,
+        rows,
+        fontsize=label_fontsize,
+        mode=label_mode,
+        offsets=offsets,
+        obstacles=obstacles,
+        labels=label_names,
+    )
+    glyphs["label_displayed"] = glyphs.node.isin(artists["labels"])
+    nodes["displayed"] = (
+        nodes.state.map(anchor_index.observed).fillna(False).astype(bool)
+    )
+    data = {
+        "cells": cells,
+        "nodes": nodes,
+        "edges": edge_table,
+        "graph_nodes": pd.DataFrame(
+            {"node": names, "matrix_position": np.arange(len(names))}
+        ),
+        "glyphs": glyphs,
+        "node_anchors": anchors,
+        "coverage": coverage,
+        "sample_abundance": sample_counts,
+        "evidence": evidence,
+        "labels": label_table,
+    }
+    if source_shift is not None:
+        data["shift_source"] = source_shift.drop(columns="_state_id")
+    if source_alignment is not None:
+        data["alignment_source"] = source_alignment.drop(columns="_state_id")
+    metadata = {
+        "plot": "recovery_compass",
+        "mode": mode,
+        "layout": layout,
+        "basis": embedding_key,
+        "node_key": node_key,
+        "condition_key": condition_key,
+        "group0": groups[0],
+        "group1": groups[1],
+        "alignment_source": "stored" if mode == "stored" else "display_coordinates",
+        "analysis_rep": analysis_rep,
+        "effect_metric": metric,
+        "stored_provenance": provenance,
+        "centroid_aggregation": "mean",
+        "centroid_unit": "cells",
+        "node_position": node_position,
+        "velocity_key": velocity_key,
+        "velocity_scope": "all_input_conditions"
+        if velocity_scope == "all"
+        else velocity_scope,
+        "velocity_aggregation": "jointly finite cell mean",
+        "ood_key": ood_key,
+        "ood_threshold": resolved_threshold,
+        "ood_threshold_source": "explicit"
+        if ood_threshold is not None
+        else "scope_quantile_0.95",
+        "ood_scope": ood_scope,
+        "ood_threshold_scope": "finite_scores_all_input_cells"
+        if ood_scope == "all"
+        else f"finite_scores_{ood_scope}",
+        "ood_fraction_denominator": "finite scored node cells in the selected OOD scope",
+        "sample_key": sample_key,
+        "abundance_denominator": "annotated cells per sample-condition unit",
+        "sample_roster_scope": "all supplied selected-condition observations before state or display filtering",
+        "paga_key": paga_key,
+        "graph_order_source": order_source,
+        "graph_node_order": names,
+        "connectivity_threshold": connectivity_threshold,
+        "graph_directed": False,
+        "min_cells": min_cells,
+        "node_size_mode": node_size_mode,
+        "node_size_scale": node_size_scale,
+        "node_size_reference": size_max,
+        "fill_color_mode": fill_color_mode,
+        "fill_norm": {
+            "type": type(fnorm).__name__,
+            "vmin": fnorm.vmin,
+            "vmax": fnorm.vmax,
+        },
+        "fill_cmap": fill_cmap,
+        "ring_mode": ring_mode,
+        "arrow_color_mode": arrow_color_mode,
+        "arrow_scale": arrow_scale,
+        "arrow_cmap": arrow_cmap,
+        "arrow_width_units": "points" if arrow_width is None else "data",
+        "arrow_norm": {
+            "type": type(anorm).__name__,
+            "vmin": anorm.vmin,
+            "vmax": anorm.vmax,
+        },
+        "arrow_source": "actual reference condition center; independent of node position",
+        "label_mode": label_mode,
+        "label_names": label_names,
+        "max_points": max_points,
+        "random_state": random_state,
+        "n_background_displayed": len(drawn),
+        "summary_states": summary_states if layout == "summary" else [],
+        "show_colorbar": bool(show_colorbar),
+        "owns_figure": owns,
+        "export_scope": "created_figure" if owns else "parent_figure",
+        "interpretation": "Stored evidence and observed display context remain separate; no recovery, causality or trajectories inferred.",
+    }
+    result_axes = {"compass": ax, **panels}
+    result = PlotResult(fig, result_axes, data, metadata, notes, artists)
     if show:
         plt.show()
-
     if return_result:
-        vel_key = (f"velocity_{basis.removeprefix('X_')}" if velocity_basis is None else
-                   velocity_basis if velocity_basis.startswith("velocity_") else f"velocity_{velocity_basis}")
-        cells = pd.DataFrame({"cell": adata.obs_names.astype(str), "obs_position": np.arange(adata.n_obs),
-            "node": adata.obs[node_key].to_numpy(), "node_label": labels.to_numpy(),
-            "condition": adata.obs[condition_key].to_numpy(), "x": xy[:, 0], "y": xy[:, 1],
-            "background_displayed": finite_xy})
-        cells["contrast_included"] = _as_str_series(adata.obs[condition_key]).isin([str(group0), str(group1)]).to_numpy() & labels.notna().to_numpy()
-        if vel_key in adata.obsm:
-            cells["vx"] = np.asarray(adata.obsm[vel_key])[:, 0]
-            cells["vy"] = np.asarray(adata.obsm[vel_key])[:, 1]
-        threshold_used = None
-        if ood_key is not None:
-            cells["ood_score"] = pd.to_numeric(adata.obs[ood_key], errors="coerce").to_numpy(dtype=float, na_value=np.nan)
-            threshold_used = float(node_df.ood_threshold_used.dropna().iloc[0]) if node_df.ood_threshold_used.notna().any() else None
-            cells["ood_flagged"] = np.isfinite(cells.ood_score) & (cells.ood_score >= threshold_used) if threshold_used is not None else False
-        node_source = node_df.copy()
-        node_source["displayed"] = node_source[node_key].isin(placeable)
-        data = {"cells": cells, "nodes": node_source, "edges": edge_table,
-                "graph_nodes": pd.DataFrame({"node": node_names, "matrix_position": np.arange(len(node_names))}),
-                "glyphs": pd.DataFrame(glyphs, columns=["node", "x", "y", "size", "fill_value", "fill_available",
-                    "ring_lw", "ring_available", "arrow_displayed", "label_displayed", "arrow_end_x", "arrow_end_y"])}
-        warnings = []
-        if vel_key not in adata.obsm:
-            warnings.append(f"Projected velocity {vel_key!r} unavailable; alignment remains missing.")
-        if ood_key is None and ring_mode == "ood_frac":
-            warnings.append("OOD score not supplied; node borders do not encode OOD burden.")
-        if graph_order_source in {"current_categorical_order", "sorted_observed_labels"}:
-            warnings.append("PAGA matrix order is inferred from current labels; supply graph_node_order when original order is known.")
-        metadata = {"plot": "recovery_compass", "basis": resolve_embedding(adata, basis)[0],
-            "node_key": node_key, "condition_key": condition_key, "group0": str(group0), "group1": str(group1),
-            "alignment_source": "display_coordinates", "centroid_aggregation": "mean",
-            "velocity_key": vel_key, "velocity_scope": "all_input_conditions", "velocity_aggregation": "mean",
-            "ood_key": ood_key, "ood_threshold": threshold_used, "ood_threshold_scope": "finite_scores_all_input_cells",
-            "ood_fraction_denominator": "all_input_node_cells; unavailable scores are not flagged",
-            "paga_key": paga_key, "graph_order_source": graph_order_source, "graph_node_order": node_names,
-            "connectivity_threshold": connectivity_threshold, "graph_directed": False,
-            "min_cells": min_cells, "node_size_mode": node_size_mode, "node_size_scale": node_size_scale,
-            "fill_color_mode": fill_color_mode, "fill_norm": {"vmin": fill_norm.vmin, "vmax": fill_norm.vmax},
-            "fill_cmap": fill_cmap, "ring_mode": ring_mode, "arrow_color_mode": arrow_color_mode,
-            "arrow_scale": arrow_scale, "arrow_cmap": arrow_cmap,
-            "arrow_norm": None if arrow_norm is None else {"vmin": arrow_norm.vmin, "vmax": arrow_norm.vmax},
-            "owns_figure": made_fig, "export_scope": "created_figure" if made_fig else "parent_figure",
-            "interpretation": "Display-space summary, not stored analysis-space evidence, inferred lineage or biological recovery."}
-        return PlotResult(fig, panels, data, metadata, warnings, artists)
+        return result
     if return_data:
-        return fig, ax, node_df, edges
-    if made_fig:
-        return fig, ax
-    return ax
+        return (
+            fig,
+            ax if layout == "map" else panels,
+            nodes.loc[nodes.n0.add(nodes.n1).gt(0)].copy(),
+            edges,
+        )
+    if layout == "summary":
+        return fig, panels
+    return (fig, ax) if owns else ax
