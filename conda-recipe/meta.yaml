@@ -2,7 +2,7 @@
 # submitting to a public channel; source.path is intentionally local here.
 package:
   name: scgeo
-  version: "0.1.0"
+  version: "0.2.0"
 
 source:
   path: ..
