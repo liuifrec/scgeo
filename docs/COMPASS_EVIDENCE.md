@@ -1,5 +1,7 @@
 # State response compass and readable evidence plots
 
+These APIs are included in the 0.2.0 release source; see [Installation](INSTALLATION.md) for the verified index release or a pinned source installation.
+
 The compass can combine observed state locations with stored quantitative
 evidence and individual biological samples. The numerical evidence remains
 separate from the coordinates used to draw the map.

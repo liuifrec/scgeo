@@ -5,7 +5,7 @@ in the other condition to estimate a useful within-state response. Preserve
 the observed expression, cell counts, and sample frequencies. Mark the
 unsupported comparison explicitly.
 
-The development plotting extensions keep these outputs separate:
+The 0.2.0 plotting extensions keep these outputs separate:
 
 | Available information | Useful display |
 |---|---|
@@ -15,7 +15,7 @@ The development plotting extensions keep these outputs separate:
 | A documented common numeric coordinate | Descriptive sample curves using `coordinate_key`, restricted to observed support |
 | State present almost entirely in one condition | Pooled PAGA node and composition pie, with separate sample evidence |
 
-These additions are available from the source checkout containing this guide.
+These APIs are included in the 0.2.0 release source; see [Installation](INSTALLATION.md) for the verified index release or a pinned source installation.
 They do not change the stored `robust_shift` or `explain_shift` estimators.
 
 ## Show expression without requiring a shift axis

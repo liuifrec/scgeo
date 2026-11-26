@@ -1,10 +1,10 @@
-# Geometry–velocity interpretation (development API)
+# Geometry–velocity interpretation (0.2.0 API)
 
 [Plotting overview](PLOTTING.md) · [PAGA maps](PAGA_SHIFT_MAP.md) · [Projected velocity fields](VELOCITY_FIELDS.md) · [Result interpretation](RESULT_INTERPRETATION.md)
 
 The comparison has **two different quantitative contexts**. Stored displacement and alignment are calculated in the declared ScGeo analysis representation; UMAP positions and projected RNA-velocity fields describe an existing **display embedding**. Treating a UMAP arrow angle as a substitute for stored 30-PC alignment would be incorrect.
 
-This guide covers three additions in the development checkout, not the published `scgeo==0.1.0` wheel:
+This guide covers three additions in the 0.2.0 API (not the earlier 0.1.0 wheel):
 
 - `sg.pl.geometry_velocity_concordance`: a table-driven state overview of effect magnitude versus signed, stored alignment cosine.
 - `sg.pl.velocity_condition_compare`: matched condition-specific projected-velocity grids or streamlines plus a support-masked local direction-comparison panel.

@@ -8,8 +8,7 @@ cell identities, and separates data preparation from figure rendering.
 [Plotting guide](PLOTTING.md) · [Velocity fields](VELOCITY_FIELDS.md) ·
 [Plotting API](api/pl.md) · [Citation guide](CITING.md)
 
-These examples require the **unreleased source checkout containing this
-guide**. They are descriptive software checks, not new biological analyses or
+These examples exercise the 0.2.0 API and require the matching source checkout for the scripts. They are descriptive software checks, not new biological analyses or
 independent benchmarks of annotation accuracy.
 
 ## Two public inputs, two distinct validation questions

@@ -30,9 +30,7 @@ the selected control-versus-treated summaries.
 
 ## Run the offline gallery
 
-These additions are **unreleased development features**. They require the
-source checkout containing this guide; the published `scgeo==0.1.0` package
-does not include them.
+These APIs are included in the 0.2.0 release source; see [Installation](INSTALLATION.md) for the verified index release or a pinned source installation.
 
 ```bash
 python -m pip install -e .
