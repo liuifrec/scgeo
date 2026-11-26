@@ -29,7 +29,7 @@ for displacement, representation stability, local geometry, and dynamics.
 **Published in Bioinformatics Advances:**
 [Liu and Yoshida (2026), vbag266](https://doi.org/10.1093/bioadv/vbag266).
 
-**New in the development checkout:** One command composes available cell-state,
+**New in ScGeo 0.2.0:** One command composes available cell-state,
 projected-velocity, PAGA, and stored evidence views, without rerunning an
 analysis:
 
@@ -47,7 +47,7 @@ result.save("geometry_dynamics", formats=("pdf", "svg", "png"))
 *Synthetic demonstration only: constructed display coordinates, projected vectors and topology; quantitative effects computed on the simulated representation. [Reproduce the figure](https://github.com/liuifrec/scgeo/blob/main/examples/geometry_dynamics_atlas_gallery.py).*
 
 **Flexible UMAP and projected-velocity comparisons** are also available in
-the development checkout, without prescribing an experimental organism or
+the 0.2.0 API, without prescribing an experimental organism or
 design:
 
 ```python
@@ -64,7 +64,7 @@ result.save("faceted_velocity", formats=("png", "svg", "pdf"))
 [Reproducible faceting gallery](https://github.com/liuifrec/scgeo/blob/main/examples/embedding_facets_gallery.py)
 
 **Explain a state shift with genes, programs, and response curves** in the
-development checkout. After a sample-aware `tl.robust_shift` on an expression-linked
+0.2.0 API. After a sample-aware `tl.robust_shift` on an expression-linked
 representation, `tl.explain_shift` checks the affine mapping and accounts for the
 displacement using the same numerical center weights. Optional local groups retain
 heterogeneous responses and per-sample composition; supplied signed regulons add
@@ -96,13 +96,17 @@ individual sample frequencies, and explicit coverage. Its optional summary
 layout retains a sparse state while marking unsupported comparisons unavailable.
 Display-only changes do not alter the stored quantitative evidence.
 
+![Synthetic stored-evidence compass with sample frequencies and explicit coverage](https://raw.githubusercontent.com/liuifrec/scgeo/main/docs/assets/compass_stored_evidence.png)
+
+*Synthetic demonstration; the graph, display coordinates and velocities are constructed, not biological observations.*
+
 ## Start here
 
 | Your goal | Best starting point |
 | --- | --- |
 | Analyze your own AnnData object | [Quick start](https://github.com/liuifrec/scgeo/blob/main/docs/QUICKSTART.md) |
 | Try ScGeo without downloading a dataset | [Runnable synthetic example](https://github.com/liuifrec/scgeo/blob/main/examples/quickstart.py) |
-| Build evidence figures and compare contrasts | [Development plotting guide](https://github.com/liuifrec/scgeo/blob/main/docs/PLOTTING.md) and [visual gallery](https://github.com/liuifrec/scgeo/blob/main/docs/PLOTTING_GALLERY.md) |
+| Build evidence figures and compare contrasts | [Plotting guide](https://github.com/liuifrec/scgeo/blob/main/docs/PLOTTING.md) and [visual gallery](https://github.com/liuifrec/scgeo/blob/main/docs/PLOTTING_GALLERY.md) |
 | Display state connectivity, condition shifts, and velocity | [PAGA shift-map guide](https://github.com/liuifrec/scgeo/blob/main/docs/PAGA_SHIFT_MAP.md) |
 | Combine a state map, stored evidence, and individual samples | [State response compass](https://github.com/liuifrec/scgeo/blob/main/docs/COMPASS_EVIDENCE.md) |
 | Compare conditions, timepoints, batches or cell types in matched UMAP/velocity facets | [Embedding faceting](https://github.com/liuifrec/scgeo/blob/main/docs/EMBEDDING_FACETS.md) |
@@ -119,14 +123,17 @@ Display-only changes do not alter the stored quantitative evidence.
 
 ## Install
 
-For a standard Scanpy workflow, start in a fresh Python 3.12 environment:
+**0.2.0 release line.** Once production publication is verified on [PyPI](https://pypi.org/project/scgeo/), install it in a fresh Python 3.12 environment:
 
 ```bash
-python -m pip install "scgeo[scanpy]==0.1.0"
+python -m pip install "scgeo[scanpy]==0.2.0"
 python -m pip check
 ```
 
-For core geometry and plotting, use `python -m pip install scgeo==0.1.0`.
+For core geometry and plotting, use `python -m pip install scgeo==0.2.0`.
+Before 0.2.0 is published, the existing PyPI 0.1.0 release remains available;
+to use the new features immediately, install the reviewed source checkout with
+`python -m pip install .` (or pin a full commit SHA as described in the installation guide).
 Optional `notebook`, `scvelo`, and `census` extras support additional workflows.
 The [installation guide](https://github.com/liuifrec/scgeo/blob/main/docs/INSTALLATION.md)
 explains feature dependencies, Windows/macOS/Linux use, and development installs.
@@ -137,12 +144,12 @@ with pip:
 ```bash
 conda create -n scgeo -c conda-forge python=3.12 pip
 conda activate scgeo
-python -m pip install "scgeo[scanpy]==0.1.0"
+python -m pip install "scgeo[scanpy]==0.2.0"
 ```
 
 **Native Bioconda publication is pending** as of 17 November 2026;
 [follow PR #70318](https://github.com/bioconda/bioconda-recipes/pull/70318).
-The command above is the supported conda-managed route to the PyPI release.
+The command above is the conda-managed route once 0.2.0 is published; the earlier PyPI 0.1.0 release and its Bioconda submission are unchanged.
 
 ## A first analysis
 
@@ -184,17 +191,16 @@ includes synthetic input, expected output, and the next analysis steps.
 representation. This illustrates the API, not a biological result. Bootstrap
 magnitude intervals summarize resampling uncertainty and are not significance tests.*
 
-## Development plotting preview
+## Plotting examples
 
-The current source checkout adds clearer PAGA shift maps with distinct condition
+ScGeo 0.2.0 adds clearer PAGA shift maps with distinct condition
 centres, local projected-velocity grids and streamlines, and stored alignment
 colours. It also adds proportional chord diagrams, polished alluvial ribbons,
 and density panels with explicit common or relative scales, alongside evidence
 panels, biological-sample views, scoped styles, and source-data exports.
-These additions are **unreleased**; they are
-not part of the published `scgeo==0.1.0` distribution. Use the
+These additions require 0.2.0 or the corresponding source checkout, rather than the earlier `scgeo==0.1.0` distribution. Use the
 [plotting guide](https://github.com/liuifrec/scgeo/blob/main/docs/PLOTTING.md)
-to install the matching checkout and reproduce the gallery.
+to reproduce the gallery.
 
 ![Actual ScGeo development output on 2,531 public pancreas cells: supplied projected velocity shown as grid arrows and supported streamlines.](https://raw.githubusercontent.com/liuifrec/scgeo/main/docs/assets/real_pancreas_velocity.png)
 
