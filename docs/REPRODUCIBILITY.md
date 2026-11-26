@@ -88,6 +88,6 @@ reproducible synthetic documentation illustration from
 The first published package release is `v0.1.0`, with source commit
 `6ab8a8ea4144f66613812b7b79976b1a67ad29d1`. The earlier tag
 `v0.2.0-geometry-core` identifies a March development checkpoint whose package
-metadata was `0.1.0-dev`; it is not a newer published package release. The exact `v0.2.0` release is a separate version; consult the verified publication record before using it for new analyses.
+metadata was `0.1.0-dev`; it is not a newer published package release. The exact [`v0.2.0`](https://github.com/liuifrec/scgeo/tree/v0.2.0) release was published on [PyPI](https://pypi.org/project/scgeo/0.2.0/) on 26 November 2026, from source commit `46ba9017ceef17255292edd0140602ed13ac5305`. The [production verification](https://github.com/liuifrec/scgeo/actions/runs/45765641121) and [release record](RELEASING.md) document the tested files and checksums. Use the released package for new analyses, not as a replacement for the frozen manuscript environment.
 Historical tags are retained for provenance. See the
 [release record](RELEASING.md) and [PyPI publication record](PYPI_PUBLICATION.md).

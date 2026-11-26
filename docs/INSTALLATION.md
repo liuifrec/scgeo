@@ -2,15 +2,15 @@
 
 [Quick start](QUICKSTART.md) · [API reference](api_reference.md) · [Paper reproduction](REPRODUCIBILITY.md)
 
-**ScGeo 0.2.0 is the release version described by this source tree.** Check [PyPI](https://pypi.org/project/scgeo/) for the production release before using the 0.2.0 index commands below. The earlier [0.1.0 release](https://pypi.org/project/scgeo/0.1.0/) remains available and does not include the new APIs.
+**ScGeo 0.2.0 was published on [PyPI](https://pypi.org/project/scgeo/0.2.0/) on 26 November 2026.** The [production verification](https://github.com/liuifrec/scgeo/actions/runs/45765641121) matched both published distribution hashes and passed a fresh pip installation. The earlier [0.1.0 release](https://pypi.org/project/scgeo/0.1.0/) remains available and does not include the new APIs.
 Python 3.12 is the recommended starting point. Use a fresh environment for a new
 project and preserve environments that support frozen analyses.
 
-For the newer plotting and deployment interfaces, use 0.2.0 or install a reviewed source commit before index publication. The [exact-commit JupyterHub installation and preflight guide](JUPYTERHUB_PREFLIGHT.md) verifies the actual imported sources; `main.zip` is not an immutable snapshot.
+For the newer plotting and deployment interfaces, use the 0.2.0 release. The [exact-commit JupyterHub installation and preflight guide](JUPYTERHUB_PREFLIGHT.md) remains useful when validating an approved source deployment; `main.zip` is not an immutable snapshot.
 
 ## Choose an installation
 
-Use the pinned 0.2.0 commands after production verification. Until then, use the source installation below or explicitly install 0.1.0 for the earlier API.
+For the latest compatible public version, run `python -m pip install --upgrade scgeo`. Pin 0.2.0 for the workflows below and record the resolved dependencies.
 
 | Workflow | Command |
 | --- | --- |
@@ -130,7 +130,7 @@ For the earlier 0.1.0 release, the 17 November 2026 Linux/Python 3.12 audit also
 dependency checks, the installed-package smoke test, and all **191 non-network
 library tests with the Scanpy extra**. One dataset-download integration test was
 excluded; optional live services and full manuscript workflows are separate checks.
-The 0.2.0 source includes PR #26, whose CI passed 785 tests (one optional integration skipped) on Python 3.9 and 3.12, plus packaging and documentation checks. Consult the version-specific [release workflow and checklist](RELEASING.md) before claiming public installation verification.
+The [0.2.0 tag-push release workflow](https://github.com/liuifrec/scgeo/actions/runs/45764454861) passed 785 tests with one optional integration skipped on each of Python 3.9 and 3.12, optional-extra and native conda builds. The [production workflow](https://github.com/liuifrec/scgeo/actions/runs/45765641121) verified both PyPI file hashes, a fresh Python 3.12 pip installation, `pip check` and the installed-package smoke test. See the [release record](RELEASING.md) for source and checksums.
 
 The `scgeo.bench` simulation profiler uses the Unix-only `resource` module.
 Run benchmarks on Linux/WSL or macOS. Core analysis and plotting remain
@@ -140,7 +140,13 @@ available on native Windows. See the
 
 ## Development installation
 
-Before index publication, install the reviewed 0.2.0 source checkout in an isolated environment. To install an exact source commit without an editable checkout, use `python -m pip install "scgeo[scanpy] @ git+https://github.com/liuifrec/scgeo.git@<full-approved-commit>"` (replace the placeholder). After the immutable `v0.2.0` tag has been created, it can also be used in the Git URL. For an exact analysis record prefer the full SHA.
+The standard PyPI installation above is recommended for released functionality. For development or source audit, install a reviewed commit in an isolated environment. To install the exact 0.2.0 source without an editable checkout:
+
+```bash
+python -m pip install "scgeo[scanpy] @ git+https://github.com/liuifrec/scgeo.git@46ba9017ceef17255292edd0140602ed13ac5305"
+```
+
+The immutable `v0.2.0` tag points to the same source commit. For another reviewed source snapshot, substitute its full SHA.
 
 For editable source:
 

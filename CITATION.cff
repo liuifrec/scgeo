@@ -35,6 +35,7 @@ keywords:
 - AnnData
 - reproducible research
 version: 0.2.0
+date-released: '2026-11-26'
 abstract: ScGeo quantifies perturbation-associated geometry in supplied single-cell representations, with
   robust state displacement, biological-sample uncertainty, representation stability, local geometry,
   and comparison with supplied dynamics.

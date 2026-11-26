@@ -123,17 +123,23 @@ Display-only changes do not alter the stored quantitative evidence.
 
 ## Install
 
-**0.2.0 release line.** Once production publication is verified on [PyPI](https://pypi.org/project/scgeo/), install it in a fresh Python 3.12 environment:
+**ScGeo 0.2.0 is available on [PyPI](https://pypi.org/project/scgeo/0.2.0/)** (26 November 2026). Install or upgrade the core package:
+
+```bash
+python -m pip install --upgrade scgeo
+```
+
+For a reproducible Scanpy workflow, start in a fresh Python 3.12 environment:
 
 ```bash
 python -m pip install "scgeo[scanpy]==0.2.0"
 python -m pip check
 ```
 
-For core geometry and plotting, use `python -m pip install scgeo==0.2.0` after production verification. Release maintainers can follow the [release checklist](https://github.com/liuifrec/scgeo/blob/main/docs/RELEASING.md).
-Before 0.2.0 is published, the existing PyPI 0.1.0 release remains available;
-to use the new features immediately, install the reviewed source checkout with
-`python -m pip install .` (or pin a full commit SHA as described in the installation guide).
+For a version-pinned core install, use `python -m pip install scgeo==0.2.0`.
+The wheel and source archive match the verified TestPyPI distributions; the
+[production CI](https://github.com/liuifrec/scgeo/actions/runs/45765641121) passed a fresh PyPI install and dependency/smoke checks.
+Release provenance and maintainer instructions are in the [release checklist](https://github.com/liuifrec/scgeo/blob/main/docs/RELEASING.md).
 Optional `notebook`, `scvelo`, and `census` extras support additional workflows.
 The [installation guide](https://github.com/liuifrec/scgeo/blob/main/docs/INSTALLATION.md)
 explains feature dependencies, Windows/macOS/Linux use, and development installs.
@@ -149,7 +155,7 @@ python -m pip install "scgeo[scanpy]==0.2.0"
 
 **Native Bioconda publication is pending** as of 17 November 2026;
 [follow PR #70318](https://github.com/bioconda/bioconda-recipes/pull/70318).
-The command above is the conda-managed route once 0.2.0 is published; the earlier PyPI 0.1.0 release and its Bioconda submission are unchanged.
+The command above installs the verified PyPI 0.2.0 release in a conda-managed environment. The existing Bioconda submission targets 0.1.0 and is tracked separately.
 
 ## A first analysis
 

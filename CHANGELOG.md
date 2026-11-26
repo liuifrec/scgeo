@@ -1,8 +1,8 @@
 # Changelog
 
-## 0.2.0
+## 0.2.0 — 26 November 2026
 
-Release source: the plotting, state-shift explanation and deployment improvements below. Production availability is determined by verified index publication; see [Installation](docs/INSTALLATION.md) and [Releasing](docs/RELEASING.md).
+Published on [PyPI](https://pypi.org/project/scgeo/0.2.0/). The release includes the plotting, state-shift explanation and deployment improvements below. The [production workflow](https://github.com/liuifrec/scgeo/actions/runs/45765641121) verified both distribution hashes and a fresh pip installation. See [Installation](docs/INSTALLATION.md) and [Releasing](docs/RELEASING.md).
 
 **Compatibility:** The compass defaults to `velocity_scope="contrast"` and `ood_scope="contrast"`; explicitly select `"all"` for all-condition display summaries. Missing OOD evidence is not zero, and insufficient source coverage is not a supported comparison. The manuscript checkpoint and existing 0.1.0 files are unchanged.
 
