@@ -130,7 +130,7 @@ For the earlier 0.1.0 release, the 17 November 2026 Linux/Python 3.12 audit also
 dependency checks, the installed-package smoke test, and all **191 non-network
 library tests with the Scanpy extra**. One dataset-download integration test was
 excluded; optional live services and full manuscript workflows are separate checks.
-The 0.2.0 source includes PR #26, whose CI passed 785 tests (one optional integration skipped) on Python 3.9 and 3.12, plus packaging and documentation checks. Consult the version-specific release workflow before claiming public installation verification.
+The 0.2.0 source includes PR #26, whose CI passed 785 tests (one optional integration skipped) on Python 3.9 and 3.12, plus packaging and documentation checks. Consult the version-specific [release workflow and checklist](RELEASING.md) before claiming public installation verification.
 
 The `scgeo.bench` simulation profiler uses the Unix-only `resource` module.
 Run benchmarks on Linux/WSL or macOS. Core analysis and plotting remain

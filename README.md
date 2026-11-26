@@ -130,7 +130,7 @@ python -m pip install "scgeo[scanpy]==0.2.0"
 python -m pip check
 ```
 
-For core geometry and plotting, use `python -m pip install scgeo==0.2.0`.
+For core geometry and plotting, use `python -m pip install scgeo==0.2.0` after production verification. Release maintainers can follow the [release checklist](https://github.com/liuifrec/scgeo/blob/main/docs/RELEASING.md).
 Before 0.2.0 is published, the existing PyPI 0.1.0 release remains available;
 to use the new features immediately, install the reviewed source checkout with
 `python -m pip install .` (or pin a full commit SHA as described in the installation guide).
