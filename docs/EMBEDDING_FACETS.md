@@ -7,8 +7,7 @@ original data. Projected velocity is optional.
 
 [Plotting overview](PLOTTING.md) · [Unified geometry–dynamics atlas](GEOMETRY_DYNAMICS_ATLAS.md) · [Velocity support](VELOCITY_FIELDS.md) · [Full plotting API](api/pl.md) · [Citation](CITING.md)
 
-**Availability:** This API is new in the development checkout containing this
-page. It is **not** included in the published PyPI `scgeo==0.1.0` distribution.
+These APIs are included in the 0.2.0 release source; see [Installation](INSTALLATION.md) for the verified index release or a pinned source installation.
 
 ## One-line UMAP comparison
 

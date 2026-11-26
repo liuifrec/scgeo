@@ -6,7 +6,7 @@
 
 | Task | Starting point | Record with the analysis |
 | --- | --- | --- |
-| New analysis using the released API | PyPI ScGeo 0.1.0 | Package/dependency versions, inputs, representations and settings |
+| New analysis using the released API | Verified PyPI release (see [Installation](INSTALLATION.md)) | Package/dependency versions, inputs, representations and settings |
 | Development against current source | A specified Git commit | Full commit, local changes, resolved environment and tests |
 | Reproduction of the published evidence | Frozen package and companion checkpoints below | Recorded workflow environments, numerical inputs/checksums, configurations and execution metadata |
 
@@ -85,9 +85,9 @@ reproducible synthetic documentation illustration from
 
 ## Release and historical tag names
 
-The published package release is `v0.1.0`, with source commit
+The first published package release is `v0.1.0`, with source commit
 `6ab8a8ea4144f66613812b7b79976b1a67ad29d1`. The earlier tag
 `v0.2.0-geometry-core` identifies a March development checkpoint whose package
-metadata was `0.1.0-dev`; it is not a newer published package release.
+metadata was `0.1.0-dev`; it is not a newer published package release. The exact `v0.2.0` release is a separate version; consult the verified publication record before using it for new analyses.
 Historical tags are retained for provenance. See the
 [release record](RELEASING.md) and [PyPI publication record](PYPI_PUBLICATION.md).

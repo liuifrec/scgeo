@@ -1,6 +1,12 @@
 # Changelog
 
-## Unreleased compass evidence and plotting readability
+## 0.2.0
+
+Release source: the plotting, state-shift explanation and deployment improvements below. Production availability is determined by verified index publication; see [Installation](docs/INSTALLATION.md) and [Releasing](docs/RELEASING.md).
+
+**Compatibility:** The compass defaults to `velocity_scope="contrast"` and `ood_scope="contrast"`; explicitly select `"all"` for all-condition display summaries. Missing OOD evidence is not zero, and insufficient source coverage is not a supported comparison. The manuscript checkpoint and existing 0.1.0 files are unchanged.
+
+### compass evidence and plotting readability
 
 - Add a stored-evidence compass mode, pooled placement for condition-sparse
   states, source coverage, per-sample abundance, and a composed evidence view.
@@ -16,7 +22,7 @@
 - Add synthetic examples, scientific invariance checks, and an optional
   rendering benchmark. Statistical estimators remain unchanged.
 
-## Unreleased plots for states with sparse condition coverage
+### plots for states with sparse condition coverage
 
 - Keep explicit expression maps and per-sample expression distributions available
   when a stored state has no supported shift direction. Retain zero-cell sample
@@ -29,7 +35,7 @@
 - Add a synthetic sparse-state gallery and regression coverage for absent and
   singleton controls, sample weighting, and state/graph mapping.
 
-## Unreleased shift explanations and response curves
+### shift explanations and response curves
 
 - Add `tl.explain_shift` for checked affine gene attribution to stored mean or
   geometric-median shifts, preserving sample hierarchy and the source estimator's
@@ -43,7 +49,7 @@
 - Retain legacy APIs and estimators. Add scientific edge-case and plot contracts,
   a reproducible synthetic gallery, export tables, and generated API documentation.
 
-## Unreleased deployment readiness
+### deployment readiness
 
 - Add read-only `get.input_contract` for explicit AnnData metadata, coverage,
   representations, projected velocity, PAGA provenance and stored evidence.
@@ -53,7 +59,7 @@
   state reports and figure/source exports. Existing statistical estimands and
   plotting signatures are unchanged; no biological validation is claimed.
 
-## Unreleased plotting composition and source exports
+### plotting composition and source exports
 
 - Reconcile PR #21's successful CI and public-data checks; correct unsupported
   facets' exported grids when using independent panel limits.
@@ -71,8 +77,7 @@
   stored odds ratios on their original scale with a null reference at one.
 - Audit all 50 plotting exports in [the API status matrix](docs/PLOTTING_API_STATUS.md).
   All Matplotlib renderers now expose the opt-in result contract; Plotly and
-  bundle exports retain their native contracts. No statistical estimator or
-  published release changes in this continuation.
+  bundle exports retain their native contracts. No statistical estimator changes in this continuation.
 - Extend ranking, overlap, distribution and report views with axes/source
   exports; fix density fallback axis forwarding and report legend colors.
   Global distribution tests can use separate metric axes while preserving the
@@ -93,7 +98,7 @@
   scales before figure creation. Add an automated audit of all public plotting
   exports and their axes/result contracts.
 
-## Unreleased flexible embedding and velocity faceting
+### flexible embedding and velocity faceting
 
 - Add `pl.embedding_facets` for one- or two-way faceting by any `adata.obs`
   categories, including ordered levels, literal-versus-missing identity,
@@ -109,11 +114,10 @@
   and CellRank pancreas checks, documentation and Python 3.9/3.12 regression
   coverage. Public examples never invent contrasts absent from their source.
 
-See [Embedding faceting](docs/EMBEDDING_FACETS.md). The features require this
-unreleased development checkout; they are not in PyPI `scgeo==0.1.0`.
+See [Embedding faceting](docs/EMBEDDING_FACETS.md). These features are in the 0.2.0 release source, not `scgeo==0.1.0`.
 
 
-## Unreleased unified geometry–dynamics atlas
+### unified geometry–dynamics atlas
 
 - Add `pl.geometry_dynamics_atlas` as a composable, AnnData-native entry point for
   matching cell-state UMAP, projected velocity, PAGA, and explicitly stored
@@ -131,19 +135,19 @@ unreleased development checkout; they are not in PyPI `scgeo==0.1.0`.
   tests, API documentation and CI checks.
 
 See [Unified geometry–dynamics atlas](docs/GEOMETRY_DYNAMICS_ATLAS.md).
-Development checkout only; not in the published `scgeo==0.1.0` wheel.
+Included in 0.2.0, not the earlier `scgeo==0.1.0` wheel.
 
 
-## Unreleased geometry–velocity interpretation upgrade
+### geometry–velocity interpretation upgrade
 
 - Add `pl.geometry_velocity_concordance` to relate stored state displacement magnitude to signed stored alignment while retaining all ineligible states and missing-data reasons.
 - Add `pl.velocity_condition_compare` with shared projected-velocity grid coordinates, support thresholds, radius, color scale, and arrow multiplier; directional agreement is displayed only where both conditions are supported.
 - Add display-only `paga_shift_map(..., focus_states=..., edge_focus='incident'|'within')` to reduce graph clutter without altering the PAGA matrix or quantitative analysis.
 - Document private, explicit-input review workflows and preservation of per-mouse source data. The mouse smoke archive provides frozen state tables but not full velocity projections; no new mouse kinetics or significance tests are claimed.
 
-See [Geometry–velocity interpretation](docs/GEOMETRY_VELOCITY_INTERPRETATION.md). Development checkout only; not in the published `scgeo==0.1.0` artifacts.
+See [Geometry–velocity interpretation](docs/GEOMETRY_VELOCITY_INTERPRETATION.md). Included in 0.2.0, not the earlier `scgeo==0.1.0` artifacts.
 
-## Unreleased state-association and density upgrades
+### state-association and density upgrades
 
 Add a two-column `pl.state_flow_chord` and improve the alluvial, Sankey, and
 embedding-density displays. See the [state-association guide](docs/STATE_FLOW_AND_DENSITY.md)
@@ -166,10 +170,9 @@ and [real-data plotting examples](docs/REAL_DATA_PLOTTING.md).
 
 State links are same-cell categorical associations, not observed longitudinal
 transitions. Embedding-density panels describe the selected display coordinates,
-not a biological-sample enrichment test. These additions require the development
-checkout and are not present in the published `scgeo==0.1.0` distribution.
+not a biological-sample enrichment test. These additions are included in 0.2.0, not the earlier `scgeo==0.1.0` distribution.
 
-## Unreleased local velocity-field upgrades
+### local velocity-field upgrades
 
 PAGA maps now support local projected-velocity grids and streamlines. The new
 `pl.velocity_field` also provides standalone and matched-condition views. See
@@ -193,10 +196,9 @@ These are descriptive interpolations in the supplied display coordinates.
 Directional coherence is not statistical confidence, streamlines are not
 observed cell trajectories, and vector scales do not establish elapsed time.
 The plotting functions require a matching projected velocity array and do not
-fit or project an RNA-velocity model. These features require the development
-checkout; the published `scgeo==0.1.0` distribution does not include them.
+fit or project an RNA-velocity model. These features are included in 0.2.0, not the earlier `scgeo==0.1.0` distribution.
 
-## Unreleased PAGA shift-map upgrades
+### PAGA shift-map upgrades
 
 The development `paga_shift_map` now brings state connectivity, condition
 centres, and supplied projected velocity into a consistent display. See the
@@ -221,13 +223,11 @@ centres, and supplied projected velocity into a consistent display. See the
 
 Default figure/axis and `return_data` contracts remain supported. The new
 condition scope deliberately excludes unrelated conditions from velocity and
-pie summaries; the background can still show all cells. Package version,
-published distribution files, and frozen manuscript analyses are unchanged.
+pie summaries; the background can still show all cells. Earlier published distribution files and frozen manuscript analyses are unchanged.
 
-## Unreleased plotting upgrades
+### plotting upgrades
 
-These changes are available in the development checkout and will accompany a
-future release. The published PyPI 0.1.0 files are unchanged. See the
+These changes are included in 0.2.0. The published PyPI 0.1.0 files are unchanged. See the
 [plotting guide](docs/PLOTTING.md) and [visual gallery](docs/PLOTTING_GALLERY.md).
 
 - Preserve exact stored interval endpoints, validate intervals before drawing,
@@ -259,7 +259,7 @@ exclude missing settings unless `missing_policy='fail'` is chosen. These are
 documented display-policy corrections. No scientific thresholds or resampling
 procedures are changed, and frozen manuscript evidence is not regenerated.
 
-## Unreleased documentation updates
+### documentation updates
 
 - Lead with the published PyPI installation and clarify the pending native
   Bioconda route, optional feature dependencies, and platform scope.
@@ -271,8 +271,7 @@ procedures are changed, and frozen manuscript evidence is not regenerated.
 
 These documentation changes do not modify published distribution files or the
 manuscript's numerical evidence. Runtime additions in the current checkout are
-listed separately above. Corrections to the PyPI long description will accompany
-a future package release.
+listed separately above. The 0.2.0 package long description incorporates these corrections.
 
 ## 0.1.0 — 15 October 2026
 

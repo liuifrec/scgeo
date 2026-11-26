@@ -31,8 +31,8 @@ different vectors; it is excluded from the requested control/treated fields.
 
 ## Run the offline gallery
 
-These are **unreleased development features**. Use the source checkout
-containing this guide and its example:
+These APIs are included in the 0.2.0 release source; see [Installation](INSTALLATION.md) for the verified index release or a pinned source installation.
+Use the matching source checkout to run its example:
 
 ```bash
 python -m pip install -e .

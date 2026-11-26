@@ -8,9 +8,7 @@ supplied cells and annotations.
 [Plotting guide](PLOTTING.md) · [Real-data examples](REAL_DATA_PLOTTING.md) ·
 [Plotting API](api/pl.md) · [Interpretation](RESULT_INTERPRETATION.md)
 
-The upgrades described here are **unreleased development features**. Use the
-source checkout containing this guide; the published `scgeo==0.1.0` package
-does not contain them.
+These APIs are included in the 0.2.0 release source; see [Installation](INSTALLATION.md) for the verified index release or a pinned source installation.
 
 ## Choose the view for the question
 

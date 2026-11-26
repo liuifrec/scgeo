@@ -1,9 +1,10 @@
-name: Promote ScGeo 0.1.0 to PyPI
+name: Promote verified ScGeo release to PyPI
 
 "on":
   pull_request:
     paths:
       - ".github/workflows/publish-pypi.yml"
+      - "scripts/promote_release.py"
       - "scripts/pypi_promotion.py"
       - ".github/tests/**"
       - "docs/PYPI_PUBLICATION.md"
@@ -11,12 +12,21 @@ name: Promote ScGeo 0.1.0 to PyPI
     branches: [main]
     paths:
       - ".github/workflows/publish-pypi.yml"
+      - "scripts/promote_release.py"
       - "scripts/pypi_promotion.py"
       - ".github/tests/**"
   workflow_dispatch:
     inputs:
+      version:
+        description: "Exact release version, e.g. 0.2.0"
+        type: string
+        required: true
+      staging_run_id:
+        description: "Original successful Release checks and TestPyPI tag-push run ID"
+        type: string
+        required: true
       publish:
-        description: "Publish the verified ScGeo 0.1.0 files to real PyPI (requires approval)"
+        description: "Publish the verified staged files to real PyPI (requires approval)"
         type: boolean
         required: true
         default: false
@@ -25,7 +35,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: scgeo-0.1.0-production-promotion
+  group: scgeo-production-promotion
   cancel-in-progress: false
 
 env:
@@ -51,65 +61,73 @@ jobs:
     needs: guard-tests
     if: >-
       github.repository == 'liuifrec/scgeo' &&
-      (github.event_name != 'pull_request' ||
-       github.event.pull_request.head.repo.full_name == 'liuifrec/scgeo')
+      github.event_name == 'workflow_dispatch' &&
+      github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: read
       actions: read
+    outputs:
+      version: ${{ steps.source.outputs.version }}
+      commit: ${{ steps.source.outputs.commit }}
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
+      STAGING_RUN_ID: ${{ inputs.staging_run_id }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
-      - name: Verify pinned staging run, jobs, tag and original artifact IDs
+      - name: Validate staging run, immutable tag, original artifacts and main ancestry
+        id: source
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python scripts/pypi_promotion.py source promotion-audit
+        run: python scripts/promote_release.py source "$RELEASE_VERSION" "$STAGING_RUN_ID" promotion-audit
       - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
         with:
           repository: liuifrec/scgeo
-          run-id: 38683215223
-          artifact-ids: "11949430229"
+          run-id: ${{ inputs.staging_run_id }}
+          artifact-ids: ${{ steps.source.outputs.dist_id }}
           github-token: ${{ github.token }}
           merge-multiple: true
           path: staged-dist/
       - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
         with:
           repository: liuifrec/scgeo
-          run-id: 38683215223
-          artifact-ids: "11949625115"
+          run-id: ${{ inputs.staging_run_id }}
+          artifact-ids: ${{ steps.source.outputs.audit_id }}
           github-token: ${{ github.token }}
           merge-multiple: true
           path: staged-audit/
-      - name: Verify manifest, original distribution bytes and both live TestPyPI files
-        run: python scripts/pypi_promotion.py prepare staged-audit staged-dist promotion-dist
+      - name: Verify manifest, original distributions and live TestPyPI files
+        env:
+          SOURCE_COMMIT: ${{ steps.source.outputs.commit }}
+        run: python scripts/promote_release.py prepare "$RELEASE_VERSION" "$SOURCE_COMMIT" staged-audit/release-manifest.json promotion-dist staged-dist
       - name: Smoke-test the exact staged wheel outside the checkout
         run: |
           python -m pip install --index-url https://pypi.org/simple --only-binary=:all: promotion-dist/*.whl
           python -m pip check
           ROOT="$PWD"
           cd "$RUNNER_TEMP"
-          python "$ROOT/scripts/smoke_installation.py" --source-root "$ROOT"
-      - name: Refuse to overwrite or re-upload an existing production version
-        if: github.event_name == 'workflow_dispatch' && inputs.publish
-        run: python scripts/pypi_promotion.py preflight
-      - name: Record promotion provenance for review
+          python "$ROOT/staged-audit/smoke_installation.py" --source-root "$ROOT"
+      - name: Refuse to overwrite an existing production version
+        if: inputs.publish
+        run: python scripts/promote_release.py preflight "$RELEASE_VERSION"
+      - name: Record source and tested hashes for owner review
         run: |
           cp staged-audit/release-manifest.json promotion-audit/
+          cp staged-audit/smoke_installation.py promotion-audit/
           python -m pip freeze > promotion-audit/verification-environment.txt
           {
-            echo '### ScGeo 0.1.0 production candidate'
-            echo 'Original staging run: 38683215223 (v0.1.0)'
-            echo 'Package source commit: 6ab8a8ea4144f66613812b7b79976b1a67ad29d1'
-            echo 'No package was rebuilt. Both files match the approved staging hashes.'
-            echo 'Publishing requires a manual main-branch run with publish checked and pypi approval.'
-            echo '```'
-            sha256sum promotion-dist/*
-            echo '```'
+            echo '### Production release candidate (no rebuild)'
+            echo 'Review the exact source, staging run and file hashes before approving.'
+            echo '~~~json'
+            cat promotion-audit/promotion-source.json promotion-audit/release-manifest.json
+            echo '~~~'
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
@@ -135,25 +153,45 @@ jobs:
     timeout-minutes: 10
     environment:
       name: pypi
-      url: https://pypi.org/project/scgeo/0.1.0/
+      url: https://pypi.org/project/scgeo/
     permissions:
       id-token: write
+    env:
+      RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+      SOURCE_COMMIT: ${{ needs.prepare.outputs.commit }}
     steps:
       - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
         with:
           name: scgeo-pypi-distributions
           path: dist/
-      - name: Recheck exact approved bytes immediately before uploading
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: scgeo-pypi-promotion-audit
+          path: audit/
+      - name: Recheck exact approved bytes without executing repository code
         shell: bash
         run: |
-          cd dist
-          test "$(find . -mindepth 1 -maxdepth 1 | wc -l)" -eq 2
-          test -f scgeo-0.1.0-py3-none-any.whl && test ! -L scgeo-0.1.0-py3-none-any.whl
-          test -f scgeo-0.1.0.tar.gz && test ! -L scgeo-0.1.0.tar.gz
-          sha256sum --check --strict <<'HASHES'
-          16c85ba42c66fe75404966daedd4b7595369f7221017167ce29e4cfdca5d45e3  scgeo-0.1.0-py3-none-any.whl
-          87928f91cd5ecbe06347e5ea9f290602030e0af2a7f7a3fd831daaf488cea175  scgeo-0.1.0.tar.gz
-          HASHES
+          python3 - <<'PY'
+          import hashlib, json, os, re
+          from pathlib import Path
+          version = os.environ["RELEASE_VERSION"]
+          commit = os.environ["SOURCE_COMMIT"]
+          manifest = json.loads(Path("audit/release-manifest.json").read_text())
+          assert re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version)
+          assert re.fullmatch(r"[0-9a-f]{40}", commit)
+          assert manifest["name"] == "scgeo" and manifest["version"] == version
+          assert manifest["source_commit"] == commit and manifest["git_ref"] == f"refs/tags/v{version}"
+          names = {f"scgeo-{version}-py3-none-any.whl", f"scgeo-{version}.tar.gz"}
+          assert set(manifest["files"]) == names
+          dist = Path("dist")
+          assert dist.is_dir() and not dist.is_symlink()
+          assert {p.name for p in dist.iterdir()} == names
+          for name, digest in manifest["files"].items():
+              path = dist / name
+              assert re.fullmatch(r"[0-9a-f]{64}", digest)
+              assert path.is_file() and not path.is_symlink() and path.stat().st_size <= 32 * 1024 * 1024
+              assert hashlib.sha256(path.read_bytes()).hexdigest() == digest
+          PY
       - name: Publish unchanged tested files using PyPI Trusted Publishing
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
         with:
@@ -163,11 +201,12 @@ jobs:
 
   verify-pypi:
     name: Verify REAL PyPI hashes and fresh pip installation
-    needs: publish
+    needs: [prepare, publish]
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    permissions:
-      contents: read
+    env:
+      RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+      SOURCE_COMMIT: ${{ needs.prepare.outputs.commit }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -175,18 +214,22 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
-      - name: Verify real-index wheel and sdist against the original hashes
-        run: python scripts/pypi_promotion.py verify-pypi production-downloads
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: scgeo-pypi-promotion-audit
+          path: audit/
+      - name: Verify production hashes against the original staging manifest
+        run: python scripts/promote_release.py verify-pypi "$RELEASE_VERSION" "$SOURCE_COMMIT" audit/release-manifest.json production-downloads
       - name: Test the public pip command in a fresh environment
         run: |
           python -m venv "$RUNNER_TEMP/scgeo-public-check"
           PY="$RUNNER_TEMP/scgeo-public-check/bin/python"
-          "$PY" -m pip install --index-url https://pypi.org/simple --only-binary=:all: "scgeo==0.1.0"
+          "$PY" -m pip install --index-url https://pypi.org/simple --only-binary=:all: "scgeo==$RELEASE_VERSION"
           "$PY" -m pip check
           ROOT="$PWD"
           cd "$RUNNER_TEMP"
-          "$PY" "$ROOT/scripts/smoke_installation.py" --source-root "$ROOT"
+          "$PY" "$ROOT/audit/smoke_installation.py" --source-root "$ROOT"
       - name: Record successful publication verification
         run: |
-          echo '### ScGeo 0.1.0 is verified on real PyPI' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Both file hashes match the original TestPyPI release. A fresh pip installation passed.' >> "$GITHUB_STEP_SUMMARY"
+          echo "### ScGeo $RELEASE_VERSION is verified on real PyPI" >> "$GITHUB_STEP_SUMMARY"
+          echo 'Both file hashes match the original staging manifest. A fresh pip installation passed.' >> "$GITHUB_STEP_SUMMARY"

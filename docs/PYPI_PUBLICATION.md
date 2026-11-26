@@ -1,6 +1,8 @@
-# Publish the staged ScGeo 0.1.0 to real PyPI
+# Historical publication record: ScGeo 0.1.0
 
-This is the one-time production promotion of the already-tested first release.
+**Historical record, not current release instructions.** The original 0.1.0 promotion completed; for 0.2.0 and later follow [Releasing](RELEASING.md). The original workflow remains in the Git history and the pinned helper remains unchanged. Do not repeat the steps below. The new workflow retains the same production Trusted Publisher identity and approval gate.
+
+This was the one-time production promotion of the already-tested first release.
 The workflow does not build a new wheel or source distribution. It leaves the
 existing `v0.1.0` tag, TestPyPI files, scientific code and manuscript checkpoint
 unchanged. Future release versions require a separately reviewed policy update.

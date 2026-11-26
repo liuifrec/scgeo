@@ -6,13 +6,12 @@ contrasts, and export the exact plotted tables with your figure.
 [Gallery](PLOTTING_GALLERY.md) · [PAGA shift maps](PAGA_SHIFT_MAP.md) · [Velocity fields](VELOCITY_FIELDS.md) · [Plotting API](api/pl.md) ·
 [Interpretation](RESULT_INTERPRETATION.md) · [Citation guide](CITING.md)
 
-[State associations and density](STATE_FLOW_AND_DENSITY.md) · [Real-data examples](REAL_DATA_PLOTTING.md) · [Geometry–velocity interpretation](GEOMETRY_VELOCITY_INTERPRETATION.md) · [Unified atlas](GEOMETRY_DYNAMICS_ATLAS.md) · [Embedding facets](EMBEDDING_FACETS.md)
+[State associations and density](STATE_FLOW_AND_DENSITY.md) · [Real-data examples](REAL_DATA_PLOTTING.md) · [Geometry–velocity interpretation](GEOMETRY_VELOCITY_INTERPRETATION.md) · [Unified atlas](GEOMETRY_DYNAMICS_ATLAS.md) · [Embedding facets](EMBEDDING_FACETS.md) · [Shift explanations](EXPLAIN_SHIFT.md) · [Sparse states](CONDITION_SPARSE_STATES.md) · [Response compass](COMPASS_EVIDENCE.md)
 
 ## Availability and installation
 
-The plotting additions on this page are **unreleased development features**.
-They require the source checkout containing this guide. The published PyPI
-package `scgeo==0.1.0` does not contain these additions. From that checkout:
+These APIs are included in the 0.2.0 release source; see [Installation](INSTALLATION.md) for the verified index release or a pinned source installation.
+The earlier 0.1.0 wheel does not contain these additions. To reproduce the example gallery from the matching checkout:
 
 ```bash
 python -m pip install -e .

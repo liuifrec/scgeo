@@ -2,25 +2,23 @@
 
 [Quick start](QUICKSTART.md) · [API reference](api_reference.md) · [Paper reproduction](REPRODUCIBILITY.md)
 
-**ScGeo 0.1.0 is published on [PyPI](https://pypi.org/project/scgeo/0.1.0/).**
+**ScGeo 0.2.0 is the release version described by this source tree.** Check [PyPI](https://pypi.org/project/scgeo/) for the production release before using the 0.2.0 index commands below. The earlier [0.1.0 release](https://pypi.org/project/scgeo/0.1.0/) remains available and does not include the new APIs.
 Python 3.12 is the recommended starting point. Use a fresh environment for a new
 project and preserve environments that support frozen analyses.
 
-For the newer plotting and deployment interfaces, follow the
-[exact-commit JupyterHub installation and preflight guide](JUPYTERHUB_PREFLIGHT.md).
-The development checkout also reports `0.1.0`; the version string alone cannot
-distinguish it from the published package. Use the approved Git SHA and verify
-the actual imported sources. `main.zip` is not an approved immutable snapshot.
+For the newer plotting and deployment interfaces, use 0.2.0 or install a reviewed source commit before index publication. The [exact-commit JupyterHub installation and preflight guide](JUPYTERHUB_PREFLIGHT.md) verifies the actual imported sources; `main.zip` is not an immutable snapshot.
 
 ## Choose an installation
 
+Use the pinned 0.2.0 commands after production verification. Until then, use the source installation below or explicitly install 0.1.0 for the earlier API.
+
 | Workflow | Command |
 | --- | --- |
-| Core geometry and plotting | `python -m pip install scgeo==0.1.0` |
-| Standard Scanpy/AnnData analysis | `python -m pip install "scgeo[scanpy]==0.1.0"` |
-| Scanpy with JupyterLab | `python -m pip install "scgeo[scanpy,notebook]==0.1.0"` |
-| scVelo workflow dependencies | `python -m pip install "scgeo[scanpy,scvelo]==0.1.0"` |
-| CELLxGENE Census access | `python -m pip install "scgeo[census]==0.1.0"` |
+| Core geometry and plotting | `python -m pip install scgeo==0.2.0` |
+| Standard Scanpy/AnnData analysis | `python -m pip install "scgeo[scanpy]==0.2.0"` |
+| Scanpy with JupyterLab | `python -m pip install "scgeo[scanpy,notebook]==0.2.0"` |
+| scVelo workflow dependencies | `python -m pip install "scgeo[scanpy,scvelo]==0.2.0"` |
+| CELLxGENE Census access | `python -m pip install "scgeo[census]==0.2.0"` |
 
 The core package includes NumPy, pandas, AnnData, SciPy, scikit-learn, Matplotlib,
 and Plotly. ScGeo consumes existing representations; construct scVI, CellRank,
@@ -47,12 +45,12 @@ Or in Windows PowerShell:
 Then install and verify:
 
 ```bash
-python -m pip install "scgeo[scanpy]==0.1.0"
+python -m pip install "scgeo[scanpy]==0.2.0"
 python -m pip check
 python -c "import scgeo; print(scgeo.__version__)"
 ```
 
-The last command should print `0.1.0`. Continue with the
+The last command should print `0.2.0`. Continue with the
 [download-free synthetic example](QUICKSTART.md#try-the-complete-example).
 
 ## Use conda to manage the environment
@@ -60,7 +58,7 @@ The last command should print `0.1.0`. Continue with the
 ```bash
 conda create -n scgeo -c conda-forge python=3.12 pip
 conda activate scgeo
-python -m pip install "scgeo[scanpy]==0.1.0"
+python -m pip install "scgeo[scanpy]==0.2.0"
 python -m pip check
 ```
 
@@ -88,14 +86,14 @@ Some APIs require packages beyond the geometry core:
 
 | Feature | Requirement | How to install |
 | --- | --- | --- |
-| `tl.alignment_driver_genes` | Scanpy | `python -m pip install "scgeo[scanpy]==0.1.0"` |
+| `tl.alignment_driver_genes` | Scanpy | `python -m pip install "scgeo[scanpy]==0.2.0"` |
 | `pp.build_reference_pool` and reference-pool search with the default backend | PyNNDescent | `python -m pip install pynndescent` |
 | `tl.paga_composition_stats(method="gee")` | statsmodels | `python -m pip install statsmodels` |
-| Census access | Census, TileDB-SOMA, Arrow | `python -m pip install "scgeo[census]==0.1.0"` |
-| Census reference-pool construction | Census stack and PyNNDescent | `python -m pip install "scgeo[census]==0.1.0" pynndescent` |
+| Census access | Census, TileDB-SOMA, Arrow | `python -m pip install "scgeo[census]==0.2.0"` |
+| Census reference-pool construction | Census stack and PyNNDescent | `python -m pip install "scgeo[census]==0.2.0" pynndescent` |
 
 The tested Scanpy extra also supplies PyNNDescent and statsmodels transitively.
-They are listed here explicitly because ScGeo 0.1.0 does not declare separate
+They are listed here explicitly because ScGeo 0.2.0 does not declare separate
 reference/statistics extras. Select the intended statistical method explicitly;
 bootstrap and GEE analyses are different procedures.
 
@@ -111,7 +109,7 @@ For Python 3.9 workflows that use PyNNDescent, including default reference-pool
 indexing, constrain the optional dependency to a compatible release:
 
 ```bash
-python -m pip install "scgeo[scanpy]==0.1.0" "pynndescent<0.7; python_version < '3.10'"
+python -m pip install "scgeo[scanpy]==0.2.0" "pynndescent<0.7; python_version < '3.10'"
 python -m pip check
 ```
 
@@ -128,10 +126,11 @@ new analyses.
 
 Package metadata declares Python >=3.9. Release CI has checked core wheel
 installation on Linux (3.9 and 3.12), Windows (3.12), and macOS (3.12).
-The 17 November 2026 Linux/Python 3.12 audit also passed a fresh PyPI install,
+For the earlier 0.1.0 release, the 17 November 2026 Linux/Python 3.12 audit also passed a fresh PyPI install,
 dependency checks, the installed-package smoke test, and all **191 non-network
 library tests with the Scanpy extra**. One dataset-download integration test was
 excluded; optional live services and full manuscript workflows are separate checks.
+The 0.2.0 source includes PR #26, whose CI passed 785 tests (one optional integration skipped) on Python 3.9 and 3.12, plus packaging and documentation checks. Consult the version-specific [release workflow and checklist](RELEASING.md) before claiming public installation verification.
 
 The `scgeo.bench` simulation profiler uses the Unix-only `resource` module.
 Run benchmarks on Linux/WSL or macOS. Core analysis and plotting remain
@@ -140,6 +139,8 @@ available on native Windows. See the
 [release workflow](../.github/workflows/publish.yml) for validation details.
 
 ## Development installation
+
+Before index publication, install the reviewed 0.2.0 source checkout in an isolated environment. To install an exact source commit without an editable checkout, use `python -m pip install "scgeo[scanpy] @ git+https://github.com/liuifrec/scgeo.git@<full-approved-commit>"` (replace the placeholder). After the immutable `v0.2.0` tag has been created, it can also be used in the Git URL. For an exact analysis record prefer the full SHA.
 
 For editable source:
 

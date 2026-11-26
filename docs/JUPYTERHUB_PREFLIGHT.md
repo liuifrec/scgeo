@@ -12,8 +12,7 @@ require the subsequent, explicitly approved deployment commit.
 
 Run in a JupyterHub terminal on Linux. Obtain the **full 40-character approved
 commit** from the reviewed PR; do not substitute `main`, a tag, `main.zip` or
-`pip install scgeo==0.1.0`. Both published and development ScGeo can currently
-report `0.1.0`. Python 3.12 is the deployment baseline; core CI also covers 3.9.
+a version-only PyPI installation when validating an exact source deployment. Older development checkouts could share the 0.1.0 release version; the 0.2.0 source bumps that version, but version alone still does not prove source identity. Python 3.12 is the deployment baseline; core CI also covers 3.9.
 Python, Git and outbound access for this installation must already be available.
 
 ```bash

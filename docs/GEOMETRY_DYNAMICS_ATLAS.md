@@ -19,10 +19,8 @@ to combine an atlas and facets and bundle both sources for export.
 [Projected velocity fields](VELOCITY_FIELDS.md) · [State evidence](RESULT_INTERPRETATION.md) ·
 [Full plotting API](api/pl.md) · [Citing ScGeo](CITING.md)
 
-> **Development API:** This function is currently available in the source
-> checkout containing this guide; the published `scgeo==0.1.0` wheel does not
-> contain it. Install the development checkout (`python -m pip install -e .`)
-> or pin a reviewed commit. No manuscript-private results are needed.
+These APIs are included in the 0.2.0 release source; see [Installation](INSTALLATION.md) for the verified index release or a pinned source installation.
+No manuscript-private results are needed.
 
 ## Actual gallery output
 

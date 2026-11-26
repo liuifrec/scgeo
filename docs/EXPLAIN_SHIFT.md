@@ -1,5 +1,7 @@
 # Explain a measured state displacement
 
+These APIs are included in the 0.2.0 release source; see [Installation](INSTALLATION.md) for the verified index release or a pinned source installation.
+
 `scgeo.tl.explain_shift()` connects a stored ScGeo displacement to genes and
 gene programs in the expression matrix that generated its representation.
 It reports signed feature contributions, biological-sample evidence, and

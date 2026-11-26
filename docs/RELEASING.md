@@ -2,116 +2,104 @@
 
 ## Current release status
 
-ScGeo 0.1.0 was published on [PyPI](https://pypi.org/project/scgeo/0.1.0/) on
-15 October 2026. Native Bioconda publication is pending in
-[PR #70318](https://github.com/bioconda/bioconda-recipes/pull/70318) as of
-17 November 2026. User-facing commands are in [Installation](INSTALLATION.md).
+The first production release, ScGeo 0.1.0, was published on
+[PyPI](https://pypi.org/project/scgeo/0.1.0/) on 15 October 2026. Native Bioconda
+publication is tracked separately in [PR #70318](https://github.com/bioconda/bioconda-recipes/pull/70318).
+The current release source is 0.2.0; do not advertise it as a public-index release
+until its production verification passes. User commands are in [Installation](INSTALLATION.md).
 
-The procedure below records the first release's TestPyPI staging controls.
-Production promotion was implemented separately in `publish-pypi.yml`; its
-fixed provenance and approval requirements are retained in
-[the publication record](PYPI_PUBLICATION.md). The first release and tag already
-exist: do not rerun the historical tagging/promotion steps to update documentation.
-Future release versions need their own reviewed version and publication changes.
+The historical 0.1.0 production promotion remains documented in
+[the publication record](PYPI_PUBLICATION.md). Do not modify the original tag,
+published artifacts, checksums, or manuscript checkpoint.
 
-## First-release staging configuration
+## Review the release candidate
 
-The `packaging.yml` workflow checks installation. The `publish.yml` workflow
-runs release checks and uploads to **TestPyPI only**, after a matching version
-tag and the `testpypi` environment approval. Production publishing remains a
-separate protected workflow. Merging documentation does not publish a package.
+- Keep package, runtime, local conda recipe, citation metadata and generated API
+  manifests aligned at the new version; inspect the changelog and guides.
+- Require the release PR's documentation, packaging, library, optional-extra,
+  native conda and offline promotion guard checks to pass.
+- Retain explicit optional-integration skips and keep release scope separate from
+  manuscript reproduction. No new scientific validation is implied.
+- Preserve the manuscript checkpoint `9a0ed16cbaa57f935f9c9bc87d1643a25b51012c`.
 
-The registered pending publisher must be exactly:
+## Protected publishing configuration
 
-| Field | Value |
-| --- | --- |
-| Project | `scgeo` |
-| GitHub owner | `liuifrec` |
-| Repository | `scgeo` |
-| Workflow filename | `publish.yml` |
-| Environment | `testpypi` |
+The two existing Trusted Publishers are separate:
 
-Use GitHub Settings > Environments > testpypi. Save `liuifrec` as a required
-reviewer and leave Prevent self-review unchecked for a solo maintainer. Under
-Selected branches and tags, add **Ref type: Tag**, **Name pattern: `v*`**.
-A branch rule named `v*` is not equivalent. Zero matching tags is normal before
-the first release. No password or API token belongs in repository secrets.
-Pending publishers do not reserve the package name; the first upload must
-succeed under the authorized owner's account.
+| Field | TestPyPI | Production PyPI |
+| --- | --- | --- |
+| Project | scgeo | scgeo |
+| Owner | liuifrec | liuifrec |
+| Repository | scgeo | scgeo |
+| Workflow | publish.yml | publish-pypi.yml |
+| Environment | testpypi | pypi |
+| Environment allowed ref | Tag: v* | Branch: main |
 
-## Before creating a tag
-
-Review the release PR and require both the packaging checks and release checks
-to pass. `publish.yml` builds one source distribution and wheel, verifies their
-versions, package-source bytes, dependencies, license and required files, runs
-the complete default library suite on Linux/Python 3.9 and 3.12, checks selected
-optional-extra installations on Linux/Python 3.12, and builds/tests a native
-conda package from that exact sdist. Existing opt-in/network test skips remain
-visible in the test report; they are not silently treated as passed.
-
-Do not weaken tests to force a release. Inspect any failures and record any
-compatibility bounds supported by that evidence. Preserve the manuscript's
-frozen package checkpoint `9a0ed16cbaa57f935f9c9bc87d1643a25b51012c` and numerical
-outputs. This version is not a replacement manuscript-analysis checkpoint.
-
-Keep `pyproject.toml`, `scgeo/__init__.py`, and `conda-recipe/meta.yaml` versions
-consistent. The tag must exactly equal `v` plus that version. The tagged commit
-must already be reachable from `main`. Do not move a published tag or overwrite
-immutable release files.
+Retain required reviewer `liuifrec`, permit self-review for the solo maintainer,
+and disable administrator bypass. Verify these settings on GitHub and the
+respective package indexes. Do not share tokens or weaken the approval gates.
+The workflow filename and environment identity for the established production
+Trusted Publisher are unchanged.
 
 ## Stage on TestPyPI
 
-The historical first-release tag was created from the exact approved commit.
-The example below is retained as a record; **`v0.1.0` already exists and these
-commands must not be repeated for the documentation update**:
+Merge the reviewed release PR, then create a new immutable tag at the exact
+approved main commit. For 0.2.0:
 
 ```bash
 git switch main
 git pull --ff-only
 git status --short
-# Confirm this is the approved release commit before tagging:
 git log -1 --oneline
-git tag -a v0.1.0 -m "ScGeo 0.1.0"
-git push origin v0.1.0
+# Check the approved commit and package version before creating a tag.
+git tag -a v0.2.0 -m "ScGeo 0.2.0"
+git push origin v0.2.0
 ```
 
-The tag push runs **Release checks and TestPyPI**. Ordinary main-branch pushes
-and pull requests run its checks but cannot upload. A manual Actions run also
-requires selecting the release **tag**, not main, to reach the upload job.
+The old `v0.2.0-geometry-core` checkpoint is not this release; do not move it.
+The tag push runs [Release checks and TestPyPI](https://github.com/liuifrec/scgeo/actions/workflows/publish.yml).
+It builds a wheel and sdist, checks their contents, executes library and optional
+installation tests, and builds native conda from the inspected sdist.
+Only after those checks pass, review and approve the **testpypi** deployment.
+The final staging job checks live index hashes and tests a clean installation
+of the verified wheel. Require all staging jobs to complete successfully.
 
-After the checks pass, open the run in Actions, choose Review deployments,
-select `testpypi`, and approve. Do not bypass a failed gate. The publishing job
-only downloads the tested distributions and uses Trusted Publishing; it does
-not check out or build source code with an upload identity.
+Save the original successful tag-push run ID (attempt 1), its distributions and
+release-audit artifacts and file hashes. They expire after 30 days. The new
+production workflow fails closed on expired, missing, replaced or ambiguous
+artifacts and on changed tags. If staging fails, investigate before retrying;
+the production guard intentionally rejects rebuilt attempts. Do not silently
+rebuild a version already staged or published.
 
-The following job downloads the uploaded wheel and sdist, checks both against
-the saved SHA256 hashes, installs core dependencies from normal PyPI, installs
-the verified ScGeo wheel with `--no-deps`, and runs the installed-package smoke
-test. A successful upload alone is not the end of staging: require this final
-verification job to pass as well.
+## Promote the same bytes to production PyPI
 
-Save the run's `scgeo-distributions` and `scgeo-release-audit` artifacts; these
-expire after 30 days. The audit includes the source commit, tag ref, filenames,
-SHA256 checksums, dependency metadata and build environment. Test XML and
-resolved test/optional environments are separate artifacts. These records are
-not a software DOI and do not lock dependencies for later installations.
+Open [Promote verified ScGeo release to PyPI](https://github.com/liuifrec/scgeo/actions/workflows/publish-pypi.yml),
+choose **Run workflow** on **main**, and enter:
 
-## Promote to production PyPI: a separate owner-approved step
+- Version: `0.2.0`
+- Staging run ID: the original successful tag-push run above.
+- Publish: leave unchecked for a read-only dry run; check it only when ready
+  for production publication and owner approval.
 
-Create and secure the real PyPI account, verify project-name ownership, and
-register its Trusted Publisher. TestPyPI accounts/publishers do not authorize
-production PyPI. Create a protected `pypi` environment before enabling production
-publishing. Do not add upload credentials to chat or source control.
+The production workflow verifies the staging repository, tag, original successful
+run and every required job, unexpired artifact IDs and digests, main ancestry,
+the release manifest, and original distribution bytes. Both downloads from
+TestPyPI must independently match the original manifest; a smoke test installs
+the verified wheel outside the checkout. Production upload refuses an existing
+version rather than skipping files.
 
-Production publishing was added after the first staging PR through the separately
-reviewed workflow documented in [PYPI_PUBLICATION.md](PYPI_PUBLICATION.md).
-That promotion step must retrieve the exact files from the
-successful TestPyPI run (or saved artifacts), verify their manifest and TestPyPI
-hashes, and upload those **same bytes** to PyPI after explicit approval. Do not
-silently rebuild or replace version 0.1.0 between staging and production.
+After the preparation jobs pass, review the source commit and exact SHA256
+hashes in the run summary. Choose **Review deployments**, select **pypi**, and
+approve only if the evidence is correct. The upload job has no source checkout
+and does not execute package code or rebuild the distributions. It verifies
+the manifest and both hashes immediately before Trusted Publishing.
 
-Production verification completed for 0.1.0, and the README now advertises the
-released package. Keep the same verification requirement for future releases.
+Require **Verify REAL PyPI hashes and fresh pip installation** to pass. Only
+then advertise `python -m pip install scgeo==0.2.0` as an available production
+command, record the successful run, and update the GitHub release notes.
+A partial upload or post-upload failure must be investigated; do not delete
+files or move tags. If only verification fails, rerun failed jobs, not the
+successful publishing job. The old 0.1.0 files remain unchanged.
 
 ## Bioconda after the production release
 
