@@ -1,6 +1,6 @@
 # API reference
 
-Public API for **ScGeo 0.2.0** · **104 exported callables**.
+Public API for **ScGeo 0.2.1** · **104 exported callables**.
 
 This reference describes the current checkout. Plotting additions marked [unreleased in the changelog](../CHANGELOG.md) require that development checkout; they are not included in the published 0.1.0 distribution.
 

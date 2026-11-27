@@ -2,6 +2,8 @@
 
 ## Current release status
 
+The 0.2.1 visualization candidate is under review. Do not tag or promote it until CI and real-data visual review are complete. The production 0.2.0 release record below remains unchanged.
+
 The first production release, ScGeo 0.1.0, was published on
 [PyPI](https://pypi.org/project/scgeo/0.1.0/) on 15 October 2026. Native Bioconda
 publication is tracked separately in [PR #70318](https://github.com/bioconda/bioconda-recipes/pull/70318).

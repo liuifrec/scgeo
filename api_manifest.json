@@ -1,5 +1,5 @@
 {
-  "scgeo_version": "0.2.0",
+  "scgeo_version": "0.2.1",
   "tl": [
     {
       "name": "scgeo.tl.align_vectors",
