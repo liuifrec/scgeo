@@ -32,6 +32,8 @@ for displacement, representation stability, local geometry, and dynamics.
 
 **Learn with known answers.** The [illustrated simulation guide](https://github.com/liuifrec/scgeo-notebooks/blob/main/docs/SIMULATION_DESIGN.md) explains how the tutorial data are generated: planted state shifts, constructed velocity fields, opposing local gene responses, and a deliberately sparse control population. The [12 executable notebooks](https://github.com/liuifrec/scgeo-notebooks/blob/main/notebooks/tutorials/v0.2.0/README.md) let you reproduce these examples using ScGeo 0.2.0; lessons 00–10 require no dataset downloads. Simulated inputs test software behavior, not biological mechanisms.
 
+**Development 0.2.1 (not yet published):** The [visualization patch](https://github.com/liuifrec/scgeo/blob/main/docs/COMPASS_EVIDENCE.md#adaptive-summary-layout-planned-021) improves long-label graph plots, response compasses and sample-center layouts. The current verified public release remains 0.2.0 until the new candidate passes validation and release promotion.
+
 **New in ScGeo 0.2.0:** One command composes available cell-state,
 projected-velocity, PAGA, and stored evidence views, without rerunning an
 analysis:

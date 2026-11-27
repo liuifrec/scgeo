@@ -1,5 +1,7 @@
 # Install ScGeo
 
+**Development checkout:** 0.2.1 is a release candidate, not a published package. The pinned commands below install the verified 0.2.0 distribution. Test the candidate only from an explicitly reviewed source commit or wheel in an isolated environment.
+
 [Quick start](QUICKSTART.md) · [API reference](api_reference.md) · [Paper reproduction](REPRODUCIBILITY.md)
 
 **ScGeo 0.2.0 was published on [PyPI](https://pypi.org/project/scgeo/0.2.0/) on 26 November 2026.** The [production verification](https://github.com/liuifrec/scgeo/actions/runs/45765641121) matched both published distribution hashes and passed a fresh pip installation. The earlier [0.1.0 release](https://pypi.org/project/scgeo/0.1.0/) remains available and does not include the new APIs.

@@ -709,3 +709,25 @@ def test_paga_scgeo_inherits_nondefault_display_velocity_basis(paga_data):
     np.testing.assert_allclose(
         velocity.loc["A", ["vx", "vy"]].to_numpy(dtype=float), [0.2, 0.1]
     )
+
+
+def test_long_automatic_labels_wrap_and_manual_offsets_remain_exact():
+    from scgeo.pl._paga_layout import place_labels
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+    ax.set(xlim=(-3, 3), ylim=(-2, 2))
+    rows = [("Col13a1-like matrix fibroblast", 0., 0.),
+            ("Col14a1-like matrix fibroblast", .12, .04),
+            ("Myofibroblast", .08, -.1)]
+    artists, table = place_labels(ax, rows, fontsize=9, mode="auto",
+                                  offsets={}, obstacles=[(x, y, 11) for _, x, y in rows])
+    fig.canvas.draw()
+    assert "\n" in artists[rows[0][0]].get_text()
+    np.testing.assert_allclose(table[["anchor_x", "anchor_y"]], [(x, y) for _, x, y in rows])
+    renderer = fig.canvas.get_renderer()
+    boxes = [artist.get_bbox_patch().get_window_extent(renderer) for artist in artists.values()]
+    assert all(not left.overlaps(right) for i, left in enumerate(boxes) for right in boxes[i + 1:])
+    fig2, ax2 = plt.subplots()
+    _, fixed = place_labels(ax2, rows[:1], fontsize=9, mode="auto",
+                            offsets={rows[0][0]: (20, -40)}, obstacles=[])
+    np.testing.assert_allclose(fixed[["offset_x_points", "offset_y_points"]], [[20, -40]])

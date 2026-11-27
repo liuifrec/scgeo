@@ -506,3 +506,17 @@ def test_heatmap_title_colorbar_consensus_and_diagnostics_do_not_overlap(
         result.axes["heatmap"].get_position().intervalx,
         result.axes["diagnostics"].get_position().intervalx,
     )
+
+
+def test_coverage_display_label_preserves_original_status(report):
+    report = report.copy()
+    report["coverage_status"] = "qualified_per_mouse_before_scgeo"
+    report.attrs["provenance"] = {}
+    report["group0"] = "control"
+    report["group1"] = "17Gy early"
+    result = sg.pl.state_evidence_panel(report, show_sample_counts=True,
+                                       return_result=True, show=False)
+    assert "control / 17Gy early" in result.axes["samples"].get_title()
+    assert any("Eligible mice verified" in item.get_text()
+               for item in result.axes["coverage"].texts)
+    assert set(report["coverage_status"]) == {"qualified_per_mouse_before_scgeo"}

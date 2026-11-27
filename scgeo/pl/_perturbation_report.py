@@ -409,6 +409,13 @@ def state_evidence_panel(
         if metric not in report:
             raise ValueError(f"The report does not contain effect metric {metric!r}.")
     provenance = dict(report.attrs.get("provenance", {}) or {})
+    # Explicit uniform contrast columns may accompany exported CSV reports.
+    # Never infer labels when mixed/unknown, and never override stored provenance.
+    for key in ("group0", "group1"):
+        if key not in provenance and key in report:
+            values = report[key].dropna().unique()
+            if len(values) == 1 and report[key].notna().all():
+                provenance[key] = values[0]
     if representation is None:
         representation = provenance.get("effect_representation", provenance.get("rep"))
         if representation is None and not is_table:
@@ -803,6 +810,14 @@ def state_evidence_panel(
                     if track == "Coverage"
                     else str(rec.get("summary", ""))
                 )
+                if track == "Coverage":
+                    text = {
+                        "qualified_per_mouse_before_scgeo": "Eligible mice verified",
+                        "insufficient_coverage": "Insufficient coverage",
+                        "descriptive_only": "Descriptive only",
+                        "not_supplied": "Not supplied",
+                        "numerical_degeneracy": "Numerical degeneracy",
+                    }.get(text, text.replace("_", " "))
                 warning = rec.get("warnings")
                 if track == "Coverage" and pd.notna(warning) and str(warning):
                     text += " *"

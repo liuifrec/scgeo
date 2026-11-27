@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import textwrap
+
 import numpy as np
 from matplotlib.font_manager import FontProperties
 from matplotlib.offsetbox import AnnotationBbox, DrawingArea
@@ -126,15 +128,22 @@ def place_labels(ax, rows, *, fontsize, mode, offsets, obstacles, labels=None):
         (0, 42),
         (0, -42),
     ]
+    # Consider wider offsets when the original candidates overlap.
+    candidates += [(float(r * np.cos(theta)), float(r * np.sin(theta)))
+                   for r in (60, 82, 110)
+                   for theta in np.linspace(0, 2 * np.pi, 12, endpoint=False)]
     artists, records = {}, []
     for state, x, y in rows:
         text = str(labels.get(state, state)) if labels is not None else str(state)
+        if mode == "auto" and state not in offsets:
+            text = textwrap.fill(text, width=26, break_long_words=False,
+                                 break_on_hyphens=False)
         anchor = ax.transData.transform((x, y))
-        width, height, _ = renderer.get_text_width_height_descent(
-            text, font, ismath=False
-        )
-        width += 6 * px_per_pt
-        height = max(height, fontsize * px_per_pt) + 4 * px_per_pt
+        extents = [renderer.get_text_width_height_descent(part, font, ismath=False)
+                   for part in text.split("\n")]
+        width = max(item[0] for item in extents) + 6 * px_per_pt
+        height = (max(max(item[1] for item in extents), fontsize * px_per_pt)
+                  * (1 + 1.2 * (len(extents) - 1)) + 4 * px_per_pt)
         choices = (
             [offsets[state]]
             if state in offsets

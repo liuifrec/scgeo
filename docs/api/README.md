@@ -1,6 +1,6 @@
 # Browse the ScGeo API
 
-These module pages and the [complete API reference](../api_reference.md) are generated together for ScGeo 0.2.0.
+These module pages and the [complete API reference](../api_reference.md) are generated together for ScGeo 0.2.1.
 
 The current checkout includes [unreleased plotting additions](../../CHANGELOG.md); use the [plotting guide](../PLOTTING.md) for installation and examples.
 

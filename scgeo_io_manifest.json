@@ -1,5 +1,5 @@
 {
-  "scgeo_version": "0.2.0",
+  "scgeo_version": "0.2.1",
   "tl": {
     "scgeo.tl.density_overlap": {
       "signature": "(adata, rep: 'str' = 'X_umap', condition_key: 'str' = 'condition', group1: 'Any' = None, group0: 'Any' = None, *, by: 'Optional[str]' = None, k: 'int' = 30, eval_on: 'str' = 'union', store_key: 'str' = 'scgeo') -> 'None'",

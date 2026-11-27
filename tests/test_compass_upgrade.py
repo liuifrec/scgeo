@@ -572,3 +572,48 @@ def test_zero_recorded_velocity_makes_stored_cosine_unavailable(data, key):
     row = result.data["evidence"].set_index("state").loc["Shared"]
     assert row.alignment == 0.7 and not row.alignment_available
     assert row.alignment_reason == "undefined_zero_velocity"
+
+
+def test_adaptive_missing_velocity_long_labels_render_without_collapse(data, tmp_path):
+    import warnings
+
+    shifts, _ = reports()
+    long_names = {
+        "Shared": "Col13a1-like matrix fibroblast",
+        "Enriched": "Col14a1-like matrix fibroblast",
+        "Absent": "Other retained cells with no observed support",
+    }
+    original = plot(data, mode="stored", shift_df=shifts, analysis_rep="X_pca",
+                    sample_key="sample", layout="summary", fill_color_mode="constant",
+                    ring_mode="none", legend=True)
+    with warnings.catch_warnings(record=True) as seen:
+        warnings.simplefilter("always")
+        adaptive = plot(data, mode="stored", shift_df=shifts, analysis_rep="X_pca",
+                        sample_key="sample", layout="adaptive", fill_color_mode="constant",
+                        ring_mode="none", legend=True, label_names=long_names)
+        adaptive.fig.canvas.draw()
+        adaptive.save(tmp_path / "adaptive", formats=("png", "svg", "pdf"))
+    assert not any("axes sizes collapsed" in str(item.message) for item in seen)
+    assert adaptive.metadata["omitted_panels"] == ["alignment"]
+    assert "alignment" not in adaptive.axes
+    assert {"map", "effect", "abundance", "coverage"} <= adaptive.axes.keys()
+    for name in ("map", "effect", "abundance", "coverage"):
+        bounds = adaptive.axes[name].get_window_extent()
+        assert bounds.width > 120 and bounds.height > 100
+    pd.testing.assert_frame_equal(original.data["evidence"], adaptive.data["evidence"])
+    pd.testing.assert_frame_equal(original.data["sample_abundance"], adaptive.data["sample_abundance"])
+    pd.testing.assert_frame_equal(original.data["coverage"], adaptive.data["coverage"])
+    assert any("alignment unavailable" in item.get_text() for item in adaptive.fig.texts)
+    assert any("matrix" in item.get_text() for item in adaptive.axes["effect"].get_yticklabels())
+
+
+def test_adaptive_retains_available_alignment_without_sample_key(data):
+    result = plot(data, layout="adaptive")
+    assert "alignment" in result.axes
+    assert "abundance" not in result.axes
+    assert result.metadata["omitted_panels"] == ["abundance"]
+    assert len(result.data["coverage"]) > 0
+    fig, ax = plt.subplots()
+    with pytest.raises(ValueError, match="owned figure"):
+        plot(data, layout="adaptive", ax=ax)
+    assert not ax.has_data()

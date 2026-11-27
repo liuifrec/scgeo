@@ -731,10 +731,10 @@ def geometry_dynamics_atlas(
     size = figsize or (
         (7.8, 6.1) if n == 1 else (13.8, 5.9) if n == 2 else (14.2, 10.8)
     )
-    adaptive_strip = layout == "adaptive" and "evidence" in chosen and n >= 3
+    adaptive_strip = layout == "adaptive" and "evidence" in chosen and n >= 2
     if adaptive_strip:
-        evidence_height = max(1.5, min(3.4, 0.28 * len(report_shown) + 0.65))
-        size = figsize or (max(10.0, 4.5 * (n - 1)), 4.9 + evidence_height)
+        evidence_height = max(1.8, 0.42 * len(report_shown) + 0.9) if n == 2 else max(1.5, min(3.4, 0.28 * len(report_shown) + 0.65))
+        size = figsize or ((9.5, 5.8 + evidence_height) if n == 2 else (max(10.0, 4.5 * (n - 1)), 4.9 + evidence_height))
     notes = [f"{panel} omitted: {reason}" for panel, reason in omitted.items()]
     if not finite.all():
         notes.append(
