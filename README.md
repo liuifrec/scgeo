@@ -14,6 +14,7 @@
 [Installation](https://github.com/liuifrec/scgeo/blob/main/docs/INSTALLATION.md) ·
 [API reference](https://github.com/liuifrec/scgeo/blob/main/docs/api_reference.md) ·
 [Plotting gallery](https://github.com/liuifrec/scgeo/blob/main/docs/PLOTTING_GALLERY.md) ·
+[Tutorials](https://github.com/liuifrec/scgeo-notebooks/blob/main/notebooks/tutorials/v0.2.0/README.md) ·
 [Paper workflows](https://github.com/liuifrec/scgeo-notebooks) ·
 [Cite ScGeo](https://github.com/liuifrec/scgeo/blob/main/docs/CITING.md)**
 
@@ -28,6 +29,8 @@ for displacement, representation stability, local geometry, and dynamics.
 
 **Published in Bioinformatics Advances:**
 [Liu and Yoshida (2026), vbag266](https://doi.org/10.1093/bioadv/vbag266).
+
+**Learn with known answers.** The [illustrated simulation guide](https://github.com/liuifrec/scgeo-notebooks/blob/main/docs/SIMULATION_DESIGN.md) explains how the tutorial data are generated: planted state shifts, constructed velocity fields, opposing local gene responses, and a deliberately sparse control population. The [12 executable notebooks](https://github.com/liuifrec/scgeo-notebooks/blob/main/notebooks/tutorials/v0.2.0/README.md) let you reproduce these examples using ScGeo 0.2.0; lessons 00–10 require no dataset downloads. Simulated inputs test software behavior, not biological mechanisms.
 
 **New in ScGeo 0.2.0:** One command composes available cell-state,
 projected-velocity, PAGA, and stored evidence views, without rerunning an
@@ -105,7 +108,7 @@ Display-only changes do not alter the stored quantitative evidence.
 | Your goal | Best starting point |
 | --- | --- |
 | Analyze your own AnnData object | [Quick start](https://github.com/liuifrec/scgeo/blob/main/docs/QUICKSTART.md) |
-| Try ScGeo without downloading a dataset | [Runnable synthetic example](https://github.com/liuifrec/scgeo/blob/main/examples/quickstart.py) |
+| Try ScGeo without downloading a dataset | [Runnable synthetic example](https://github.com/liuifrec/scgeo/blob/main/examples/quickstart.py) · [Illustrated simulation guide](https://github.com/liuifrec/scgeo-notebooks/blob/main/docs/SIMULATION_DESIGN.md) · [Tutorial notebooks](https://github.com/liuifrec/scgeo-notebooks/blob/main/notebooks/tutorials/v0.2.0/README.md) |
 | Build evidence figures and compare contrasts | [Plotting guide](https://github.com/liuifrec/scgeo/blob/main/docs/PLOTTING.md) and [visual gallery](https://github.com/liuifrec/scgeo/blob/main/docs/PLOTTING_GALLERY.md) |
 | Display state connectivity, condition shifts, and velocity | [PAGA shift-map guide](https://github.com/liuifrec/scgeo/blob/main/docs/PAGA_SHIFT_MAP.md) |
 | Combine a state map, stored evidence, and individual samples | [State response compass](https://github.com/liuifrec/scgeo/blob/main/docs/COMPASS_EVIDENCE.md) |
