@@ -2278,7 +2278,9 @@ cutoff; otherwise the selected scope's finite-score 95th percentile is
 used and recorded as a descriptive threshold.
 
 ``layout='summary'`` adds effect, alignment, per-sample abundance and current
-coverage panels. ``sample_key`` uses the complete selected-condition sample
+coverage panels. ``layout='adaptive'`` creates a larger owned figure with
+explicit gutters, wraps long state labels and omits wholly unavailable
+alignment/abundance tracks with a visible note; source tables are retained. ``sample_key`` uses the complete selected-condition sample
 roster: zero-state samples have observed zero frequency, and samples with
 no annotated denominator stay missing. Without a sample key no samples or
 intervals are fabricated. Supplied ``axes`` map map/effect/alignment/
@@ -2293,7 +2295,7 @@ None preserves the legacy coupling. Caller figures retain their layout.
 
 Default map returns are ``(fig, ax)`` or the supplied ax; ``return_data``
 adds the observed-contrast node table and displayed edges as before.
-Summary returns ``(fig, axes)``. ``return_result=True`` takes priority and
+Summary and adaptive layouts return ``(fig, axes)``. ``return_result=True`` takes priority and
 preserves cells/nodes/edges/graph_nodes/glyphs plus evidence and coverage
 tables. No AnnData or supplied result table is modified. This plot does not
 establish recovery, causality, cell trajectories or directed PAGA edges.

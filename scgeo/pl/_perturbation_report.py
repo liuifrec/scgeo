@@ -803,6 +803,14 @@ def state_evidence_panel(
                     if track == "Coverage"
                     else str(rec.get("summary", ""))
                 )
+                if track == "Coverage":
+                    text = {
+                        "qualified_per_mouse_before_scgeo": "Eligible mice verified",
+                        "insufficient_coverage": "Insufficient coverage",
+                        "descriptive_only": "Descriptive only",
+                        "not_supplied": "Not supplied",
+                        "numerical_degeneracy": "Numerical degeneracy",
+                    }.get(text, text.replace("_", " "))
                 warning = rec.get("warnings")
                 if track == "Coverage" and pd.notna(warning) and str(warning):
                     text += " *"

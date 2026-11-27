@@ -227,3 +227,29 @@ timings, full test-suite result, and installed-wheel verification.
 See [sparse-state plotting](CONDITION_SPARSE_STATES.md),
 [the plotting guide](PLOTTING.md), and
 [the plotting API](api/pl.md).
+
+## Adaptive summary layout (planned 0.2.1)
+
+For figures with long biological labels or missing velocity, use `layout="adaptive"`
+on a library-owned figure. It reserves physical gutters for labels and legends,
+wraps long display labels, and removes an alignment or abundance panel only when
+that evidence is wholly unavailable among the displayed states. A note explains
+omitted panels; the original evidence, coverage and sample-abundance tables are
+still exported. `layout="summary"` retains its fixed five-panel contract, including
+caller-supplied axes. `layout="map"` is unchanged.
+
+```python
+result = sg.pl.recovery_compass(
+    adata, node_key="state", condition_key="condition",
+    group0="control", group1="treated", mode="stored",
+    analysis_rep="X_pca", shift_df=report, sample_key="sample",
+    layout="adaptive", fill_color_mode="constant", ring_mode="none",
+    return_result=True, show=False,
+)
+result.save("response_compass", formats=("png", "svg", "pdf"))
+```
+
+Keep the same declared limits, state labels and color mappings across a family of
+contrasts. For maps, `pie_size_scale` and `node_size` control the pie diameter;
+long automatic labels wrap and consider wider offsets. Do not shrink the
+entire figure to fit a notebook print page.

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+import textwrap
 from typing import Any, Optional
 
 import matplotlib.pyplot as plt
@@ -91,12 +92,46 @@ def _normalization(values, supplied, vmin, vmax, *, kind):
     return norm
 
 
-def _canvas(layout, ax, axes, figsize):
-    names = (
+def _adaptive_canvas(names, states, figsize, sample_counts, sample_key):
+    """Reserve physical gutters instead of competing constrained-layout axes."""
+    longest = max((len(str(state)) for state in states), default=0)
+    label_space = min(2.65, max(1.05, min(longest, 28) * 0.085))
+    track_height = max(2.5, 0.45 * len(states) + 0.8)
+    rows = [names[i:i + 2] for i in range(0, len(names), 2)]
+    row_heights = [max(4.1, track_height)] + [track_height] * (len(rows) - 1)
+    sample_n = sample_counts["sample"].nunique() if sample_key is not None else 0
+    footer = [max(1.5, 0.8 + 0.22 * np.ceil(sample_n / 3))
+              if "abundance" in row else 1.25 for row in rows]
+    footer[0] = max(footer[0], 1.7)
+    width = 2 * (4.4 + label_space) + 0.8
+    height = sum(row_heights) + sum(footer) + 0.6
+    fig = plt.figure(figsize=figsize or (width, height), layout="none")
+    left = label_space / width
+    gap = (label_space + 0.55) / width
+    col = (1 - left - gap - 0.35 / width) / 2
+    top = 1 - 0.4 / height
+    axes = {}
+    for row, rh, bottom_space in zip(rows, row_heights, footer):
+        bottom = top - rh / height
+        for j, name in enumerate(row):
+            x = left + j * (col + gap)
+            w = col if len(row) == 2 else 2 * col + gap
+            axes[name] = fig.add_axes([x, bottom, w, rh / height])
+        top = bottom - bottom_space / height
+    return fig, axes, True
+
+
+def _canvas(layout, ax, axes, figsize, *, names=None, states=(),
+            sample_counts=None, sample_key=None):
+    names = names or (
         ["map"]
         if layout == "map"
         else ["map", "effect", "alignment", "abundance", "coverage"]
     )
+    if layout == "adaptive":
+        if ax is not None or axes is not None:
+            raise ValueError("layout='adaptive' requires an owned figure; use summary for supplied axes.")
+        return _adaptive_canvas(names, states, figsize, sample_counts, sample_key)
     if ax is not None:
         if axes is not None or layout != "map":
             raise ValueError(
@@ -149,13 +184,21 @@ def _summary_panels(
     mode,
     metric,
     sample_key,
+    *,
+    adaptive=False,
+    label_names=None,
 ):
     positions = {state: i for i, state in enumerate(states)}
     artists = {"effect": [], "alignment": [], "abundance": [], "coverage": []}
+    labels = [str((label_names or {}).get(state, state)) for state in states]
+    if adaptive:
+        labels = [textwrap.fill(label, 28, break_long_words=False) for label in labels]
     for name in ("effect", "alignment", "abundance", "coverage"):
+        if name not in axes:
+            continue
         axis = axes[name]
         axis.set_yticks(np.arange(len(states)))
-        axis.set_yticklabels(states, fontsize=8)
+        axis.set_yticklabels(labels if adaptive else states, fontsize=8)
         axis.set_ylim(len(states) - 0.5, -0.5)
         axis.grid(axis="x", alpha=0.15)
     for row in evidence.loc[evidence.state.isin(states)].itertuples(index=False):
@@ -196,20 +239,21 @@ def _summary_panels(
                 color=".45",
                 va="center",
             )
-        if row.alignment_available:
-            artists["alignment"].append(
-                axes["alignment"].scatter(row.alignment, y, s=34, color="#467E81")
-            )
-        else:
-            axes["alignment"].text(
-                0.02,
-                y,
-                "unavailable",
-                transform=axes["alignment"].get_yaxis_transform(),
-                fontsize=7,
-                color=".45",
-                va="center",
-            )
+        if "alignment" in axes:
+            if row.alignment_available:
+                artists["alignment"].append(
+                    axes["alignment"].scatter(row.alignment, y, s=34, color="#467E81")
+                )
+            else:
+                axes["alignment"].text(
+                    0.02,
+                    y,
+                    "unavailable",
+                    transform=axes["alignment"].get_yaxis_transform(),
+                    fontsize=7,
+                    color=".45",
+                    va="center",
+                )
     axes["effect"].set(
         title="Stored displacement" if mode == "stored" else "Display displacement",
         xlabel=metric.replace("_", " "),
@@ -228,81 +272,83 @@ def _summary_panels(
             fontsize=7,
             color=".4",
         )
-    axes["alignment"].set(
-        title="Stored alignment" if mode == "stored" else "Display alignment",
-        xlabel="Cosine",
-        xlim=(-1.08, 1.08),
-    )
-    axes["alignment"].axvline(0, color=".7", lw=0.8, ls=":")
-    if sample_key is None:
-        _unavailable(
-            axes["abundance"],
-            "Per-sample abundance unavailable\nNo sample_key supplied",
+    if "alignment" in axes:
+        axes["alignment"].set(
+            title="Stored alignment" if mode == "stored" else "Display alignment",
+            xlabel="Cosine",
+            xlim=(-1.08, 1.08),
         )
-    else:
-        sample_ids = sorted(sample_counts["sample"].unique())
-        symbols = ["o", "s", "^", "D", "P", "X", "v", ">", "<", "h"]
-        sample_symbols = {
-            sample: symbols[i] if i < len(symbols) else f"${i + 1}$"
-            for i, sample in enumerate(sample_ids)
-        }
-        for i, group in enumerate(groups):
-            frame = sample_counts.loc[
-                sample_counts.condition.eq(group) & sample_counts.state.isin(states)
-            ]
-            for state, rows in frame.groupby("state", sort=False):
-                offset = (i - 0.5) * 0.28
-                valid = rows.loc[rows.included]
-                jitter = (
-                    np.linspace(-0.055, 0.055, len(valid))
-                    if len(valid) > 1
-                    else np.zeros(len(valid))
-                )
-                for j, sample_row in enumerate(valid.itertuples(index=False)):
-                    artists["abundance"].append(
-                        axes["abundance"].scatter(
-                            sample_row.state_fraction * 100,
-                            positions[state] + offset + jitter[j],
-                            s=25,
-                            marker=sample_symbols[sample_row.sample],
-                            color=colors[group],
-                            alpha=0.8,
+        axes["alignment"].axvline(0, color=".7", lw=0.8, ls=":")
+    if "abundance" in axes:
+        if sample_key is None:
+            _unavailable(
+                axes["abundance"],
+                "Per-sample abundance unavailable\nNo sample_key supplied",
+            )
+        else:
+            sample_ids = sorted(sample_counts["sample"].unique())
+            symbols = ["o", "s", "^", "D", "P", "X", "v", ">", "<", "h"]
+            sample_symbols = {
+                sample: symbols[i] if i < len(symbols) else f"${i + 1}$"
+                for i, sample in enumerate(sample_ids)
+            }
+            for i, group in enumerate(groups):
+                frame = sample_counts.loc[
+                    sample_counts.condition.eq(group) & sample_counts.state.isin(states)
+                ]
+                for state, rows in frame.groupby("state", sort=False):
+                    offset = (i - 0.5) * 0.28
+                    valid = rows.loc[rows.included]
+                    jitter = (
+                        np.linspace(-0.055, 0.055, len(valid))
+                        if len(valid) > 1
+                        else np.zeros(len(valid))
+                    )
+                    for j, sample_row in enumerate(valid.itertuples(index=False)):
+                        artists["abundance"].append(
+                            axes["abundance"].scatter(
+                                sample_row.state_fraction * 100,
+                                positions[state] + offset + jitter[j],
+                                s=25,
+                                marker=sample_symbols[sample_row.sample],
+                                color=colors[group],
+                                alpha=0.8,
+                            )
                         )
+                    if (~rows.included).any():
+                        axes["abundance"].text(
+                            0.98,
+                            positions[state] + offset,
+                            "NA denominator",
+                            ha="right",
+                            va="center",
+                            transform=axes["abundance"].get_yaxis_transform(),
+                            fontsize=6,
+                            color=colors[group],
+                        )
+            axes["abundance"].set_xlim(left=-1)
+            artists["sample_legend"] = axes["abundance"].legend(
+                handles=[
+                    Line2D(
+                        [],
+                        [],
+                        marker=sample_symbols[sample],
+                        color=".4",
+                        linestyle="none",
+                        markersize=4,
+                        label=sample,
                     )
-                if (~rows.included).any():
-                    axes["abundance"].text(
-                        0.98,
-                        positions[state] + offset,
-                        "NA denominator",
-                        ha="right",
-                        va="center",
-                        transform=axes["abundance"].get_yaxis_transform(),
-                        fontsize=6,
-                        color=colors[group],
-                    )
-        axes["abundance"].set_xlim(left=-1)
-        artists["sample_legend"] = axes["abundance"].legend(
-            handles=[
-                Line2D(
-                    [],
-                    [],
-                    marker=sample_symbols[sample],
-                    color=".4",
-                    linestyle="none",
-                    markersize=4,
-                    label=sample,
-                )
-                for sample in sample_ids
-            ],
-            fontsize=6,
-            frameon=False,
-            loc="upper left",
-            bbox_to_anchor=(0, -0.17),
-            ncol=min(6, max(len(sample_ids), 1)),
+                    for sample in sample_ids
+                ],
+                fontsize=6,
+                frameon=False,
+                loc="upper left",
+                bbox_to_anchor=(0, -0.17),
+                ncol=min(3 if adaptive else 6, max(len(sample_ids), 1)),
+            )
+        axes["abundance"].set(
+            title="Observed sample abundance", xlabel="State / annotated sample cells (%)"
         )
-    axes["abundance"].set(
-        title="Observed sample abundance", xlabel="State / annotated sample cells (%)"
-    )
     for i, group in enumerate(groups):
         frame = coverage.loc[coverage.condition.eq(group) & coverage.state.isin(states)]
         for row in frame.itertuples(index=False):
@@ -330,7 +376,7 @@ def _summary_panels(
         else 1
     )
     axes["coverage"].set(
-        xlim=(-max(1.0, max_count * 0.04), max(4.0, max_count * 2.4)),
+        xlim=(-max(1.0, max_count * 0.04), max(4.0, max_count * (3.0 if adaptive else 2.4))),
         title="Current data coverage",
         xlabel="Observed state cells",
     )
@@ -341,7 +387,9 @@ def _summary_panels(
         for g in groups
     ]
     axes["coverage"].legend(
-        handles=handles, fontsize=7, frameon=False, loc="lower right"
+        handles=handles, fontsize=7, frameon=False,
+        **({"loc": "upper left", "bbox_to_anchor": (0, -0.18), "ncol": 2}
+           if adaptive else {"loc": "lower right"})
     )
     return artists
 
@@ -447,7 +495,9 @@ def recovery_compass(
     used and recorded as a descriptive threshold.
 
     ``layout='summary'`` adds effect, alignment, per-sample abundance and current
-    coverage panels. ``sample_key`` uses the complete selected-condition sample
+    coverage panels. ``layout='adaptive'`` creates a larger owned figure with
+    explicit gutters, wraps long state labels and omits wholly unavailable
+    alignment/abundance tracks with a visible note; source tables are retained. ``sample_key`` uses the complete selected-condition sample
     roster: zero-state samples have observed zero frequency, and samples with
     no annotated denominator stay missing. Without a sample key no samples or
     intervals are fabricated. Supplied ``axes`` map map/effect/alignment/
@@ -462,14 +512,14 @@ def recovery_compass(
 
     Default map returns are ``(fig, ax)`` or the supplied ax; ``return_data``
     adds the observed-contrast node table and displayed edges as before.
-    Summary returns ``(fig, axes)``. ``return_result=True`` takes priority and
+    Summary and adaptive layouts return ``(fig, axes)``. ``return_result=True`` takes priority and
     preserves cells/nodes/edges/graph_nodes/glyphs plus evidence and coverage
     tables. No AnnData or supplied result table is modified. This plot does not
     establish recovery, causality, cell trajectories or directed PAGA edges.
     """
     for name, value, allowed in (
         ("mode", mode, {"display", "stored"}),
-        ("layout", layout, {"map", "summary"}),
+        ("layout", layout, {"map", "summary", "adaptive"}),
         ("node_position", node_position, {"reference", "pooled"}),
         (
             "node_size_mode",
@@ -814,7 +864,41 @@ def recovery_compass(
                 "caxes requires supplied map axes and active color encodings with show_colorbar=True."
             )
         panel_axes(["map", *caxes], {"map": map_ax, **caxes}, None)
-    fig, panels, owns = _canvas(layout, ax, axes, figsize)
+    summary_states = (
+        evidence.sort_values(
+            ["effect_available", "effect"],
+            ascending=[False, False],
+            kind="stable",
+            na_position="last",
+        )
+        .state.head(max_states)
+        .tolist()
+    )
+    adaptive_names = None
+    omitted_panels = []
+    if layout == "adaptive":
+        adaptive_names = ["map", "effect"]
+        selected_evidence = evidence.loc[evidence.state.isin(summary_states)]
+        if selected_evidence.alignment_available.any():
+            adaptive_names.append("alignment")
+        else:
+            omitted_panels.append("alignment")
+        if (sample_key is not None and
+                sample_counts.loc[sample_counts.state.isin(summary_states), "included"].any()):
+            adaptive_names.append("abundance")
+        else:
+            omitted_panels.append("abundance")
+        adaptive_names.append("coverage")
+    fig, panels, owns = _canvas(
+        layout, ax, axes, figsize, names=adaptive_names,
+        states=[label_names.get(state, state) for state in summary_states],
+        sample_counts=sample_counts, sample_key=sample_key,
+    )
+    if layout == "adaptive" and omitted_panels:
+        messages = {"alignment": "Velocity alignment unavailable for displayed states",
+                    "abundance": "Per-sample abundance unavailable"}
+        fig.text(0.5, 0.015, " · ".join(messages[name] for name in omitted_panels),
+                 ha="center", va="bottom", fontsize=8, color=".4")
     ax = panels["map"]
     if owns and layout == "map":
         if hasattr(fig, "set_layout_engine"):
@@ -1079,20 +1163,10 @@ def recovery_compass(
     ax.set_aspect("equal", adjustable="box" if owns else "datalim")
     for spine in ax.spines.values():
         spine.set_visible(False)
-    summary_states = (
-        evidence.sort_values(
-            ["effect_available", "effect"],
-            ascending=[False, False],
-            kind="stable",
-            na_position="last",
-        )
-        .state.head(max_states)
-        .tolist()
-    )
     evidence["summary_displayed"] = evidence.state.isin(summary_states) & (
-        layout == "summary"
+        layout != "map"
     )
-    if layout == "summary":
+    if layout != "map":
         artists["summary"] = _summary_panels(
             panels,
             evidence,
@@ -1104,6 +1178,8 @@ def recovery_compass(
             mode,
             metric,
             sample_key,
+            adaptive=layout == "adaptive",
+            label_names=label_names,
         )
     ranking = nodes.sort_values(
         "shift_norm", ascending=False, kind="stable", na_position="last"
@@ -1209,7 +1285,9 @@ def recovery_compass(
         "max_points": max_points,
         "random_state": random_state,
         "n_background_displayed": len(drawn),
-        "summary_states": summary_states if layout == "summary" else [],
+        "summary_states": summary_states if layout != "map" else [],
+        "resolved_panels": list(panels),
+        "omitted_panels": omitted_panels,
         "show_colorbar": bool(show_colorbar),
         "owns_figure": owns,
         "export_scope": "created_figure" if owns else "parent_figure",
@@ -1228,6 +1306,6 @@ def recovery_compass(
             nodes.loc[nodes.n0.add(nodes.n1).gt(0)].copy(),
             edges,
         )
-    if layout == "summary":
+    if layout != "map":
         return fig, panels
     return (fig, ax) if owns else ax
