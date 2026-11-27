@@ -9,6 +9,8 @@ specific display behaviors and known failure modes easy to inspect.
 [Public-data source](../examples/real_data_plotting_gallery.py) ·
 [Synthetic source](../examples/plotting_gallery.py) · [PAGA shift maps](PAGA_SHIFT_MAP.md) · [Unified atlas](GEOMETRY_DYNAMICS_ATLAS.md) · [Embedding facets](EMBEDDING_FACETS.md)
 
+**Understand the inputs first:** the companion's [illustrated simulation guide](https://github.com/liuifrec/scgeo-notebooks/blob/main/docs/SIMULATION_DESIGN.md) explains the exact synthetic models underlying the v0.2.0 examples, including the distinction between supplied vectors/graphs, fitted PCA, planted expression effects and deliberately unequal capture. Use the [notebook series](https://github.com/liuifrec/scgeo-notebooks/blob/main/notebooks/tutorials/v0.2.0/README.md) for step-by-step execution.
+
 The [unified atlas gallery](../examples/geometry_dynamics_atlas_gallery.py)
 assembles a four-panel synthetic geometry–dynamics figure and a minimal
 AnnData-only fallback, exporting their source tables. Pass optional,

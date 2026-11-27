@@ -8,6 +8,10 @@ dataset provenance, output maps, and evidence records.
 [Dataset map](https://github.com/liuifrec/scgeo-notebooks/blob/main/docs/DATASET_MAP.md) ·
 [Results overview](https://github.com/liuifrec/scgeo-notebooks/blob/main/docs/RESULTS_OVERVIEW.md)**
 
+## Learn the released API with controlled simulations
+
+Start with [How the tutorial data are generated](https://github.com/liuifrec/scgeo-notebooks/blob/main/docs/SIMULATION_DESIGN.md), a visual explanation of the exact input models used in the companion's [0.2.0 notebook series](https://github.com/liuifrec/scgeo-notebooks/blob/main/notebooks/tutorials/v0.2.0/README.md). The guide shows the planted geometry, molecular-response functions, sample capture and known support failures, with links to the immutable example sources. Eleven lessons use synthetic inputs; the last is an optional checksum-matched public-data exercise. These teaching fixtures are distinct from the paper's frozen benchmarks and biological studies.
+
 ## Find an application or validation setting
 
 | Workflow | What to explore | Inference scope |
@@ -30,8 +34,8 @@ and limitations without recomputing the frozen results.
 | `scgeo-notebooks` | Workflow source, public-data provenance, figure assembly, and evidence records |
 | Local generated outputs | Executed notebooks, figures/source tables, data objects, models, and logs |
 
-The companion's lightweight synthetic reporting notebook is a conceptual
-NumPy/pandas example. To learn actual ScGeo API calls first, use this package's
-[quick start](QUICKSTART.md). For manuscript reproduction, follow the
+The companion's earlier lightweight synthetic reporting notebook is a conceptual
+NumPy/pandas example. To learn actual ScGeo API calls, use the package's
+[quick start](QUICKSTART.md) or the [released 0.2.0 tutorial series](https://github.com/liuifrec/scgeo-notebooks/blob/main/notebooks/tutorials/v0.2.0/README.md). For manuscript reproduction, follow the
 [frozen provenance](REPRODUCIBILITY.md) and workflow-specific environments.
 For reuse in a new publication, see [Citing ScGeo](CITING.md).
