@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.1 — planned visualization patch
+
+- Add an adaptive response compass that omits wholly unavailable alignment or sample-abundance panels, retains the original sources, and allocates physical space for long labels and legends. Fixed summary retains five axes and caller-owned axes retain their positions.
+- Wrap long automatic graph labels, consider wider deterministic callout positions, and keep manual offsets and numerical anchors unchanged.
+- Use multi-row sample-center plots by default for more than three states, with common coordinate scales; allow a two-panel geometry/evidence atlas to use the adaptive evidence strip.
+- Present readable coverage labels and use uniform explicit contrast labels in exported report tables when provenance is absent.
+- Statistical estimators, input data, manuscript checkpoints and the production 0.2.0 package are unchanged. This candidate requires CI and real-data visual review before publication.
+
 ## 0.2.0 — 26 November 2026
 
 Published on [PyPI](https://pypi.org/project/scgeo/0.2.0/). The release includes the plotting, state-shift explanation and deployment improvements below. The [production workflow](https://github.com/liuifrec/scgeo/actions/runs/45765641121) verified both distribution hashes and a fresh pip installation. See [Installation](docs/INSTALLATION.md) and [Releasing](docs/RELEASING.md).

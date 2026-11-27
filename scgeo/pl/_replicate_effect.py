@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import textwrap
 
 import numpy as np
 import pandas as pd
@@ -88,9 +89,21 @@ def replicate_effect(
         paired = work.loc[work[pair_key].notna()]
         if paired.duplicated(["state", "condition", pair_key]).any():
             raise ValueError("Pair identifiers must select at most one sample per state and condition.")
-    figure, axis_map, created = panel_axes(
-        states, axes, figsize or (max(4, 3.3 * len(states)), 3.8), sharey=True,
-    )
+    wrapped = axes is None and figsize is None and len(states) > 3
+    if wrapped:
+        ncols = 3
+        nrows = (len(states) + ncols - 1) // ncols
+        figure, grid = plt.subplots(nrows, ncols, squeeze=False, sharey=True,
+                                    figsize=(10.8, 3.6 * nrows))
+        axis_map = dict(zip(states, grid.flat))
+        for empty in grid.flat[len(states):]:
+            empty.set_visible(False)
+        created = True
+    else:
+        ncols = len(states)
+        figure, axis_map, created = panel_axes(
+            states, axes, figsize or (max(4, 3.3 * len(states)), 3.8), sharey=True,
+        )
     rng = np.random.RandomState(seed)
     work["display_x"] = work.condition.map({name: i for i, name in enumerate(conditions)}).astype(float)
     work["display_x"] += rng.uniform(-jitter, jitter, size=len(work))
@@ -134,9 +147,10 @@ def replicate_effect(
         ax.set_xticks(np.arange(len(conditions)))
         ax.set_xticklabels([f"{condition}\nn={n}" for condition, n in zip(conditions, counts)])
         ax.set_xlim(-.5, len(conditions)-.5)
-        ax.set_title(state)
-        ax.set_ylabel(f"{representation} · coordinate {coordinate}\nSample center (descriptive)" if panel_index == 0 else "")
-        ax.tick_params(axis="y", labelleft=panel_index == 0)
+        ax.set_title(textwrap.fill(state, 25, break_long_words=False) if created else state)
+        left_column = panel_index % ncols == 0
+        ax.set_ylabel(f"{representation} · coordinate {coordinate}\nSample center (descriptive)" if left_column else "")
+        ax.tick_params(axis="y", labelleft=left_column)
         ax.grid(axis="y", color="0.9", linewidth=.6)
         ax.spines[["top", "right"]].set_visible(False)
         if summary is not None and panel_index == 0:
@@ -162,6 +176,7 @@ def replicate_effect(
     metadata = {"plot": "replicate_effect", "coordinate": coordinate, "representation": representation,
                 "state_order": states, "condition_order": conditions, "pair_key": pair_key,
                 "summary": summary, "seed": int(seed), "jitter": float(jitter),
+                "resolved_layout": "wrapped" if wrapped else "single_row" if created else "supplied_axes",
                 "inference": "Descriptive, equally weighted biological samples; no hypothesis test or CI computed.",
                 "source_attrs": deepcopy(source.attrs)}
     result = PlotResult(fig=figure, axes=axis_map, data=data, metadata=metadata, warnings=[], artists=artists)

@@ -235,8 +235,8 @@ on a library-owned figure. It reserves physical gutters for labels and legends,
 wraps long display labels, and removes an alignment or abundance panel only when
 that evidence is wholly unavailable among the displayed states. A note explains
 omitted panels; the original evidence, coverage and sample-abundance tables are
-still exported. `layout="summary"` retains its fixed five-panel contract, including
-caller-supplied axes. `layout="map"` is unchanged.
+still exported. `layout="summary"` retains its fixed five-panel contract, with the same generous
+owned-figure sizing. Caller-supplied axes keep their layout. `layout="map"` is unchanged.
 
 ```python
 result = sg.pl.recovery_compass(

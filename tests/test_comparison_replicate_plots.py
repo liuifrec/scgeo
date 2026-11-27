@@ -227,3 +227,21 @@ def test_replicate_missing_values_stay_visible():
     assert summary.loc["A", "n_samples"] == 1
     assert summary.loc["A", "n_missing"] == 1
     assert len(result.data["sample_centers"]) == 4
+
+
+def test_many_sample_states_wrap_without_changing_numeric_sources():
+    table = pd.DataFrame([
+        dict(state=f"State {i} long biological description", condition=group,
+             sample=f"{group}_{j}", coordinate=0, value=float(i + j),
+             representation="X_pca")
+        for i in range(6) for group in ("control", "treated") for j in range(3)
+    ])
+    result = replicate_effect(table, coordinate=0, return_result=True, show=False)
+    explicit = replicate_effect(table, coordinate=0, figsize=(20, 4), return_result=True, show=False)
+    assert result.metadata["resolved_layout"] == "wrapped"
+    axes = list(result.axes.values())
+    assert axes[0].get_position().y0 > axes[3].get_position().y0
+    assert axes[3].get_ylabel()
+    assert axes[0].get_ylim() == axes[-1].get_ylim()
+    pd.testing.assert_frame_equal(result.data["sample_centers"], explicit.data["sample_centers"])
+    pd.testing.assert_frame_equal(result.data["sample_summary"], explicit.data["sample_summary"])

@@ -105,7 +105,12 @@ def _adaptive_canvas(names, states, figsize, sample_counts, sample_key):
     footer[0] = max(footer[0], 1.7)
     width = 2 * (4.4 + label_space) + 0.8
     height = sum(row_heights) + sum(footer) + 0.6
-    fig = plt.figure(figsize=figsize or (width, height), layout="none")
+    fig = plt.figure(figsize=figsize or (width, height))
+    # Explicit axes positions must not compete with a user/global layout engine.
+    if hasattr(fig, "set_layout_engine"):
+        fig.set_layout_engine("none")
+    else:
+        fig.set_constrained_layout(False)
     left = label_space / width
     gap = (label_space + 0.55) / width
     col = (1 - left - gap - 0.35 / width) / 2
@@ -142,21 +147,7 @@ def _canvas(layout, ax, axes, figsize, *, names=None, states=(),
         return panel_axes(names, axes, None)
     if layout == "map":
         return panel_axes(names, None, figsize or (9.5, 8.0))
-    fig = plt.figure(figsize=figsize or (14.0, 8.5), constrained_layout=True)
-    if hasattr(fig, "get_layout_engine"):
-        fig.get_layout_engine().set(rect=(0.0, 0.045, 1.0, 0.955))
-    grid = fig.add_gridspec(2, 3, width_ratios=(1.8, 1, 1))
-    return (
-        fig,
-        {
-            "map": fig.add_subplot(grid[:, 0]),
-            "effect": fig.add_subplot(grid[0, 1]),
-            "alignment": fig.add_subplot(grid[0, 2]),
-            "abundance": fig.add_subplot(grid[1, 1]),
-            "coverage": fig.add_subplot(grid[1, 2]),
-        },
-        True,
-    )
+    return _adaptive_canvas(names, states, figsize, sample_counts, sample_key)
 
 
 def _unavailable(ax, message):
@@ -891,7 +882,7 @@ def recovery_compass(
         adaptive_names.append("coverage")
     fig, panels, owns = _canvas(
         layout, ax, axes, figsize, names=adaptive_names,
-        states=[label_names.get(state, state) for state in summary_states],
+        states=[(label_names or {}).get(state, state) for state in summary_states],
         sample_counts=sample_counts, sample_key=sample_key,
     )
     if layout == "adaptive" and omitted_panels:
@@ -1178,7 +1169,7 @@ def recovery_compass(
             mode,
             metric,
             sample_key,
-            adaptive=layout == "adaptive",
+            adaptive=owns,
             label_names=label_names,
         )
     ranking = nodes.sort_values(
